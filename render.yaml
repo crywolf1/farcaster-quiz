@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: farcaster-quiz-server
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
