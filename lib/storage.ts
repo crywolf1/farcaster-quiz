@@ -1,17 +1,93 @@
-// Persistent storage using Vercel KV  
-// When REDIS_URL is set, Vercel automatically configures @vercel/kv
-import { kv } from '@vercel/kv';
+// Persistent storage using Redis (node-redis client)
+import { createClient, RedisClientType } from 'redis';
 import { GameRoom, Player } from './types';
 
-// Log which environment variables are available (for debugging)
-if (typeof window === 'undefined') {
-  console.log('[Storage] Environment variables:', {
-    KV_REST_API_URL: !!process.env.KV_REST_API_URL,
-    KV_REST_API_TOKEN: !!process.env.KV_REST_API_TOKEN,
-    REDIS_URL: !!process.env.REDIS_URL,
-    KV_URL: !!process.env.KV_URL,
-  });
+// Lazy initialization of Redis client
+let redis: RedisClientType | null = null;
+let isConnecting = false;
+let isConnected = false;
+
+function getRedisClient(): RedisClientType {
+  if (!redis) {
+    const redisUrl = process.env.REDIS_URL;
+    
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is not set');
+    }
+
+    console.log('[Storage] Creating Redis client...');
+    
+    redis = createClient({
+      url: redisUrl,
+    }) as RedisClientType;
+
+    // Handle connection errors
+    redis.on('error', (err) => console.error('[Storage] Redis Client Error:', err));
+  }
+  
+  return redis;
 }
+
+async function ensureConnected() {
+  const client = getRedisClient();
+  
+  if (isConnected) return;
+  if (isConnecting) {
+    // Wait for connection
+    while (isConnecting) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return;
+  }
+  
+  isConnecting = true;
+  try {
+    await client.connect();
+    isConnected = true;
+    console.log('[Storage] Redis connected');
+  } catch (error) {
+    console.error('[Storage] Failed to connect to Redis:', error);
+    throw error;
+  } finally {
+    isConnecting = false;
+  }
+}
+
+// Wrapper object to match @vercel/kv interface
+const kv = {
+  async get<T>(key: string): Promise<T | null> {
+    await ensureConnected();
+    const client = getRedisClient();
+    const value = await client.get(key);
+    if (!value) return null;
+    const stringValue = typeof value === 'string' ? value : value.toString();
+    return JSON.parse(stringValue) as T;
+  },
+
+  async set(key: string, value: any, options?: { ex?: number }): Promise<void> {
+    await ensureConnected();
+    const client = getRedisClient();
+    const serialized = JSON.stringify(value);
+    if (options?.ex) {
+      await client.setEx(key, options.ex, serialized);
+    } else {
+      await client.set(key, serialized);
+    }
+  },
+
+  async del(key: string): Promise<void> {
+    await ensureConnected();
+    const client = getRedisClient();
+    await client.del(key);
+  },
+
+  async keys(pattern: string): Promise<string[]> {
+    await ensureConnected();
+    const client = getRedisClient();
+    const keys = await client.keys(pattern);
+    return keys as string[];
+  },
+};
 
 const MATCHMAKING_QUEUE_KEY = 'matchmaking:queue';
 const GAME_ROOM_PREFIX = 'game:room:';
