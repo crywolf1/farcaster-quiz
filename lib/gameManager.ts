@@ -93,9 +93,16 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
 }
 
 // Helper: Start timer for a specific player
-function startPlayerTimer(roomId: string, playerId: string): void {
+async function startPlayerTimer(roomId: string, playerId: string): Promise<void> {
   // Clear existing timer for this player
   clearPlayerTimer(playerId);
+
+  // Update room with timer start time
+  const room = await storage.getGameRoom(roomId);
+  if (room) {
+    room.playerTimers.set(playerId, Date.now());
+    await storage.setGameRoom(roomId, room);
+  }
 
   // Start new timer
   const timerId = setTimeout(() => {
@@ -170,7 +177,7 @@ async function handlePlayerQuestionTimeout(roomId: string, playerId: string): Pr
 
   if (newProgress < room.questions.length) {
     // Start timer for player's next question
-    startPlayerTimer(roomId, playerId);
+    await startPlayerTimer(roomId, playerId);
   }
 }
 
@@ -272,7 +279,9 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
   await storage.setGameRoom(roomId, room);
   
   // Start timer for each player's first question
-  room.players.forEach(p => startPlayerTimer(roomId, p.id));
+  for (const p of room.players) {
+    await startPlayerTimer(roomId, p.id);
+  }
   
   console.log(`[GameManager] Auto-selected subject: ${randomSubject}`);
 }
@@ -421,11 +430,16 @@ export async function selectSubject(playerId: string, subject: string): Promise<
   // Reset player progress for new round
   room.players.forEach(p => {
     room.playerProgress.set(p.id, 0);
-    room.playerTimers.set(p.id, Date.now());
-    // Start timer for each player's first question (will be async later)
-    startPlayerTimer(roomId, p.id);
   });
   room.playersFinished.clear();
+  
+  // Save room back to Redis before starting timers
+  await storage.setGameRoom(roomId, room);
+  
+  // Start timer for each player's first question
+  for (const p of room.players) {
+    await startPlayerTimer(roomId, p.id);
+  }
 
   // Save room back to Redis
   await storage.setGameRoom(roomId, room);
@@ -538,7 +552,7 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
   await storage.setGameRoom(roomId, room);
 
   // Player has more questions - start timer for next question
-  startPlayerTimer(roomId, playerId);
+  await startPlayerTimer(roomId, playerId);
   
   return { 
     success: true, 
