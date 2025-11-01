@@ -53,6 +53,40 @@ async function ensureConnected() {
   }
 }
 
+// Helper to serialize Maps and Sets to JSON
+function serialize(value: any): string {
+  return JSON.stringify(value, (key, val) => {
+    if (val instanceof Map) {
+      return {
+        __type: 'Map',
+        value: Array.from(val.entries()),
+      };
+    }
+    if (val instanceof Set) {
+      return {
+        __type: 'Set',
+        value: Array.from(val),
+      };
+    }
+    return val;
+  });
+}
+
+// Helper to deserialize Maps and Sets from JSON
+function deserialize<T>(str: string): T {
+  return JSON.parse(str, (key, val) => {
+    if (val && typeof val === 'object') {
+      if (val.__type === 'Map') {
+        return new Map(val.value);
+      }
+      if (val.__type === 'Set') {
+        return new Set(val.value);
+      }
+    }
+    return val;
+  });
+}
+
 // Wrapper object to match @vercel/kv interface
 const kv = {
   async get<T>(key: string): Promise<T | null> {
@@ -61,13 +95,13 @@ const kv = {
     const value = await client.get(key);
     if (!value) return null;
     const stringValue = typeof value === 'string' ? value : value.toString();
-    return JSON.parse(stringValue) as T;
+    return deserialize<T>(stringValue);
   },
 
   async set(key: string, value: any, options?: { ex?: number }): Promise<void> {
     await ensureConnected();
     const client = getRedisClient();
-    const serialized = JSON.stringify(value);
+    const serialized = serialize(value);
     if (options?.ex) {
       await client.setEx(key, options.ex, serialized);
     } else {
