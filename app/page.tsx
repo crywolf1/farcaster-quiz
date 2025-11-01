@@ -56,6 +56,8 @@ export default function Home() {
   const [timeRemaining, setTimeRemaining] = useState<number>(18); // seconds
   const [timerActive, setTimerActive] = useState<boolean>(false);
   const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
+  const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null); // Track answer feedback
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -247,6 +249,7 @@ export default function Home() {
               console.log('[Polling] New question for me:', myCurrentQ.id);
               setCurrentQuestionId(myCurrentQ.id);
               setSelectedAnswer(null);
+              setAnswerFeedback(null); // Reset feedback for new question
               setLastResult(null);
               setShowingResults(false);
             }
@@ -278,6 +281,10 @@ export default function Home() {
   // Select subject
   const selectSubject = async (subject: string) => {
     console.log('[Client] Selecting subject:', subject, 'playerId:', playerId);
+    
+    // Immediately show selection with animation
+    setSelectedSubject(subject);
+    
     try {
       const response = await fetch('/api/subject', {
         method: 'POST',
@@ -291,13 +298,19 @@ export default function Home() {
 
       if (data.success) {
         console.log('[Client] Subject selected successfully, switching to playing state');
-        setGameState('playing');
+        // Keep the selected subject visible for a moment before transitioning
+        setTimeout(() => {
+          setGameState('playing');
+          setSelectedSubject(null); // Reset for next round
+        }, 800);
       } else {
         console.error('[Client] Failed to select subject:', data.message || data.error);
+        setSelectedSubject(null); // Reset on error
         alert(data.message || data.error || 'Failed to select subject');
       }
     } catch (error) {
       console.error('[Client] Select subject error:', error);
+      setSelectedSubject(null); // Reset on error
       alert('Error selecting subject: ' + error);
     }
   };
@@ -332,6 +345,10 @@ export default function Home() {
       const myCurrentQ = gameRoom.questions[myProgress];
       console.log('[Submit] Current question:', myCurrentQ);
       
+      // Check if answer is correct immediately for instant feedback
+      const isCorrect = answerIndex === myCurrentQ.correctAnswer;
+      setAnswerFeedback(isCorrect ? 'correct' : 'incorrect');
+      
       const response = await fetch('/api/answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -350,6 +367,7 @@ export default function Home() {
         console.error('[Submit] Failed:', data.message || data.error);
         alert(data.message || data.error || 'Failed to submit answer');
         setSelectedAnswer(null);
+        setAnswerFeedback(null);
       }
 
       // Answer submitted - polling will update to next question
@@ -357,6 +375,7 @@ export default function Home() {
       console.error('[Submit] Submit answer error:', error);
       alert('Error submitting answer: ' + error);
       setSelectedAnswer(null);
+      setAnswerFeedback(null);
     }
   };
 
@@ -538,15 +557,25 @@ export default function Home() {
           
           {isMyTurnToPick ? (
             <div className="space-y-3">
-              {subjects.map((subject) => (
-                <button
-                  key={subject}
-                  onClick={() => selectSubject(subject)}
-                  className="w-full backdrop-blur-2xl bg-white/20 text-white py-4 rounded-[28px] font-bold text-lg shadow-2xl hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.02] transition-all active:scale-95 border-2 border-white/40"
-                >
-                  {subject}
-                </button>
-              ))}
+              {subjects.map((subject) => {
+                const isSelected = selectedSubject === subject;
+                return (
+                  <button
+                    key={subject}
+                    onClick={() => !selectedSubject && selectSubject(subject)}
+                    disabled={!!selectedSubject}
+                    className={`w-full py-4 rounded-[28px] font-bold text-lg shadow-2xl border-2 transition-all duration-500 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300 scale-105 animate-pulse shadow-[0_0_40px_rgba(16,185,129,0.6)]'
+                        : selectedSubject
+                        ? 'backdrop-blur-2xl bg-white/10 text-white/50 border-white/20 cursor-not-allowed'
+                        : 'backdrop-blur-2xl bg-white/20 text-white border-white/40 hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-95 cursor-pointer'
+                    }`}
+                  >
+                    {subject} {isSelected && '✓'}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
@@ -707,22 +736,37 @@ export default function Home() {
           {/* Answer Options */}
           <div className="space-y-3">
             {currentQuestion.options?.map((option, index) => {
-              let buttonClass = "w-full backdrop-blur-lg bg-white/50 border-2 border-white/40 text-white py-4 px-6 rounded-[24px] font-semibold text-left transition-all shadow-lg";
+              const isCorrect = index === currentQuestion.correctAnswer;
+              const isMyAnswer = selectedAnswer === index;
+              const showInstantFeedback = hasAnswered && answerFeedback && isMyAnswer;
+              
+              let buttonClass = "w-full py-4 px-6 rounded-[24px] font-semibold text-left transition-all duration-500 shadow-lg";
               
               if (bothAnswered && lastResult) {
-                // Show results
-                const isCorrect = index === currentQuestion.correctAnswer;
-                const isMyAnswer = selectedAnswer === index;
-                
+                // Show final results (both players answered)
                 if (isCorrect) {
-                  buttonClass = "w-full bg-green-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-green-400";
+                  buttonClass += " bg-gradient-to-r from-green-400 to-emerald-500 text-white border-2 border-green-300 shadow-[0_0_30px_rgba(16,185,129,0.5)]";
                 } else if (isMyAnswer) {
-                  buttonClass = "w-full bg-red-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-red-400";
+                  buttonClass += " bg-gradient-to-r from-red-400 to-rose-500 text-white border-2 border-red-300 shadow-[0_0_30px_rgba(239,68,68,0.5)]";
+                } else {
+                  buttonClass += " backdrop-blur-lg bg-white/30 border-2 border-white/20 text-white/70";
                 }
-              } else if (hasAnswered && selectedAnswer === index) {
-                buttonClass = "w-full backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-white/20";
-              } else if (!hasAnswered) {
-                buttonClass += " hover:bg-white/70 hover:scale-[1.02] active:scale-95 cursor-pointer";
+              } else if (showInstantFeedback) {
+                // Show instant feedback after selection
+                if (answerFeedback === 'correct') {
+                  buttonClass += " bg-gradient-to-r from-green-400 to-emerald-500 text-white border-2 border-green-300 animate-pulse scale-105 shadow-[0_0_40px_rgba(16,185,129,0.6)]";
+                } else {
+                  buttonClass += " bg-gradient-to-r from-red-400 to-rose-500 text-white border-2 border-red-300 animate-pulse scale-105 shadow-[0_0_40px_rgba(239,68,68,0.6)]";
+                }
+              } else if (hasAnswered && isMyAnswer) {
+                // Selected but waiting
+                buttonClass += " backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-2 border-white/20";
+              } else if (hasAnswered) {
+                // Not selected, disabled
+                buttonClass += " backdrop-blur-lg bg-white/20 border-2 border-white/20 text-white/50 cursor-not-allowed";
+              } else {
+                // Not answered yet, hoverable
+                buttonClass += " backdrop-blur-lg bg-white/50 border-2 border-white/40 text-white hover:bg-white/70 hover:scale-[1.02] active:scale-95 cursor-pointer";
               }
 
               return (
@@ -733,7 +777,9 @@ export default function Home() {
                   className={buttonClass}
                 >
                   {option}
-                  {bothAnswered && index === currentQuestion.correctAnswer && " ✓"}
+                  {showInstantFeedback && answerFeedback === 'correct' && " ✓"}
+                  {showInstantFeedback && answerFeedback === 'incorrect' && " ✗"}
+                  {bothAnswered && isCorrect && " ✓"}
                 </button>
               );
             })}
