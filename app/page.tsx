@@ -258,16 +258,17 @@ export default function Home() {
             console.log('[Polling] Setting state to playing, myProgress:', room.myProgress);
             
             // Show subject result animation briefly before moving to playing
-            if (!showSubjectResult && room.currentSubject) {
+            // Only show ONCE per round (first time we detect playing state with a subject)
+            if (!showSubjectResult && room.currentSubject && room.myProgress === 0) {
               console.log('[Polling] Showing subject result animation for:', room.currentSubject);
               setShowSubjectResult(true);
-              // Keep showing for 2 seconds before transitioning to playing
+              // Keep showing for 1.5 seconds then hide (but stay in playing state)
               setTimeout(() => {
-                setGameState('playing');
-              }, 2000);
-            } else {
-              setGameState('playing');
+                setShowSubjectResult(false);
+              }, 1500);
             }
+            
+            setGameState('playing');
             
             // Check if MY question changed - BUT ONLY if not showing feedback animation
             const myCurrentQ = room.questions[room.myProgress || 0];
@@ -746,6 +747,19 @@ export default function Home() {
       {/* Subject Result Animation */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
+          {/* Timer - show the countdown that's already running */}
+          {timerActive && (
+            <div className="mb-6">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
+              } shadow-2xl drop-shadow-2xl`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
+                  {timeRemaining}
+                </span>
+              </div>
+            </div>
+          )}
+          
           <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
             Subject Selected! 🎯
           </h2>
