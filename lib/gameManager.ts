@@ -21,8 +21,9 @@ async function startRoundOverAutoStart(roomId: string): Promise<void> {
   // Clear existing auto-start timer
   clearRoundOverAutoStart(roomId);
 
-  // Record when round over timer started
+  // Record when round over timer started and save to Redis FIRST
   room.roundOverTimerStartedAt = Date.now();
+  await storage.setGameRoom(roomId, room);
 
   // Start 30-second timer to auto-start next round
   const timerId = setTimeout(() => {
@@ -34,9 +35,6 @@ async function startRoundOverAutoStart(roomId: string): Promise<void> {
   const timers = roomTimerIds.get(roomId) || {};
   timers.roundOver = timerId;
   roomTimerIds.set(roomId, timers);
-
-  // Save room back to Redis
-  await storage.setGameRoom(roomId, room);
 
   console.log(`[GameManager] Round over - 30 second auto-start timer started`);
 }
@@ -189,10 +187,12 @@ async function startSubjectTimer(roomId: string): Promise<void> {
   // Clear existing timer
   clearSubjectTimer(roomId);
 
-  // Start new timer
+  // Set timer timestamp and save to Redis FIRST
   room.timerStartedAt = Date.now();
   room.timerDuration = TIMER_DURATION;
+  await storage.setGameRoom(roomId, room);
   
+  // Start new timer
   const timerId = setTimeout(() => {
     console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
     handleSubjectSelectionTimeout(roomId);
@@ -202,9 +202,6 @@ async function startSubjectTimer(roomId: string): Promise<void> {
   const timers = roomTimerIds.get(roomId) || {};
   timers.subject = timerId;
   roomTimerIds.set(roomId, timers);
-
-  // Save room back to Redis
-  await storage.setGameRoom(roomId, room);
 }
 
 // Helper: Clear subject selection timer
