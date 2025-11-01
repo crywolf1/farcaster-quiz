@@ -57,6 +57,7 @@ export default function Home() {
   const [timerActive, setTimerActive] = useState<boolean>(false);
   const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
+  const [showSubjectResult, setShowSubjectResult] = useState(false); // Show which subject was selected with animation
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null); // Track answer feedback
   const [isShowingFeedback, setIsShowingFeedback] = useState(false); // Flag to prevent question change during feedback
   
@@ -251,9 +252,22 @@ export default function Home() {
             const newState = isMyTurn ? 'subject-selection' : 'waiting-subject';
             console.log('[Polling] Subject selection - isMyTurn:', isMyTurn, 'newState:', newState);
             setGameState(newState);
+            // Reset subject result animation when entering subject selection
+            setShowSubjectResult(false);
           } else if (room.state === 'playing') {
             console.log('[Polling] Setting state to playing, myProgress:', room.myProgress);
-            setGameState('playing');
+            
+            // Show subject result animation briefly before moving to playing
+            if (!showSubjectResult && room.currentSubject) {
+              console.log('[Polling] Showing subject result animation for:', room.currentSubject);
+              setShowSubjectResult(true);
+              // Keep showing for 2 seconds before transitioning to playing
+              setTimeout(() => {
+                setGameState('playing');
+              }, 2000);
+            } else {
+              setGameState('playing');
+            }
             
             // Check if MY question changed - BUT ONLY if not showing feedback animation
             const myCurrentQ = room.questions[room.myProgress || 0];
@@ -666,12 +680,83 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Waiting message */}
+      {/* Waiting message with timer */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-10">
+          {/* Timer */}
+          {timerActive && (
+            <div className="mb-6">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
+              } shadow-2xl drop-shadow-2xl`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
+                  {timeRemaining}
+                </span>
+              </div>
+            </div>
+          )}
           <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-4 drop-shadow-2xl"></div>
           <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">{opponent?.username} is choosing...</h2>
           <p className="text-white/90 drop-shadow">Get ready!</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSubjectResult = () => (
+    <div className="min-h-screen flex flex-col p-4">
+      {/* Header */}
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {farcasterUser?.pfpUrl ? (
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
+            <div>
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
+            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
+            </div>
+            {opponent?.pfpUrl ? (
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Subject Result Animation */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
+            Subject Selected! 🎯
+          </h2>
+          <div className="backdrop-blur-3xl bg-gradient-to-r from-purple-500/40 via-pink-500/40 to-purple-500/40 border-4 border-white/50 rounded-[40px] shadow-2xl p-8 animate-[bounce_1s_ease-in-out_infinite] scale-110">
+            <div className="text-5xl font-black text-white drop-shadow-2xl mb-2">
+              {gameRoom?.currentSubject}
+            </div>
+            <div className="text-white/90 text-lg font-semibold drop-shadow-lg">
+              Get Ready! 🚀
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1027,6 +1112,11 @@ export default function Home() {
   // Main render - show loading until ready
   if (!isReady) {
     return renderLoading();
+  }
+
+  // Show subject result animation if flag is set (overrides other states)
+  if (showSubjectResult && gameRoom?.currentSubject) {
+    return renderSubjectResult();
   }
 
   // Main game render
