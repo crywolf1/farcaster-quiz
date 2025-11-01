@@ -1,31 +1,43 @@
 // Persistent storage using Vercel KV  
-// Vercel KV creates KV_ prefixed env vars by default
-// Try both STORAGE_ (custom) and KV_ (default) prefixes
-import { createClient } from '@vercel/kv';
+// Support multiple connection methods: REST API (KV_*) or direct connection (REDIS_URL)
+import { createClient, kv as defaultKv } from '@vercel/kv';
 import { GameRoom, Player } from './types';
 
-// Try KV_ prefix first (Vercel default), then STORAGE_ (custom)
+let kv: ReturnType<typeof createClient>;
+
+// Check if we have REST API credentials (standard Vercel KV setup)
 const storageUrl = process.env.KV_REST_API_URL || process.env.STORAGE_REST_API_URL;
 const storageToken = process.env.KV_REST_API_TOKEN || process.env.STORAGE_REST_API_TOKEN;
 
-if (!storageUrl || !storageToken) {
+if (storageUrl && storageToken) {
+  // Use REST API with custom client
+  console.log('[Storage] Using REST API with custom client');
+  kv = createClient({
+    url: storageUrl,
+    token: storageToken,
+  });
+} else if (process.env.REDIS_URL) {
+  // Use REDIS_URL with default client (automatically configured by @vercel/kv)
+  console.log('[Storage] Using REDIS_URL with default client');
+  kv = createClient({
+    url: process.env.REDIS_URL,
+    token: '', // Token is included in REDIS_URL
+  });
+} else if (process.env.KV_URL) {
+  // Try KV_URL as fallback
+  console.log('[Storage] Using KV_URL with default client');
+  kv = defaultKv;
+} else {
   console.error('[Storage] Missing Redis credentials:', {
     KV_REST_API_URL: !!process.env.KV_REST_API_URL,
     STORAGE_REST_API_URL: !!process.env.STORAGE_REST_API_URL,
     KV_REST_API_TOKEN: !!process.env.KV_REST_API_TOKEN,
     STORAGE_REST_API_TOKEN: !!process.env.STORAGE_REST_API_TOKEN,
-    KV_URL_VALUE: process.env.KV_REST_API_URL?.substring(0, 30),
-    STORAGE_URL_VALUE: process.env.STORAGE_REST_API_URL?.substring(0, 30),
+    REDIS_URL: !!process.env.REDIS_URL,
+    KV_URL: !!process.env.KV_URL,
   });
   throw new Error('Missing Vercel KV environment variables - Please connect your Vercel KV database to this project');
 }
-
-console.log('[Storage] Using Redis URL:', storageUrl?.substring(0, 30));
-
-const kv = createClient({
-  url: storageUrl,
-  token: storageToken,
-});
 
 const MATCHMAKING_QUEUE_KEY = 'matchmaking:queue';
 const GAME_ROOM_PREFIX = 'game:room:';
