@@ -58,9 +58,11 @@ export default function Home() {
   const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null); // Track answer feedback
+  const [isShowingFeedback, setIsShowingFeedback] = useState(false); // Flag to prevent question change during feedback
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize Farcaster SDK
   useEffect(() => {
@@ -208,8 +210,8 @@ export default function Home() {
             const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
             setTimeRemaining(Math.ceil(remaining / 1000));
             setTimerActive(remaining > 0);
-          } else if (room.timerStartedAt && room.timerDuration) {
-            // Subject selection timer
+          } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
+            // Subject selection timer - ONLY show during subject selection
             const elapsed = Date.now() - room.timerStartedAt;
             const remaining = Math.max(0, room.timerDuration - elapsed);
             setTimeRemaining(Math.ceil(remaining / 1000));
@@ -243,9 +245,9 @@ export default function Home() {
             console.log('[Polling] Setting state to playing, myProgress:', room.myProgress);
             setGameState('playing');
             
-            // Check if MY question changed - clear answer state
+            // Check if MY question changed - BUT ONLY if not showing feedback animation
             const myCurrentQ = room.questions[room.myProgress || 0];
-            if (myCurrentQ && myCurrentQ.id !== currentQuestionId) {
+            if (myCurrentQ && myCurrentQ.id !== currentQuestionId && !isShowingFeedback) {
               console.log('[Polling] New question for me:', myCurrentQ.id);
               setCurrentQuestionId(myCurrentQ.id);
               setSelectedAnswer(null);
@@ -269,11 +271,14 @@ export default function Home() {
     pollingIntervalRef.current = interval;
   };
 
-  // Cleanup polling on unmount
+  // Cleanup polling and feedback timeout on unmount
   useEffect(() => {
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
+      }
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
       }
     };
   }, []);
@@ -340,6 +345,7 @@ export default function Home() {
 
     console.log('[Submit] Submitting answer:', answerIndex);
     setSelectedAnswer(answerIndex);
+    setIsShowingFeedback(true); // Block question changes during feedback
 
     try {
       const myCurrentQ = gameRoom.questions[myProgress];
@@ -348,6 +354,15 @@ export default function Home() {
       // Check if answer is correct immediately for instant feedback
       const isCorrect = answerIndex === myCurrentQ.correctAnswer;
       setAnswerFeedback(isCorrect ? 'correct' : 'incorrect');
+      
+      // Show feedback for 1.5 seconds before allowing question change
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+      feedbackTimeoutRef.current = setTimeout(() => {
+        setIsShowingFeedback(false);
+        feedbackTimeoutRef.current = null;
+      }, 1500);
       
       const response = await fetch('/api/answer', {
         method: 'POST',
@@ -368,6 +383,11 @@ export default function Home() {
         alert(data.message || data.error || 'Failed to submit answer');
         setSelectedAnswer(null);
         setAnswerFeedback(null);
+        setIsShowingFeedback(false);
+        if (feedbackTimeoutRef.current) {
+          clearTimeout(feedbackTimeoutRef.current);
+          feedbackTimeoutRef.current = null;
+        }
       }
 
       // Answer submitted - polling will update to next question
@@ -376,6 +396,11 @@ export default function Home() {
       alert('Error submitting answer: ' + error);
       setSelectedAnswer(null);
       setAnswerFeedback(null);
+      setIsShowingFeedback(false);
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
     }
   };
 
@@ -752,11 +777,11 @@ export default function Home() {
                   buttonClass += " backdrop-blur-lg bg-white/30 border-2 border-white/20 text-white/70";
                 }
               } else if (showInstantFeedback) {
-                // Show instant feedback after selection
+                // Show instant feedback after selection with dramatic animation
                 if (answerFeedback === 'correct') {
-                  buttonClass += " bg-gradient-to-r from-green-400 to-emerald-500 text-white border-2 border-green-300 animate-pulse scale-105 shadow-[0_0_40px_rgba(16,185,129,0.6)]";
+                  buttonClass += " bg-gradient-to-r from-green-400 via-emerald-400 to-emerald-500 text-white border-4 border-green-300 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-[0_0_60px_rgba(16,185,129,0.8),0_0_100px_rgba(16,185,129,0.4)] transform";
                 } else {
-                  buttonClass += " bg-gradient-to-r from-red-400 to-rose-500 text-white border-2 border-red-300 animate-pulse scale-105 shadow-[0_0_40px_rgba(239,68,68,0.6)]";
+                  buttonClass += " bg-gradient-to-r from-red-400 via-rose-400 to-rose-500 text-white border-4 border-red-300 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-[0_0_60px_rgba(239,68,68,0.8),0_0_100px_rgba(239,68,68,0.4)] transform";
                 }
               } else if (hasAnswered && isMyAnswer) {
                 // Selected but waiting
