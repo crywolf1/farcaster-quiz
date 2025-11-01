@@ -10,7 +10,8 @@ const roomTimerIds = new Map<string, { subject?: NodeJS.Timeout; roundOver?: Nod
 console.log(`[GameManager] Using Redis storage`);
 
 // Timer constants
-const TIMER_DURATION = 18000; // 18 seconds in milliseconds
+const SUBJECT_SELECTION_DURATION = 12000; // 12 seconds for choosing subject
+const TIMER_DURATION = 18000; // 18 seconds for answering questions
 const ROUND_OVER_AUTO_START_DURATION = 30000; // 30 seconds in milliseconds
 
 // Helper: Start auto-advance timer when round is over
@@ -81,9 +82,9 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null;
   
-  // Set subject selection timer timestamp
+  // Set subject selection timer timestamp (12 seconds)
   room.timerStartedAt = Date.now();
-  room.timerDuration = TIMER_DURATION;
+  room.timerDuration = SUBJECT_SELECTION_DURATION;
 
   // Save room back to Redis
   await storage.setGameRoom(roomId, room);
@@ -188,11 +189,11 @@ async function startSubjectTimer(roomId: string): Promise<void> {
   // Clear existing timer
   clearSubjectTimer(roomId);
   
-  // Start new timer for backend timeout handling
+  // Start new timer for backend timeout handling (12 seconds)
   const timerId = setTimeout(() => {
     console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
     handleSubjectSelectionTimeout(roomId);
-  }, TIMER_DURATION);
+  }, SUBJECT_SELECTION_DURATION);
 
   // Store timeout ID in memory
   const timers = roomTimerIds.get(roomId) || {};
@@ -261,17 +262,16 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
   room.state = 'playing';
   room.answers.clear();
   
-  // Initialize player progress
+  // Initialize player progress (timer will be set by startPlayerTimer)
   room.players.forEach(p => {
     room.playerProgress.set(p.id, 0);
-    room.playerTimers.set(p.id, Date.now());
   });
   room.playersFinished.clear();
 
   // Save room back to Redis
   await storage.setGameRoom(roomId, room);
   
-  // Start timer for each player's first question
+  // Start timer for each player's first question (sets timestamp in Redis)
   for (const p of room.players) {
     await startPlayerTimer(roomId, p.id);
   }
@@ -322,7 +322,7 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       answers: new Map(),
       scores: new Map([[player1.id, 0], [player2.id, 0]]),
       timerStartedAt: Date.now(), // Set timestamp immediately
-      timerDuration: TIMER_DURATION,
+      timerDuration: SUBJECT_SELECTION_DURATION, // 12 seconds for subject selection
       playerProgress: new Map([[player1.id, 0], [player2.id, 0]]),
       playerTimers: new Map(),
       playersFinished: new Set(),
@@ -633,9 +633,9 @@ export async function startNextRound(playerId: string): Promise<{
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null; // Clear round-over timer
   
-  // Set subject selection timer timestamp BEFORE saving to avoid race condition
+  // Set subject selection timer timestamp BEFORE saving to avoid race condition (12 seconds)
   room.timerStartedAt = Date.now();
-  room.timerDuration = TIMER_DURATION;
+  room.timerDuration = SUBJECT_SELECTION_DURATION;
 
   // Save room back to Redis with timer already set
   await storage.setGameRoom(roomId, room);
