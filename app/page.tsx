@@ -224,7 +224,17 @@ export default function Home() {
           if (room.state === 'round-over' && room.roundOverTimerStartedAt) {
             const elapsed = Date.now() - room.roundOverTimerStartedAt;
             const remaining = Math.max(0, 30000 - elapsed); // 30 seconds
-            setRoundOverTimeRemaining(Math.ceil(remaining / 1000));
+            const seconds = Math.ceil(remaining / 1000);
+            console.log('[Polling] Round-over timer:', {
+              roundOverTimerStartedAt: room.roundOverTimerStartedAt,
+              elapsed,
+              remaining,
+              seconds,
+              currentValue: roundOverTimeRemaining
+            });
+            setRoundOverTimeRemaining(seconds);
+          } else if (room.state === 'round-over') {
+            console.log('[Polling] Round-over state but no timer! roundOverTimerStartedAt:', room.roundOverTimerStartedAt);
           }
 
           // Update opponent if not set
@@ -247,13 +257,17 @@ export default function Home() {
             
             // Check if MY question changed - BUT ONLY if not showing feedback animation
             const myCurrentQ = room.questions[room.myProgress || 0];
-            if (myCurrentQ && myCurrentQ.id !== currentQuestionId && !isShowingFeedback) {
-              console.log('[Polling] New question for me:', myCurrentQ.id);
-              setCurrentQuestionId(myCurrentQ.id);
-              setSelectedAnswer(null);
-              setAnswerFeedback(null); // Reset feedback for new question
-              setLastResult(null);
-              setShowingResults(false);
+            if (myCurrentQ && myCurrentQ.id !== currentQuestionId) {
+              if (isShowingFeedback) {
+                console.log('[Polling] Question changed but BLOCKING due to feedback animation');
+              } else {
+                console.log('[Polling] New question for me:', myCurrentQ.id, 'changing from:', currentQuestionId);
+                setCurrentQuestionId(myCurrentQ.id);
+                setSelectedAnswer(null);
+                setAnswerFeedback(null); // Reset feedback for new question
+                setLastResult(null);
+                setShowingResults(false);
+              }
             }
           } else if (room.state === 'round-over') {
             console.log('[Polling] Round over');
@@ -354,15 +368,17 @@ export default function Home() {
       // Check if answer is correct immediately for instant feedback
       const isCorrect = answerIndex === myCurrentQ.correctAnswer;
       setAnswerFeedback(isCorrect ? 'correct' : 'incorrect');
+      console.log('[Submit] Set answer feedback:', isCorrect ? 'correct' : 'incorrect', 'isShowingFeedback: true');
       
-      // Show feedback for 1.5 seconds before allowing question change
+      // Show feedback for 2 seconds before allowing question change
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
       }
       feedbackTimeoutRef.current = setTimeout(() => {
+        console.log('[Submit] Feedback timeout complete, allowing question change');
         setIsShowingFeedback(false);
         feedbackTimeoutRef.current = null;
-      }, 1500);
+      }, 2000);
       
       const response = await fetch('/api/answer', {
         method: 'POST',
