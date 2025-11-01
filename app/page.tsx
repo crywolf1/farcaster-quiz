@@ -277,6 +277,7 @@ export default function Home() {
 
   // Select subject
   const selectSubject = async (subject: string) => {
+    console.log('[Client] Selecting subject:', subject, 'playerId:', playerId);
     try {
       const response = await fetch('/api/subject', {
         method: 'POST',
@@ -284,25 +285,53 @@ export default function Home() {
         body: JSON.stringify({ playerId, subject }),
       });
 
+      console.log('[Client] Response status:', response.status);
       const data = await response.json();
+      console.log('[Client] Response data:', data);
 
       if (data.success) {
+        console.log('[Client] Subject selected successfully, switching to playing state');
         setGameState('playing');
+      } else {
+        console.error('[Client] Failed to select subject:', data.message || data.error);
+        alert(data.message || data.error || 'Failed to select subject');
       }
     } catch (error) {
-      console.error('Select subject error:', error);
+      console.error('[Client] Select subject error:', error);
+      alert('Error selecting subject: ' + error);
     }
   };
 
   // Submit answer
   const submitAnswer = async (answerIndex: number) => {
-    if (!gameRoom || selectedAnswer !== null || iFinished) return;
+    console.log('[Submit] submitAnswer called with index:', answerIndex);
+    console.log('[Submit] gameRoom:', gameRoom ? 'exists' : 'null');
+    console.log('[Submit] selectedAnswer:', selectedAnswer);
+    console.log('[Submit] iFinished:', iFinished);
+    console.log('[Submit] myProgress:', myProgress);
+    
+    if (!gameRoom) {
+      console.error('[Submit] No game room - cannot submit');
+      return;
+    }
+    
+    if (selectedAnswer !== null) {
+      console.error('[Submit] Already selected an answer');
+      return;
+    }
+    
+    if (iFinished) {
+      console.error('[Submit] Player already finished');
+      return;
+    }
 
     console.log('[Submit] Submitting answer:', answerIndex);
     setSelectedAnswer(answerIndex);
 
     try {
       const myCurrentQ = gameRoom.questions[myProgress];
+      console.log('[Submit] Current question:', myCurrentQ);
+      
       const response = await fetch('/api/answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -313,12 +342,20 @@ export default function Home() {
         }),
       });
 
+      console.log('[Submit] Response status:', response.status);
       const data = await response.json();
-      console.log('[Submit] Response:', data);
+      console.log('[Submit] Response data:', data);
+
+      if (!data.success) {
+        console.error('[Submit] Failed:', data.message || data.error);
+        alert(data.message || data.error || 'Failed to submit answer');
+        setSelectedAnswer(null);
+      }
 
       // Answer submitted - polling will update to next question
     } catch (error) {
-      console.error('Submit answer error:', error);
+      console.error('[Submit] Submit answer error:', error);
+      alert('Error submitting answer: ' + error);
       setSelectedAnswer(null);
     }
   };
@@ -727,19 +764,19 @@ export default function Home() {
     const opponentReady = opponent && gameRoom?.playersReady?.includes(opponent.id) || false;
 
     return (
-      <div className="min-h-screen  flex items-center justify-center p-4">
-        <div className="text-center backdrop-blur-xl bg-white/40 border border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center backdrop-blur-3xl bg-black/40 border-2 border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">
             Round {gameRoom?.currentRound} Complete! 🎉
           </h2>
           
-          <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[32px] p-6 mb-6 shadow-lg">
+          <div className="backdrop-blur-2xl bg-white/5 border-2 border-white/20 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
               <div className="text-center relative">
                 {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                  <div className="w-16 h-16 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
                     <span className="text-2xl">👤</span>
                   </div>
                 )}
@@ -748,16 +785,16 @@ export default function Home() {
                     <span className="text-white text-lg">✓</span>
                   </div>
                 )}
-                <p className="text-white font-bold">{farcasterUser?.username}</p>
-                <p className="text-white text-3xl font-bold">{myScore}</p>
-                {iAmReady && <p className="text-green-600 text-xs mt-1 font-semibold">Ready!</p>}
+                <p className="text-white font-bold drop-shadow-lg">{farcasterUser?.username}</p>
+                <p className="text-white text-3xl font-bold drop-shadow-2xl">{myScore}</p>
+                {iAmReady && <p className="text-green-400 text-xs mt-1 font-semibold drop-shadow-lg">Ready!</p>}
               </div>
               
               <div className="text-center relative">
                 {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-16 h-16 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-16 h-16 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                  <div className="w-16 h-16 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
                     <span className="text-2xl">👤</span>
                   </div>
                 )}
@@ -766,14 +803,14 @@ export default function Home() {
                     <span className="text-white text-lg">✓</span>
                   </div>
                 )}
-                <p className="text-white font-bold">{opponent?.username}</p>
-                <p className="text-white text-3xl font-bold">{opponentScore}</p>
-                {opponentReady && <p className="text-green-600 text-xs mt-1 font-semibold">Ready!</p>}
+                <p className="text-white font-bold drop-shadow-lg">{opponent?.username}</p>
+                <p className="text-white text-3xl font-bold drop-shadow-2xl">{opponentScore}</p>
+                {opponentReady && <p className="text-green-400 text-xs mt-1 font-semibold drop-shadow-lg">Ready!</p>}
               </div>
             </div>
           </div>
           
-          <p className="text-white text-2xl font-bold mb-6">
+          <p className="text-white text-2xl font-bold mb-6 drop-shadow-2xl">
             {isDraw ? "It's a Draw! 🤝" : winner?.id === playerId ? 'You Won This Round! 🏆' : `${opponent?.username} Won! 💪`}
           </p>
           
@@ -782,10 +819,10 @@ export default function Home() {
               <button
                 onClick={startNextRound}
                 disabled={iAmReady}
-                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-xl transition-all mb-4 border ${
+                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl transition-all mb-4 border-2 ${
                   iAmReady 
                     ? 'bg-green-500 text-white cursor-not-allowed border-green-400' 
-                    : 'backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:scale-[1.02] active:scale-95 border-white/20'
+                    : 'backdrop-blur-3xl bg-white/10 text-white hover:bg-white/20 hover:scale-[1.02] active:scale-95 border-white/30'
                 }`}
               >
                 {iAmReady ? '✓ Ready!' : 'Ready for Next Round'}
@@ -793,30 +830,30 @@ export default function Home() {
               
               {/* Waiting message */}
               {iAmReady && !opponentReady && (
-                <p className="text-white/90 text-sm mb-4">
+                <p className="text-white/90 text-sm mb-4 drop-shadow-lg">
                   Waiting for {opponent?.username} to be ready...
                 </p>
               )}
               
               {/* Auto-start countdown */}
               {roundOverTimeRemaining > 0 && (
-                <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[28px] p-4 shadow-lg">
-                  <p className="text-white/90 text-sm mb-2">
+                <div className="backdrop-blur-3xl bg-black/30 border-2 border-white/20 rounded-[28px] p-5 shadow-2xl">
+                  <p className="text-white text-sm mb-3 drop-shadow-lg font-semibold">
                     {!iAmReady || !opponentReady ? 'Both players must click Ready, or auto-starting in:' : 'Auto-starting in:'}
                   </p>
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full border-4 backdrop-blur-xl ${
-                    roundOverTimeRemaining <= 10 ? 'border-red-500 bg-red-500/30 animate-pulse' : 'border-indigo-400/50 bg-white/50'
-                  } shadow-xl`}>
-                    <span className={`text-xl font-bold ${roundOverTimeRemaining <= 10 ? 'text-red-600' : 'text-white'}`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-2xl ${
+                    roundOverTimeRemaining <= 10 ? 'border-red-400 bg-red-500/20 animate-pulse' : 'border-white/50 bg-black/30'
+                  } shadow-2xl`}>
+                    <span className={`text-3xl font-bold drop-shadow-2xl ${roundOverTimeRemaining <= 10 ? 'text-red-300' : 'text-white'}`}>
                       {roundOverTimeRemaining}
                     </span>
                   </div>
-                  <p className="text-white/80 text-xs mt-2">seconds</p>
+                  <p className="text-white/80 text-xs mt-2 drop-shadow-lg font-semibold">seconds</p>
                 </div>
               )}
             </>
           ) : (
-            <p className="text-white/90 text-lg">Calculating final results...</p>
+            <p className="text-white/90 text-lg drop-shadow-lg">Calculating final results...</p>
           )}
         </div>
       </div>
@@ -828,34 +865,34 @@ export default function Home() {
     const isDraw = myScore === opponentScore;
 
     return (
-      <div className="min-h-screen  flex items-center justify-center p-4">
-        <div className="text-center backdrop-blur-xl bg-white/40 border border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">Game Over! 🎮</h2>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center backdrop-blur-3xl bg-black/40 border-2 border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">Game Over! 🎮</h2>
           
-          <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[32px] p-6 mb-6 shadow-lg">
+          <div className="backdrop-blur-2xl bg-white/5 border-2 border-white/20 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
               <div className="text-center">
                 {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                  <div className="w-20 h-20 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
                     <span className="text-3xl">👤</span>
                   </div>
                 )}
-                <p className="text-white font-bold text-lg">{farcasterUser?.username}</p>
-                <p className="text-white text-4xl font-bold">{myScore}</p>
+                <p className="text-white font-bold text-lg drop-shadow-lg">{farcasterUser?.username}</p>
+                <p className="text-white text-4xl font-bold drop-shadow-2xl">{myScore}</p>
               </div>
               
               <div className="text-center">
                 {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                  <div className="w-20 h-20 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
                     <span className="text-3xl">👤</span>
                   </div>
                 )}
-                <p className="text-white font-bold text-lg">{opponent?.username}</p>
-                <p className="text-white text-4xl font-bold">{opponentScore}</p>
+                <p className="text-white font-bold text-lg drop-shadow-lg">{opponent?.username}</p>
+                <p className="text-white text-4xl font-bold drop-shadow-2xl">{opponentScore}</p>
               </div>
             </div>
           </div>
@@ -863,18 +900,18 @@ export default function Home() {
           <div className="mb-6">
             {isDraw ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2">It&apos;s a Draw! 🤝</p>
-                <p className="text-white/90">Great match!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">It&apos;s a Draw! 🤝</p>
+                <p className="text-white/90 drop-shadow-lg">Great match!</p>
               </>
             ) : winner?.id === playerId ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2">You Won! 🏆</p>
-                <p className="text-white/90">Congratulations!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">You Won! 🏆</p>
+                <p className="text-white/90 drop-shadow-lg">Congratulations!</p>
               </>
             ) : (
               <>
-                <p className="text-white text-3xl font-bold mb-2">{opponent?.username} Won! 💪</p>
-                <p className="text-white/90">Better luck next time!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">{opponent?.username} Won! 💪</p>
+                <p className="text-white/90 drop-shadow-lg">Better luck next time!</p>
               </>
             )}
           </div>
@@ -891,7 +928,7 @@ export default function Home() {
                 clearInterval(pollingIntervalRef.current);
               }
             }}
-            className="backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-xl hover:scale-[1.02] transition-all active:scale-95 border border-white/20"
+            className="backdrop-blur-3xl bg-white/10 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-white/20 hover:scale-[1.02] transition-all active:scale-95 border-2 border-white/30"
           >
             Play Again
           </button>

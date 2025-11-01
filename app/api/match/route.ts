@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const player = { id: playerId, username, pfpUrl, fid };
-    const result = joinMatchmaking(player);
+    const result = await joinMatchmaking(player);
 
     return NextResponse.json(result);
   } catch (error) {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const status = checkMatchStatus(playerId);
+    const status = await checkMatchStatus(playerId);
     const subjects = getSubjects();
 
     return NextResponse.json({ ...status, subjects });

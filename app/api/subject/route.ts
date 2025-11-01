@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[Subject API] Calling selectSubject...');
-    const result = selectSubject(playerId, subject);
+    const result = await selectSubject(playerId, subject);
     console.log('[Subject API] Result:', result);
 
     if (!result.success) {

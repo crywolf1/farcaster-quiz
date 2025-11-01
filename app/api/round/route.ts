@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = startNextRound(playerId);
+    const result = await startNextRound(playerId);
 
     if (!result.success) {
       return NextResponse.json(

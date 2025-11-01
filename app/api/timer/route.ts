@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const gameState = getGameState(playerId);
+    const gameState = await getGameState(playerId);
     if (!gameState) {
       return NextResponse.json(
         { error: 'Game not found' },
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const remainingTime = getRemainingTime(gameState.id);
+    const remainingTime = await getRemainingTime(gameState.id);
 
     return NextResponse.json({
       success: true,

@@ -1,62 +1,58 @@
-// In-memory game state manager (replaces Socket.IO server)
+// Game state manager with Redis persistence
 import questions from '@/data/questions.json';
 import { Player, GameRoom, Question } from './types';
+import * as storage from './storage';
 
-// Use globalThis to persist data across hot reloads in development
-declare global {
-  var matchmakingQueue: Player[] | undefined;
-  var gameRooms: Map<string, GameRoom> | undefined;
-  var playerToRoom: Map<string, string> | undefined;
-  var playerTimerIds: Map<string, NodeJS.Timeout> | undefined;
-}
+// Timers can't be stored in Redis - keep in memory
+const playerTimerIds = new Map<string, NodeJS.Timeout>();
+const roomTimerIds = new Map<string, { subject?: NodeJS.Timeout; roundOver?: NodeJS.Timeout }>();
 
-// In-memory storage (persists across hot reloads)
-const matchmakingQueue = globalThis.matchmakingQueue || (globalThis.matchmakingQueue = []);
-const gameRooms = globalThis.gameRooms || (globalThis.gameRooms = new Map<string, GameRoom>());
-const playerToRoom = globalThis.playerToRoom || (globalThis.playerToRoom = new Map<string, string>()); // playerId -> roomId
-const playerTimerIds = globalThis.playerTimerIds || (globalThis.playerTimerIds = new Map<string, NodeJS.Timeout>()); // playerId -> timerId
+console.log(`[GameManager] Using Redis storage`);
 
 // Timer constants
 const TIMER_DURATION = 18000; // 18 seconds in milliseconds
 const ROUND_OVER_AUTO_START_DURATION = 30000; // 30 seconds in milliseconds
 
 // Helper: Start auto-advance timer when round is over
-function startRoundOverAutoStart(roomId: string): void {
-  const room = gameRooms.get(roomId);
+async function startRoundOverAutoStart(roomId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
   if (!room) return;
 
   // Clear existing auto-start timer
-  if (room.roundOverAutoStartTimeoutId) {
-    clearTimeout(room.roundOverAutoStartTimeoutId);
-  }
+  clearRoundOverAutoStart(roomId);
 
   // Record when round over timer started
   room.roundOverTimerStartedAt = Date.now();
 
   // Start 30-second timer to auto-start next round
-  room.roundOverAutoStartTimeoutId = setTimeout(() => {
+  const timerId = setTimeout(() => {
     console.log(`[GameManager] Auto-starting next round for room ${roomId}`);
     handleRoundOverAutoStart(roomId);
   }, ROUND_OVER_AUTO_START_DURATION);
+
+  // Store timeout ID in memory
+  const timers = roomTimerIds.get(roomId) || {};
+  timers.roundOver = timerId;
+  roomTimerIds.set(roomId, timers);
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
 
   console.log(`[GameManager] Round over - 30 second auto-start timer started`);
 }
 
 // Helper: Clear round over auto-start timer
 function clearRoundOverAutoStart(roomId: string): void {
-  const room = gameRooms.get(roomId);
-  if (!room) return;
-
-  if (room.roundOverAutoStartTimeoutId) {
-    clearTimeout(room.roundOverAutoStartTimeoutId);
-    room.roundOverAutoStartTimeoutId = undefined;
+  const timers = roomTimerIds.get(roomId);
+  if (timers?.roundOver) {
+    clearTimeout(timers.roundOver);
+    timers.roundOver = undefined;
   }
-  room.roundOverTimerStartedAt = null;
 }
 
 // Helper: Handle auto-start next round
-function handleRoundOverAutoStart(roomId: string): void {
-  const room = gameRooms.get(roomId);
+async function handleRoundOverAutoStart(roomId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
   if (!room || room.state !== 'round-over') return;
 
   console.log(`[GameManager] Auto-starting round ${room.currentRound + 1}`);
@@ -65,6 +61,7 @@ function handleRoundOverAutoStart(roomId: string): void {
   if (room.currentRound >= (room.maxRounds || room.totalRounds || 3)) {
     room.state = 'game-over';
     console.log(`[GameManager] Game over after auto-start check`);
+    await storage.setGameRoom(roomId, room);
     return;
   }
 
@@ -86,25 +83,19 @@ function handleRoundOverAutoStart(roomId: string): void {
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null;
 
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
+
   // Start timer for subject selection
-  startSubjectTimer(roomId);
+  await startSubjectTimer(roomId);
 
   console.log(`[GameManager] Auto-started round ${room.currentRound}`);
 }
 
 // Helper: Start timer for a specific player
 function startPlayerTimer(roomId: string, playerId: string): void {
-  const room = gameRooms.get(roomId);
-  if (!room) return;
-
   // Clear existing timer for this player
-  const existingTimer = playerTimerIds.get(playerId);
-  if (existingTimer) {
-    clearTimeout(existingTimer);
-  }
-
-  // Record when timer started
-  room.playerTimers.set(playerId, Date.now());
+  clearPlayerTimer(playerId);
 
   // Start new timer
   const timerId = setTimeout(() => {
@@ -125,8 +116,8 @@ function clearPlayerTimer(playerId: string): void {
 }
 
 // Helper: Handle timeout for a specific player's question
-function handlePlayerQuestionTimeout(roomId: string, playerId: string): void {
-  const room = gameRooms.get(roomId);
+async function handlePlayerQuestionTimeout(roomId: string, playerId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
   if (!room || room.state !== 'playing') return;
 
   const playerProgress = room.playerProgress.get(playerId) || 0;
@@ -163,52 +154,64 @@ function handlePlayerQuestionTimeout(roomId: string, playerId: string): void {
     if (allPlayersFinished) {
       room.state = 'round-over';
       
+      // Save room back to Redis
+      await storage.setGameRoom(roomId, room);
+      
       // Start 30-second auto-start timer
-      startRoundOverAutoStart(roomId);
+      await startRoundOverAutoStart(roomId);
       
       console.log(`[GameManager] Round ${room.currentRound} over - both players finished`);
+      return;
     }
-  } else {
+  }
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
+
+  if (newProgress < room.questions.length) {
     // Start timer for player's next question
     startPlayerTimer(roomId, playerId);
   }
 }
 
-// Helper: Start timer for subject selection (still global)
-function startSubjectTimer(roomId: string): void {
-  const room = gameRooms.get(roomId);
+// Helper: Start timer for subject selection
+async function startSubjectTimer(roomId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
   if (!room) return;
 
   // Clear existing timer
-  if (room.timerTimeoutId) {
-    clearTimeout(room.timerTimeoutId);
-  }
+  clearSubjectTimer(roomId);
 
   // Start new timer
   room.timerStartedAt = Date.now();
   room.timerDuration = TIMER_DURATION;
   
-  room.timerTimeoutId = setTimeout(() => {
+  const timerId = setTimeout(() => {
     console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
     handleSubjectSelectionTimeout(roomId);
   }, TIMER_DURATION);
+
+  // Store timeout ID in memory
+  const timers = roomTimerIds.get(roomId) || {};
+  timers.subject = timerId;
+  roomTimerIds.set(roomId, timers);
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
 }
 
 // Helper: Clear subject selection timer
 function clearSubjectTimer(roomId: string): void {
-  const room = gameRooms.get(roomId);
-  if (!room) return;
-
-  if (room.timerTimeoutId) {
-    clearTimeout(room.timerTimeoutId);
-    room.timerTimeoutId = undefined;
+  const timers = roomTimerIds.get(roomId);
+  if (timers?.subject) {
+    clearTimeout(timers.subject);
+    timers.subject = undefined;
   }
-  room.timerStartedAt = null;
 }
 
 // Helper: Get remaining time for a room
-export function getRemainingTime(roomId: string): number {
-  const room = gameRooms.get(roomId);
+export async function getRemainingTime(roomId: string): Promise<number> {
+  const room = await storage.getGameRoom(roomId);
   if (!room || !room.timerStartedAt) return 0;
 
   const elapsed = Date.now() - room.timerStartedAt;
@@ -241,8 +244,8 @@ function getRandomSubject(): string {
 }
 
 // Timeout handler: Subject selection timeout
-function handleSubjectSelectionTimeout(roomId: string): void {
-  const room = gameRooms.get(roomId);
+async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
   if (!room || room.state !== 'subject-selection') return;
 
   console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
@@ -264,6 +267,9 @@ function handleSubjectSelectionTimeout(roomId: string): void {
     room.playerTimers.set(p.id, Date.now());
   });
   room.playersFinished.clear();
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
   
   // Start timer for each player's first question
   room.players.forEach(p => startPlayerTimer(roomId, p.id));
@@ -272,26 +278,32 @@ function handleSubjectSelectionTimeout(roomId: string): void {
 }
 
 // Add player to matchmaking queue
-export function joinMatchmaking(player: Player): { success: boolean; message?: string; roomId?: string } {
+export async function joinMatchmaking(player: Player): Promise<{ success: boolean; message?: string; roomId?: string }> {
   // Check if player already in a game
-  const existingRoom = playerToRoom.get(player.id);
-  if (existingRoom && gameRooms.has(existingRoom)) {
-    return { success: true, roomId: existingRoom, message: 'Already in game' };
+  const existingRoom = await storage.getPlayerRoom(player.id);
+  if (existingRoom) {
+    const room = await storage.getGameRoom(existingRoom);
+    if (room) {
+      return { success: true, roomId: existingRoom, message: 'Already in game' };
+    }
   }
 
   // Check if player already in queue
-  const inQueue = matchmakingQueue.find(p => p.id === player.id);
+  const queue = await storage.getMatchmakingQueue();
+  const inQueue = queue.find(p => p.id === player.id);
   if (inQueue) {
     return { success: true, message: 'Already in queue' };
   }
 
   // Add to queue
-  matchmakingQueue.push(player);
+  queue.push(player);
+  await storage.setMatchmakingQueue(queue);
 
   // Try to match
-  if (matchmakingQueue.length >= 2) {
-    const player1 = matchmakingQueue.shift()!;
-    const player2 = matchmakingQueue.shift()!;
+  if (queue.length >= 2) {
+    const player1 = queue.shift()!;
+    const player2 = queue.shift()!;
+    await storage.setMatchmakingQueue(queue);
 
     // Create game room
     const roomId = generateRoomId();
@@ -316,12 +328,12 @@ export function joinMatchmaking(player: Player): { success: boolean; message?: s
       playersReady: new Set(),
     };
 
-    gameRooms.set(roomId, gameRoom);
-    playerToRoom.set(player1.id, roomId);
-    playerToRoom.set(player2.id, roomId);
+    await storage.setGameRoom(roomId, gameRoom);
+    await storage.setPlayerRoom(player1.id, roomId);
+    await storage.setPlayerRoom(player2.id, roomId);
 
     // Start timer for subject selection
-    startSubjectTimer(roomId);
+    await startSubjectTimer(roomId);
 
     console.log(`[GameManager] Match found! Room: ${roomId}, timer started`);
     return { success: true, roomId, message: 'Match found!' };
@@ -331,46 +343,53 @@ export function joinMatchmaking(player: Player): { success: boolean; message?: s
 }
 
 // Check match status
-export function checkMatchStatus(playerId: string): { 
+export async function checkMatchStatus(playerId: string): Promise<{ 
   matched: boolean; 
   roomId?: string;
   opponent?: Player;
-} {
-  const roomId = playerToRoom.get(playerId);
-  if (roomId && gameRooms.has(roomId)) {
-    const room = gameRooms.get(roomId)!;
-    const opponent = room.players.find(p => p.id !== playerId);
-    return { matched: true, roomId, opponent };
+}> {
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (roomId) {
+    const room = await storage.getGameRoom(roomId);
+    if (room) {
+      const opponent = room.players.find(p => p.id !== playerId);
+      return { matched: true, roomId, opponent };
+    }
   }
   return { matched: false };
 }
 
 // Get game state for a player
-export function getGameState(playerId: string): GameRoom | null {
-  const roomId = playerToRoom.get(playerId);
-  if (roomId && gameRooms.has(roomId)) {
-    return gameRooms.get(roomId)!;
+export async function getGameState(playerId: string): Promise<GameRoom | null> {
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (roomId) {
+    return await storage.getGameRoom(roomId);
   }
   return null;
 }
 
 // Select subject
-export function selectSubject(playerId: string, subject: string): { 
+export async function selectSubject(playerId: string, subject: string): Promise<{ 
   success: boolean; 
   message?: string;
   questions?: Question[];
-} {
+}> {
   console.log(`[GameManager] Select subject called - playerId: ${playerId}, subject: ${subject}`);
   
-  const roomId = playerToRoom.get(playerId);
+  const roomId = await storage.getPlayerRoom(playerId);
   console.log(`[GameManager] Room ID for player: ${roomId}`);
   
-  if (!roomId || !gameRooms.has(roomId)) {
-    console.log(`[GameManager] Room not found! playerToRoom has ${playerToRoom.size} entries, gameRooms has ${gameRooms.size} entries`);
+  if (!roomId) {
+    console.log(`[GameManager] Room not found for player ${playerId}`);
     return { success: false, message: 'Game room not found' };
   }
 
-  const room = gameRooms.get(roomId)!;
+  const room = await storage.getGameRoom(roomId);
+  if (!room) {
+    console.log(`[GameManager] Room ${roomId} not found in storage`);
+    return { success: false, message: 'Game room not found' };
+  }
+
   console.log(`[GameManager] Room state: ${room.state}, currentPickerIndex: ${room.currentPickerIndex}`);
 
   // Verify it's this player's turn to pick
@@ -403,10 +422,13 @@ export function selectSubject(playerId: string, subject: string): {
   room.players.forEach(p => {
     room.playerProgress.set(p.id, 0);
     room.playerTimers.set(p.id, Date.now());
-    // Start timer for each player's first question
+    // Start timer for each player's first question (will be async later)
     startPlayerTimer(roomId, p.id);
   });
   room.playersFinished.clear();
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
 
   console.log(`[GameManager] Subject selected: ${subject}, starting round ${room.currentRound}, player timers started`);
 
@@ -414,7 +436,7 @@ export function selectSubject(playerId: string, subject: string): {
 }
 
 // Submit answer
-export function submitAnswer(playerId: string, questionId: string, answerIndex: number): {
+export async function submitAnswer(playerId: string, questionId: string, answerIndex: number): Promise<{
   success: boolean;
   message?: string;
   playerFinished?: boolean;
@@ -423,14 +445,18 @@ export function submitAnswer(playerId: string, questionId: string, answerIndex: 
     correct: boolean;
     score: number;
   };
-} {
-  const roomId = playerToRoom.get(playerId);
-  if (!roomId || !gameRooms.has(roomId)) {
+}> {
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (!roomId) {
     console.log(`[GameManager] Submit answer - room not found for player ${playerId}`);
     return { success: false, message: 'Game room not found' };
   }
 
-  const room = gameRooms.get(roomId)!;
+  const room = await storage.getGameRoom(roomId);
+  if (!room) {
+    console.log(`[GameManager] Room ${roomId} not found in storage`);
+    return { success: false, message: 'Game room not found' };
+  }
 
   // Verify state
   if (room.state !== 'playing') {
@@ -481,9 +507,13 @@ export function submitAnswer(playerId: string, questionId: string, answerIndex: 
       clearSubjectTimer(roomId);
       
       // Start 30-second auto-start timer
-      startRoundOverAutoStart(roomId);
+      await startRoundOverAutoStart(roomId);
       
       console.log(`[GameManager] Round ${room.currentRound} over - both players finished`);
+      
+      // Save room back to Redis
+      await storage.setGameRoom(roomId, room);
+      
       return { 
         success: true, 
         playerFinished: true, 
@@ -491,6 +521,9 @@ export function submitAnswer(playerId: string, questionId: string, answerIndex: 
         myResult: { correct, score: room.scores.get(playerId) || 0 }
       };
     }
+    
+    // Save room back to Redis
+    await storage.setGameRoom(roomId, room);
     
     // This player finished but waiting for opponent
     return { 
@@ -500,6 +533,9 @@ export function submitAnswer(playerId: string, questionId: string, answerIndex: 
       myResult: { correct, score: room.scores.get(playerId) || 0 }
     };
   }
+
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
 
   // Player has more questions - start timer for next question
   startPlayerTimer(roomId, playerId);
@@ -512,18 +548,21 @@ export function submitAnswer(playerId: string, questionId: string, answerIndex: 
 }
 
 // Start next round
-export function startNextRound(playerId: string): {
+export async function startNextRound(playerId: string): Promise<{
   success: boolean;
   message?: string;
   gameOver?: boolean;
   winner?: Player;
-} {
-  const roomId = playerToRoom.get(playerId);
-  if (!roomId || !gameRooms.has(roomId)) {
+}> {
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (!roomId) {
     return { success: false, message: 'Game room not found' };
   }
 
-  const room = gameRooms.get(roomId)!;
+  const room = await storage.getGameRoom(roomId);
+  if (!room) {
+    return { success: false, message: 'Game room not found' };
+  }
 
   // Verify state
   if (room.state !== 'round-over') {
@@ -540,6 +579,10 @@ export function startNextRound(playerId: string): {
   if (!allPlayersReady) {
     // Not all players ready yet - keep waiting
     console.log(`[GameManager] Waiting for other player to be ready...`);
+    
+    // Save room back to Redis
+    await storage.setGameRoom(roomId, room);
+    
     return { success: true, message: 'Waiting for opponent' };
   }
 
@@ -558,6 +601,9 @@ export function startNextRound(playerId: string): {
     const winner = room.players.find(p => p.id === winnerId);
 
     console.log(`[GameManager] Game over! Winner: ${winner?.username}`);
+    
+    // Save room back to Redis
+    await storage.setGameRoom(roomId, room);
     
     return { success: true, gameOver: true, winner };
   }
@@ -579,8 +625,11 @@ export function startNextRound(playerId: string): {
   room.playersFinished.clear();
   room.playersReady.clear();
 
+  // Save room back to Redis
+  await storage.setGameRoom(roomId, room);
+
   // Start timer for subject selection
-  startSubjectTimer(roomId);
+  await startSubjectTimer(roomId);
 
   console.log(`[GameManager] Starting round ${room.currentRound}, timer started`);
 
@@ -588,23 +637,30 @@ export function startNextRound(playerId: string): {
 }
 
 // Cleanup: Remove player from game (on disconnect/leave)
-export function removePlayer(playerId: string): void {
+export async function removePlayer(playerId: string): Promise<void> {
   // Remove from queue
-  const queueIndex = matchmakingQueue.findIndex(p => p.id === playerId);
+  const queue = await storage.getMatchmakingQueue();
+  const queueIndex = queue.findIndex(p => p.id === playerId);
   if (queueIndex !== -1) {
-    matchmakingQueue.splice(queueIndex, 1);
+    queue.splice(queueIndex, 1);
+    await storage.setMatchmakingQueue(queue);
     console.log(`[GameManager] Removed ${playerId} from queue`);
   }
 
   // Remove from game room
-  const roomId = playerToRoom.get(playerId);
-  if (roomId && gameRooms.has(roomId)) {
-    gameRooms.delete(roomId);
-    const room = gameRooms.get(roomId);
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (roomId) {
+    const room = await storage.getGameRoom(roomId);
     if (room) {
-      room.players.forEach(p => playerToRoom.delete(p.id));
+      // Remove all players from this room
+      for (const p of room.players) {
+        await storage.deletePlayerRoom(p.id);
+      }
     }
+    // Delete the room
+    await storage.deleteGameRoom(roomId);
     console.log(`[GameManager] Removed room ${roomId}`);
   }
-  playerToRoom.delete(playerId);
+  // Delete player mapping
+  await storage.deletePlayerRoom(playerId);
 }

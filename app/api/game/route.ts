@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const gameState = getGameState(playerId);
+    const gameState = await getGameState(playerId);
 
     if (!gameState) {
       return NextResponse.json(
