@@ -80,6 +80,10 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   room.playersFinished.clear();
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null;
+  
+  // Set subject selection timer timestamp
+  room.timerStartedAt = Date.now();
+  room.timerDuration = TIMER_DURATION;
 
   // Save room back to Redis
   await storage.setGameRoom(roomId, room);
@@ -181,18 +185,10 @@ async function handlePlayerQuestionTimeout(roomId: string, playerId: string): Pr
 
 // Helper: Start timer for subject selection
 async function startSubjectTimer(roomId: string): Promise<void> {
-  const room = await storage.getGameRoom(roomId);
-  if (!room) return;
-
   // Clear existing timer
   clearSubjectTimer(roomId);
-
-  // Set timer timestamp and save to Redis FIRST
-  room.timerStartedAt = Date.now();
-  room.timerDuration = TIMER_DURATION;
-  await storage.setGameRoom(roomId, room);
   
-  // Start new timer
+  // Start new timer for backend timeout handling
   const timerId = setTimeout(() => {
     console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
     handleSubjectSelectionTimeout(roomId);
@@ -325,7 +321,7 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       questions: [],
       answers: new Map(),
       scores: new Map([[player1.id, 0], [player2.id, 0]]),
-      timerStartedAt: null,
+      timerStartedAt: Date.now(), // Set timestamp immediately
       timerDuration: TIMER_DURATION,
       playerProgress: new Map([[player1.id, 0], [player2.id, 0]]),
       playerTimers: new Map(),
@@ -635,11 +631,16 @@ export async function startNextRound(playerId: string): Promise<{
   room.playerTimers.clear();
   room.playersFinished.clear();
   room.playersReady.clear();
+  room.roundOverTimerStartedAt = null; // Clear round-over timer
+  
+  // Set subject selection timer timestamp BEFORE saving to avoid race condition
+  room.timerStartedAt = Date.now();
+  room.timerDuration = TIMER_DURATION;
 
-  // Save room back to Redis
+  // Save room back to Redis with timer already set
   await storage.setGameRoom(roomId, room);
 
-  // Start timer for subject selection
+  // Start the backend setTimeout timer
   await startSubjectTimer(roomId);
 
   console.log(`[GameManager] Starting round ${room.currentRound}, timer started`);
