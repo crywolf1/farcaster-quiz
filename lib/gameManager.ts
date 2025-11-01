@@ -17,14 +17,19 @@ const ROUND_OVER_AUTO_START_DURATION = 30000; // 30 seconds in milliseconds
 // Helper: Start auto-advance timer when round is over
 async function startRoundOverAutoStart(roomId: string): Promise<void> {
   const room = await storage.getGameRoom(roomId);
-  if (!room) return;
+  if (!room) {
+    console.log(`[GameManager] startRoundOverAutoStart - room ${roomId} not found!`);
+    return;
+  }
 
   // Clear existing auto-start timer
   clearRoundOverAutoStart(roomId);
 
   // Record when round over timer started and save to Redis FIRST
-  room.roundOverTimerStartedAt = Date.now();
+  const timestamp = Date.now();
+  room.roundOverTimerStartedAt = timestamp;
   await storage.setGameRoom(roomId, room);
+  console.log(`[GameManager] Set roundOverTimerStartedAt=${timestamp} for room ${roomId}, saved to Redis`);
 
   // Start 30-second timer to auto-start next round
   const timerId = setTimeout(() => {
@@ -37,7 +42,7 @@ async function startRoundOverAutoStart(roomId: string): Promise<void> {
   timers.roundOver = timerId;
   roomTimerIds.set(roomId, timers);
 
-  console.log(`[GameManager] Round over - 30 second auto-start timer started`);
+  console.log(`[GameManager] Round over - 30 second auto-start timer started, countdown from ${ROUND_OVER_AUTO_START_DURATION}ms`);
 }
 
 // Helper: Clear round over auto-start timer
@@ -513,13 +518,13 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
       room.players.forEach(p => clearPlayerTimer(p.id));
       clearSubjectTimer(roomId);
       
-      // Start 30-second auto-start timer
+      // Save room state BEFORE starting timer (so startRoundOverAutoStart has latest state)
+      await storage.setGameRoom(roomId, room);
+      
+      // Start 30-second auto-start timer (this will fetch, update timestamp, and save again)
       await startRoundOverAutoStart(roomId);
       
       console.log(`[GameManager] Round ${room.currentRound} over - both players finished`);
-      
-      // Save room back to Redis
-      await storage.setGameRoom(roomId, room);
       
       return { 
         success: true, 

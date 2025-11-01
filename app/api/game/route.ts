@@ -38,6 +38,11 @@ export async function GET(request: NextRequest) {
       myProgress: gameState.playerProgress ? (gameState.playerProgress.get(playerId) || 0) : 0,
     };
 
+    // Log round-over timer info for debugging
+    if (serializedState.state === 'round-over') {
+      console.log('[Game API] Round-over state, roundOverTimerStartedAt:', serializedState.roundOverTimerStartedAt);
+    }
+
     return NextResponse.json({ gameState: serializedState });
   } catch (error) {
     console.error('[Game API] Error:', error);
