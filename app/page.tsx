@@ -58,6 +58,7 @@ export default function Home() {
   const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
   const [showSubjectResult, setShowSubjectResult] = useState(false); // Show which subject was selected with animation
+  const [hasShownSubjectResult, setHasShownSubjectResult] = useState(false); // Track if we've shown the animation for this round
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null); // Track answer feedback
   const [isShowingFeedback, setIsShowingFeedback] = useState(false); // Flag to prevent question change during feedback
   
@@ -252,16 +253,18 @@ export default function Home() {
             const newState = isMyTurn ? 'subject-selection' : 'waiting-subject';
             console.log('[Polling] Subject selection - isMyTurn:', isMyTurn, 'newState:', newState);
             setGameState(newState);
-            // Reset subject result animation when entering subject selection
+            // Reset subject result animation flags when entering subject selection
             setShowSubjectResult(false);
+            setHasShownSubjectResult(false);
           } else if (room.state === 'playing') {
             console.log('[Polling] Setting state to playing, myProgress:', room.myProgress);
             
             // Show subject result animation briefly before moving to playing
-            // Only show ONCE per round (first time we detect playing state with a subject)
-            if (!showSubjectResult && room.currentSubject && room.myProgress === 0) {
+            // Only show ONCE per round (check hasShownSubjectResult flag)
+            if (!hasShownSubjectResult && room.currentSubject && room.myProgress === 0) {
               console.log('[Polling] Showing subject result animation for:', room.currentSubject);
               setShowSubjectResult(true);
+              setHasShownSubjectResult(true); // Mark as shown so it doesn't repeat
               // Keep showing for 1.5 seconds then hide (but stay in playing state)
               setTimeout(() => {
                 setShowSubjectResult(false);
