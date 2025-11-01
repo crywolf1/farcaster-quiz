@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjM0NDIwMywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDUyMjAyODE2QUNGMWY2RGVjMTZGMzkxZDkxY2NhYUQ2QTI2MkY1NUQifQ",
+    "payload": "eyJkb21haW4iOiJxdWl6LWNyeXdvbGYxcy1wcm9qZWN0cy52ZXJjZWwuYXBwIn0",
+    "signature": "MHg2Nzc3ODg2ZTM3Mjc3NDY1MzU0NDY4NzY3NzJiNzkzNDMyNzM3NTY3Nzg2YTc4MzM0YzMyNzM1NDY1MmI3MTc1MmI3NTM1NzAzOTMxNzg0NjQxNjQ2OTc3NzY0OTM0NzE3ODZiNDU2NTRlNzU1ODUwNjY2MTc4MzU1NDc5NmI0MTM5NjM3YTM3NTk2NzM5NTczMDM1Nzk0NTU5MzQzOTVhNzI1NjY5NTI0MjUwNTEzMTYyMzQzNDZmNzc3ODYyNDM0ZDU3NDQ3NjMwNGY2NjU5NjU0ZTY0NDY0NjM0NTE2ODZhNTY1NDY2NjU1YTMwNTkzMTVhNzA1MDc0NDIzMTYyNmE0MjZlNTQ3NDU2NjQ0MTU5NTk2Nzc2NzI3NzQ3NTk0OTc3NmQ0MTM0NjM0ZTMyNzAzMjMxNjI="
+  },
+  "frame": {
+    "version": "1",
+    "name": "Farcaster Quiz",
+    "iconUrl": "https://quiz-crywolf1s-projects.vercel.app/icon.svg",
+    "homeUrl": "https://quiz-crywolf1s-projects.vercel.app",
+    "imageUrl": "https://quiz-crywolf1s-projects.vercel.app/og-image.svg",
+    "buttonTitle": "Play Quiz",
+    "splashImageUrl": "https://quiz-crywolf1s-projects.vercel.app/og-image.svg",
+    "splashBackgroundColor": "#1a1a2e"
+  }
+}

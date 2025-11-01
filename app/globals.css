@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --primary: #8a4fff;
-  --secondary: #6366f1;
+  --primary: #6366f1;
+  --secondary: #8b5cf6;
 }
 
 html, body {
@@ -13,12 +13,11 @@ html, body {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', 'Roboto',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a2e;
 }
 
 * {
@@ -26,8 +25,21 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Glassmorphism utilities */
+.glass {
+  @apply backdrop-blur-3xl bg-white/10 border-2 border-white/30 shadow-2xl;
+}
+
+.glass-strong {
+  @apply backdrop-blur-3xl bg-white/20 border-2 border-white/40 shadow-2xl;
+}
+
+.glass-button {
+  @apply backdrop-blur-2xl bg-white/20 border-2 border-white/40 shadow-2xl hover:bg-white/30;
+}
+
 /* Mobile-first optimizations */
-@media (max-width: 640px) {
+@media (max-width: 640sm) {
   body {
     font-size: 14px;
   }

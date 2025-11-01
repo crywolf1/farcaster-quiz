@@ -78,7 +78,15 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
     questions: [],
     currentQuestionIndex: 0,
     answers: new Map(),
-    state: 'subject-selection'
+    scores: new Map(),
+    state: 'subject-selection',
+    timerStartedAt: null,
+    timerDuration: 18000,
+    playerProgress: new Map(),
+    playerTimers: new Map(),
+    playersFinished: new Set(),
+    roundOverTimerStartedAt: null,
+    playersReady: new Set()
   };
 
   gameRooms.set(roomId, room);

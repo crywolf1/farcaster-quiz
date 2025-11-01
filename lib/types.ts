@@ -10,25 +10,37 @@ export interface Question {
 
 export interface Player {
   id: string;
-  socketId: string;
+  socketId?: string; // Socket.IO connection ID
   username: string;
   pfpUrl?: string; // Farcaster profile picture
   fid?: number; // Farcaster ID
-  score: number;
-  ready: boolean;
+  score?: number; // Player's score in the game
+  ready?: boolean; // Player ready status for next round
 }
 
 export interface GameRoom {
   id: string;
-  players: [Player, Player];
+  players: Player[];
   currentRound: number;
-  totalRounds: number;
-  roundOwnerIndex: number; // 0 or 1 - which player picks subject
+  totalRounds?: number; // Total rounds in the game
+  maxRounds?: number; // Alternative name for totalRounds
+  roundOwnerIndex?: number; // 0 or 1 - which player picks subject
+  currentPickerIndex?: number; // Alternative name for roundOwnerIndex
   currentSubject: string | null;
   questions: Question[];
   currentQuestionIndex: number;
-  answers: Map<string, number>; // playerId -> answerIndex
-  state: 'waiting' | 'subject-selection' | 'question' | 'round-complete' | 'game-over';
+  answers: Map<string, number>; // playerId_questionId -> answerIndex
+  scores: Map<string, number>; // playerId -> score
+  state: 'subject-selection' | 'playing' | 'round-over' | 'game-over' | 'question' | 'round-complete';
+  timerStartedAt: number | null; // Timestamp when timer started
+  timerDuration: number; // Duration in milliseconds (18000ms = 18sec)
+  timerTimeoutId?: NodeJS.Timeout; // Server-side timeout ID
+  playerProgress: Map<string, number>; // playerId -> currentQuestionIndex (0-4)
+  playerTimers: Map<string, number>; // playerId -> timer start timestamp
+  playersFinished: Set<string>; // playerIds who finished all 5 questions
+  roundOverTimerStartedAt?: number | null; // Timestamp when round over screen started
+  roundOverAutoStartTimeoutId?: NodeJS.Timeout; // Auto-start next round timeout
+  playersReady: Set<string>; // playerIds who clicked "Next Round"
 }
 
 export interface MatchmakingQueue {

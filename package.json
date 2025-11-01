@@ -3,19 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:next\" \"npm run dev:server\"",
-    "dev:next": "next dev",
-    "dev:server": "tsx watch server/index.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "concurrently \"npm run start:next\" \"npm run start:server\"",
-    "start:next": "next start",
-    "start:server": "node dist/server/index.js",
+    "start": "next start",
     "lint": "next lint",
-    "test": "jest",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@farcaster/frame-sdk": "^0.1.12",
+    "@farcaster/miniapp-sdk": "^0.2.1",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

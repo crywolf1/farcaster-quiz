@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
-import sdk from '@farcaster/frame-sdk';
-import type { ServerToClientEvents, ClientToServerEvents, Question } from '@/lib/types';
+import { useState, useEffect, useRef } from 'react';
+import { sdk } from '@farcaster/miniapp-sdk';
+import type { Question } from '@/lib/types';
 
 type GameState = 'loading' | 'idle' | 'searching' | 'matched' | 'subject-selection' | 'waiting-subject' | 'playing' | 'round-result' | 'game-over';
 
@@ -13,468 +12,918 @@ interface FarcasterUser {
   fid: number;
 }
 
+interface GameRoom {
+  id: string;
+  players: Array<{
+    id: string;
+    username: string;
+    pfpUrl?: string;
+    fid?: number;
+  }>;
+  currentRound: number;
+  maxRounds: number;
+  currentPickerIndex: number;
+  currentSubject: string | null;
+  questions: Question[];
+  currentQuestionIndex: number;
+  answers: Record<string, number>;
+  scores: Record<string, number>;
+  state: 'subject-selection' | 'playing' | 'round-over' | 'game-over';
+  timerStartedAt: number | null;
+  timerDuration: number;
+  playerProgress: Record<string, number>;
+  playerTimers: Record<string, number>;
+  playersFinished: string[];
+  myProgress: number;
+  roundOverTimerStartedAt: number | null;
+  playersReady: string[];
+}
+
 export default function Home() {
-  const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
-  const [gameState, setGameState] = useState<GameState>('loading');
+  const [isReady, setIsReady] = useState(false);
+  const [isFrameContext, setIsFrameContext] = useState(false);
+  const [gameState, setGameState] = useState<GameState>('idle');
   const [farcasterUser, setFarcasterUser] = useState<FarcasterUser | null>(null);
+  const [playerId, setPlayerId] = useState('');
   const [roomId, setRoomId] = useState('');
   const [opponent, setOpponent] = useState<{ id: string; username: string; pfpUrl?: string; fid?: number } | null>(null);
-  const [isMyTurn, setIsMyTurn] = useState(false);
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [currentSubject, setCurrentSubject] = useState('');
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [questionNumber, setQuestionNumber] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(5);
+  const [subjects, setSubjects] = useState<string[]>(['Science', 'History', 'Geography', 'Sports', 'Technology']);
+  const [gameRoom, setGameRoom] = useState<GameRoom | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [opponentAnswered, setOpponentAnswered] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
-  const [scores, setScores] = useState<{ playerId: string; username: string; score: number }[]>([]);
-  const [roundWinner, setRoundWinner] = useState<string | null>(null);
-  const [nextRoundOwner, setNextRoundOwner] = useState('');
-  const [gameWinner, setGameWinner] = useState('');
+  const [currentQuestionId, setCurrentQuestionId] = useState<string>('');
+  const [showingResults, setShowingResults] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(18); // seconds
+  const [timerActive, setTimerActive] = useState<boolean>(false);
+  const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
+  
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Initialize Farcaster SDK
   useEffect(() => {
-    // Initialize Farcaster SDK and get user context
-    const initFarcaster = async () => {
+    const initializeFrame = async () => {
+      console.log('🚀 Starting Farcaster SDK initialization...');
+      
       try {
+        // Check if we're running in a Farcaster frame context
+        console.log('📡 Fetching SDK context...');
         const context = await sdk.context;
-        const user = context.user;
+        console.log('✅ Context received:', context);
         
-        if (user) {
-          setFarcasterUser({
-            username: user.username || user.displayName || `User${user.fid}`,
-            pfpUrl: user.pfpUrl || '',
-            fid: user.fid
+        setIsFrameContext(!!context);
+
+        if (context) {
+          console.log('🎯 In Farcaster frame - calling ready()...');
+          
+          // We're in a Farcaster frame, initialize properly
+          await sdk.actions.ready({
+            disableNativeGestures: true,
           });
-          setGameState('idle');
+          
+          console.log('✅ sdk.actions.ready() called successfully!');
+
+          setIsReady(true);
+          const user = (context as any).user;
+          setFarcasterUser(user as FarcasterUser);
+          setPlayerId(`player_${user.fid}_${Date.now()}`);
+
+          console.log('Farcaster Frame initialized:', {
+            user: context.user,
+            client: context.client,
+          });
         } else {
-          // Fallback for development/testing
-          setFarcasterUser({
+          // Not in a frame context
+          console.log('⚠️ No context - running outside Farcaster frame');
+          setIsReady(true);
+          const fallbackUser = {
             username: `Player${Math.floor(Math.random() * 1000)}`,
             pfpUrl: '',
-            fid: Math.floor(Math.random() * 100000)
-          });
-          setGameState('idle');
+            fid: Math.floor(Math.random() * 10000)
+          };
+          setFarcasterUser(fallbackUser);
+          setPlayerId(`player_${fallbackUser.fid}_${Date.now()}`);
         }
-      } catch (error) {
-        console.error('Farcaster SDK init error:', error);
-        // Fallback for development
-        setFarcasterUser({
+      } catch (err) {
+        console.error('❌ Farcaster Frame SDK error:', err);
+        setIsReady(true); // Still allow the app to work
+        const fallbackUser = {
           username: `Player${Math.floor(Math.random() * 1000)}`,
           pfpUrl: '',
-          fid: Math.floor(Math.random() * 100000)
-        });
-        setGameState('idle');
+          fid: Math.floor(Math.random() * 10000)
+        };
+        setFarcasterUser(fallbackUser);
+        setPlayerId(`player_${fallbackUser.fid}_${Date.now()}`);
       }
     };
 
-    initFarcaster();
+    initializeFrame();
+  }, []);
 
-    // Connect to Socket.IO server
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-    const socketInstance = io(socketUrl);
-    setSocket(socketInstance);
+  // Start matchmaking
+  const findMatch = async () => {
+    if (!farcasterUser || !playerId) return;
 
-    socketInstance.on('match-found', (data) => {
-      setRoomId(data.roomId);
-      setOpponent(data.opponent);
-      setIsMyTurn(data.yourTurn);
-      setGameState('matched');
-      
-      setTimeout(() => {
-        if (data.yourTurn) {
-          setGameState('subject-selection');
-        } else {
-          setGameState('waiting-subject');
-        }
-      }, 2000);
-    });
+    setGameState('searching');
 
-    socketInstance.on('subject-selection-required', (data) => {
-      setSubjects(data.subjects);
-      setGameState('subject-selection');
-    });
+    try {
+      // Join matchmaking queue
+      const response = await fetch('/api/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId,
+          username: farcasterUser.username,
+          pfpUrl: farcasterUser.pfpUrl,
+          fid: farcasterUser.fid,
+        }),
+      });
 
-    socketInstance.on('subject-selected', (data) => {
-      setCurrentSubject(data.subject);
-      setGameState('playing');
-    });
+      const data = await response.json();
 
-    socketInstance.on('question', (data) => {
-      setCurrentQuestion(data.question);
-      setQuestionNumber(data.questionNumber);
-      setTotalQuestions(data.totalQuestions);
-      setSelectedAnswer(null);
-      setOpponentAnswered(false);
-      setLastResult(null);
-      setGameState('playing');
-    });
-
-    socketInstance.on('answer-submitted', () => {
-      setOpponentAnswered(true);
-    });
-
-    socketInstance.on('question-result', (data) => {
-      setLastResult(data);
-    });
-
-    socketInstance.on('round-complete', (data) => {
-      setRoundWinner(data.winner);
-      setScores(data.scores);
-      setNextRoundOwner(data.nextRoundOwner);
-      setGameState('round-result');
-    });
-
-    socketInstance.on('game-over', (data) => {
-      setGameWinner(data.winner);
-      setScores(data.finalScores);
-      setGameState('game-over');
-    });
-
-    socketInstance.on('opponent-disconnected', () => {
-      alert('Opponent disconnected!');
+      if (data.roomId) {
+        // Already matched!
+        setRoomId(data.roomId);
+        startPolling();
+      } else {
+        // Keep polling for match
+        startMatchPolling();
+      }
+    } catch (error) {
+      console.error('Find match error:', error);
       setGameState('idle');
-      resetGame();
-    });
+    }
+  };
 
-    socketInstance.on('error', (data) => {
-      alert(data.message);
-    });
+  // Poll for match
+  const startMatchPolling = () => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/match?playerId=${playerId}`);
+        const data = await response.json();
 
+        if (data.matched && data.roomId) {
+          clearInterval(interval);
+          setRoomId(data.roomId);
+          setOpponent(data.opponent || null);
+          setSubjects(data.subjects || []);
+          setGameState('matched');
+          
+          // Wait 2 seconds then start game polling
+          setTimeout(() => {
+            startPolling();
+          }, 2000);
+        }
+      } catch (error) {
+        console.error('Match polling error:', error);
+      }
+    }, 1000); // Poll every second
+
+    // Store interval to clean up later
+    pollingIntervalRef.current = interval;
+  };
+
+  // Poll for game state
+  const startPolling = () => {
+    // Clear any existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/game?playerId=${playerId}`);
+        const data = await response.json();
+
+        if (data.gameState) {
+          const room: GameRoom = data.gameState;
+          setGameRoom(room);
+          
+          // Update MY timer (per-player timer)
+          const myTimerStart = room.playerTimers?.[playerId];
+          if (myTimerStart && room.state === 'playing' && !room.playersFinished?.includes(playerId)) {
+            const elapsed = Date.now() - myTimerStart;
+            const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
+            setTimeRemaining(Math.ceil(remaining / 1000));
+            setTimerActive(remaining > 0);
+          } else if (room.timerStartedAt && room.timerDuration) {
+            // Subject selection timer
+            const elapsed = Date.now() - room.timerStartedAt;
+            const remaining = Math.max(0, room.timerDuration - elapsed);
+            setTimeRemaining(Math.ceil(remaining / 1000));
+            setTimerActive(remaining > 0);
+          } else {
+            setTimerActive(false);
+          }
+
+          // Update round over auto-start timer
+          if (room.state === 'round-over' && room.roundOverTimerStartedAt) {
+            const elapsed = Date.now() - room.roundOverTimerStartedAt;
+            const remaining = Math.max(0, 30000 - elapsed); // 30 seconds
+            setRoundOverTimeRemaining(Math.ceil(remaining / 1000));
+          }
+
+          // Update opponent if not set
+          if (!opponent && room.players.length === 2) {
+            const opp = room.players.find(p => p.id !== playerId);
+            if (opp) setOpponent(opp);
+          }
+
+          // Update game state based on room state
+          console.log('[Polling] Room state:', room.state, 'Current gameState:', gameState);
+          
+          if (room.state === 'subject-selection') {
+            const isMyTurn = room.players[room.currentPickerIndex]?.id === playerId;
+            const newState = isMyTurn ? 'subject-selection' : 'waiting-subject';
+            console.log('[Polling] Subject selection - isMyTurn:', isMyTurn, 'newState:', newState);
+            setGameState(newState);
+          } else if (room.state === 'playing') {
+            console.log('[Polling] Setting state to playing, myProgress:', room.myProgress);
+            setGameState('playing');
+            
+            // Check if MY question changed - clear answer state
+            const myCurrentQ = room.questions[room.myProgress || 0];
+            if (myCurrentQ && myCurrentQ.id !== currentQuestionId) {
+              console.log('[Polling] New question for me:', myCurrentQ.id);
+              setCurrentQuestionId(myCurrentQ.id);
+              setSelectedAnswer(null);
+              setLastResult(null);
+              setShowingResults(false);
+            }
+          } else if (room.state === 'round-over') {
+            console.log('[Polling] Round over');
+            setGameState('round-result');
+          } else if (room.state === 'game-over') {
+            console.log('[Polling] Game over');
+            setGameState('game-over');
+          }
+        }
+      } catch (error) {
+        console.error('Game polling error:', error);
+      }
+    }, 1000); // Poll every second
+
+    pollingIntervalRef.current = interval;
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
     return () => {
-      socketInstance.disconnect();
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
     };
   }, []);
 
-  const resetGame = () => {
-    setRoomId('');
-    setOpponent(null);
-    setIsMyTurn(false);
-    setSubjects([]);
-    setCurrentSubject('');
-    setCurrentQuestion(null);
-    setQuestionNumber(0);
-    setSelectedAnswer(null);
-    setOpponentAnswered(false);
-    setLastResult(null);
-    setScores([]);
-    setRoundWinner(null);
-    setNextRoundOwner('');
-    setGameWinner('');
-  };
+  // Select subject
+  const selectSubject = async (subject: string) => {
+    try {
+      const response = await fetch('/api/subject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, subject }),
+      });
 
-  const handleFindMatch = () => {
-    if (!farcasterUser) {
-      alert('Loading user data...');
-      return;
+      const data = await response.json();
+
+      if (data.success) {
+        setGameState('playing');
+      }
+    } catch (error) {
+      console.error('Select subject error:', error);
     }
-    socket?.emit('find-match', { 
-      username: farcasterUser.username,
-      pfpUrl: farcasterUser.pfpUrl,
-      fid: farcasterUser.fid
-    });
-    setGameState('searching');
   };
 
-  const handleSelectSubject = (subject: string) => {
-    socket?.emit('select-subject', { roomId, subject });
-  };
+  // Submit answer
+  const submitAnswer = async (answerIndex: number) => {
+    if (!gameRoom || selectedAnswer !== null || iFinished) return;
 
-  const handleSubmitAnswer = (answerIndex: number) => {
-    if (selectedAnswer !== null) return;
-    
+    console.log('[Submit] Submitting answer:', answerIndex);
     setSelectedAnswer(answerIndex);
-    socket?.emit('submit-answer', {
-      roomId,
-      questionId: currentQuestion!.id,
-      answerIndex
-    });
+
+    try {
+      const myCurrentQ = gameRoom.questions[myProgress];
+      const response = await fetch('/api/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId,
+          questionId: myCurrentQ.id,
+          answerIndex,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('[Submit] Response:', data);
+
+      // Answer submitted - polling will update to next question
+    } catch (error) {
+      console.error('Submit answer error:', error);
+      setSelectedAnswer(null);
+    }
   };
 
-  // Render different screens based on game state
-  if (gameState === 'loading') {
-    return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-3"></div>
-          <h2 className="text-lg font-bold text-gray-800">Loading Farcaster...</h2>
-        </div>
-      </div>
-    );
-  }
+  // Start next round
+  const startNextRound = async () => {
+    try {
+      const response = await fetch('/api/round', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId }),
+      });
 
-  if (gameState === 'idle') {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full">
-          <h1 className="text-3xl font-bold text-center mb-2 text-purple-600">🎯 Farcaster Quiz</h1>
-          <p className="text-center text-gray-600 mb-6 text-sm">Challenge players in real-time!</p>
-          
-          {/* User Profile Card */}
-          <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-4 mb-6 flex items-center gap-3">
+      const data = await response.json();
+
+      if (data.gameOver) {
+        setGameState('game-over');
+      } else {
+        setGameState('subject-selection');
+      }
+    } catch (error) {
+      console.error('Start next round error:', error);
+    }
+  };
+
+  // Get current question based on MY progress
+  const myProgress = gameRoom?.myProgress || 0;
+  const currentQuestion = gameRoom?.questions?.[myProgress];
+  const isMyTurnToPick = gameRoom?.players[gameRoom.currentPickerIndex]?.id === playerId;
+  const myScore = gameRoom?.scores?.[playerId] || 0;
+  const opponentScore = opponent ? (gameRoom?.scores?.[opponent.id] || 0) : 0;
+  const iFinished = gameRoom?.playersFinished?.includes(playerId) || false;
+  const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
+
+  // Render functions
+  const renderLoading = () => (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[32px] p-12 shadow-2xl">
+        <div className="w-20 h-20 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-6 drop-shadow-2xl"></div>
+        <p className="text-white text-xl font-semibold drop-shadow-lg">Loading Quiz...</p>
+      </div>
+    </div>
+  );
+
+  const renderIdle = () => (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] p-10 shadow-2xl max-w-md w-full">
+        <div className="text-center mb-8">
+          {farcasterUser?.pfpUrl ? (
+            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-white/70 shadow-2xl ring-4 ring-white/40" />
+          ) : (
+            <div className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-white/70 shadow-2xl ring-4 ring-white/40 backdrop-blur-xl bg-white/20 flex items-center justify-center">
+              <span className="text-5xl">👤</span>
+            </div>
+          )}
+          <h1 className="text-5xl font-bold text-white drop-shadow-2xl mb-3">Farcaster Quiz</h1>
+          <p className="text-white/90 text-lg font-medium drop-shadow-lg">Welcome, {farcasterUser?.username}!</p>
+        </div>
+        
+        <button
+          onClick={findMatch}
+          className="w-full backdrop-blur-2xl bg-white/20 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.05] transition-all active:scale-95 border-2 border-white/40"
+        >
+          🎯 Find Match
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderSearching = () => (
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] p-12 shadow-2xl">
+        <div className="w-24 h-24 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-8 drop-shadow-2xl"></div>
+        <h2 className="text-3xl font-bold text-white mb-3 text-center drop-shadow-lg">Finding opponent...</h2>
+        <p className="text-white/80 text-center drop-shadow">Please wait</p>
+      </div>
+    </div>
+  );
+
+  const renderMatched = () => (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-10 max-w-md w-full">
+        <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-8 text-center">
+          Match Found! 🎉
+        </h2>
+        
+        <div className="flex justify-around items-center mb-8">
+          <div className="text-center">
             {farcasterUser?.pfpUrl ? (
-              <img 
-                src={farcasterUser.pfpUrl} 
-                alt={farcasterUser.username}
-                className="w-14 h-14 rounded-full border-2 border-purple-400"
-              />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl ring-4 ring-white/40 mb-2" />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-purple-400 flex items-center justify-center text-white font-bold text-xl">
-                {farcasterUser?.username?.charAt(0).toUpperCase()}
+              <div className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl backdrop-blur-xl bg-white/20 flex items-center justify-center mb-2 ring-4 ring-white/40">
+                <span className="text-3xl">👤</span>
               </div>
             )}
-            <div className="flex-1">
-              <p className="font-bold text-gray-800 text-lg">{farcasterUser?.username}</p>
-              <p className="text-xs text-gray-600">FID: {farcasterUser?.fid}</p>
-            </div>
+            <p className="text-white font-semibold drop-shadow-lg">{farcasterUser?.username}</p>
           </div>
           
-          <button
-            onClick={handleFindMatch}
-            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all transform active:scale-95 shadow-lg"
-          >
-            🎮 Find Match
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (gameState === 'searching') {
-    return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="animate-spin rounded-full h-14 w-14 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Finding opponent...</h2>
-          <p className="text-gray-600 text-sm">Matching you with another player</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (gameState === 'matched') {
-    return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="text-5xl mb-4">🎮</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Match Found!</h2>
+          <div className="text-5xl drop-shadow-2xl">⚡</div>
           
-          {/* Opponent Profile */}
-          <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-2xl p-4 mb-4 flex items-center gap-3 justify-center">
+          <div className="text-center">
             {opponent?.pfpUrl ? (
-              <img 
-                src={opponent.pfpUrl} 
-                alt={opponent.username}
-                className="w-12 h-12 rounded-full border-2 border-purple-400"
-              />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl ring-4 ring-white/40 mb-2" />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-purple-400 flex items-center justify-center text-white font-bold">
-                {opponent?.username?.charAt(0).toUpperCase()}
+              <div className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl backdrop-blur-xl bg-white/20 flex items-center justify-center mb-2 ring-4 ring-white/40">
+                <span className="text-3xl">👤</span>
+              </div>
+            )}
+            <p className="text-white font-semibold drop-shadow-lg">{opponent?.username}</p>
+          </div>
+        </div>
+        
+        <p className="text-white/90 text-lg text-center drop-shadow-lg">Starting game...</p>
+      </div>
+    </div>
+  );
+
+  const renderSubjectSelection = () => (
+    <div className="min-h-screen flex flex-col p-4">
+      {/* Header */}
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {farcasterUser?.pfpUrl ? (
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
             <div>
-              <p className="font-bold text-gray-800">{opponent?.username}</p>
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
             </div>
           </div>
           
-          <p className="text-sm text-gray-500 animate-pulse">Get ready...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (gameState === 'subject-selection') {
-    return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-5 max-w-sm w-full">
-          <div className="text-center mb-5">
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">Choose a Subject</h2>
-            <p className="text-gray-600 text-sm">Pick a topic for this round</p>
+          <div className="text-center">
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
+            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
-            {subjects.map((subject) => (
-              <button
-                key={subject}
-                onClick={() => handleSelectSubject(subject)}
-                className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-bold py-4 px-3 rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all transform active:scale-95 text-sm"
-              >
-                {subject}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
+            </div>
+            {opponent?.pfpUrl ? (
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    );
-  }
 
-  if (gameState === 'waiting-subject') {
-    return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="animate-pulse text-5xl mb-4">🤔</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">Waiting for opponent...</h2>
-          
-          {opponent?.pfpUrl ? (
-            <img 
-              src={opponent.pfpUrl} 
-              alt={opponent.username}
-              className="w-16 h-16 rounded-full border-2 border-purple-400 mx-auto mb-2"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-purple-400 flex items-center justify-center text-white font-bold text-xl mx-auto mb-2">
-              {opponent?.username?.charAt(0).toUpperCase()}
+      {/* Subject Selection */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center max-w-md w-full">
+          {/* Timer */}
+          {timerActive && (
+            <div className="mb-6">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
+              } shadow-2xl drop-shadow-2xl`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
+                  {timeRemaining}
+                </span>
+              </div>
+              <p className="text-white/90 text-sm mt-2 drop-shadow">
+                {isMyTurnToPick ? 'Pick a subject!' : 'Waiting...'}
+              </p>
             </div>
           )}
           
-          <p className="text-gray-600 text-sm">
-            <span className="font-bold text-purple-600">{opponent?.username}</span> is choosing the subject
-          </p>
+          <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">
+            {isMyTurnToPick ? 'Choose a Subject 📚' : 'Opponent is choosing...'}
+          </h2>
+          
+          {isMyTurnToPick ? (
+            <div className="space-y-3">
+              {subjects.map((subject) => (
+                <button
+                  key={subject}
+                  onClick={() => selectSubject(subject)}
+                  className="w-full backdrop-blur-2xl bg-white/20 text-white py-4 rounded-[28px] font-bold text-lg shadow-2xl hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.02] transition-all active:scale-95 border-2 border-white/40"
+                >
+                  {subject}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+          )}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (gameState === 'playing' && currentQuestion) {
-    return (
-      <div className="h-screen flex flex-col p-4 bg-gradient-to-br from-purple-600 to-indigo-700 overflow-y-auto">
-        <div className="bg-white rounded-3xl shadow-2xl p-4 max-w-sm w-full mx-auto my-auto">
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-xs font-semibold text-gray-600">
-              Question {questionNumber}/{totalQuestions}
-            </div>
-            <div className="text-xs font-semibold text-purple-600 bg-purple-100 px-3 py-1 rounded-full">
-              {currentSubject}
+  const renderWaitingSubject = () => (
+    <div className="min-h-screen flex flex-col p-4">
+      {/* Header - same as subject selection */}
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            {farcasterUser?.pfpUrl ? (
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
+            <div>
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
             </div>
           </div>
+          
+          <div className="text-center">
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
+            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="text-right">
+              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
+            </div>
+            {opponent?.pfpUrl ? (
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-          <h2 className="text-lg font-bold text-gray-800 mb-5 text-center leading-snug">
-            {currentQuestion.question}
-          </h2>
+      {/* Waiting message */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-10">
+          <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-4 drop-shadow-2xl"></div>
+          <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">{opponent?.username} is choosing...</h2>
+          <p className="text-white/90 drop-shadow">Get ready!</p>
+        </div>
+      </div>
+    </div>
+  );
 
-          <div className="grid grid-cols-1 gap-3 mb-4">
-            {currentQuestion.options.map((option, index) => {
-              let buttonClass = "p-3 rounded-xl font-semibold text-left transition-all transform active:scale-95 text-sm ";
+  const renderPlaying = () => {
+    // If I finished, show waiting screen
+    if (iFinished) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="text-center max-w-md">
+            <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-8">
+              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">You Finished! 🎉</h2>
+              <p className="text-white/90 text-lg mb-6 drop-shadow-lg">
+                Waiting for {opponent?.username} to finish...
+              </p>
+              <div className="mb-6">
+                <p className="text-white text-5xl font-bold mb-2 drop-shadow-2xl">{myScore}</p>
+                <p className="text-white/80 drop-shadow">Your Score</p>
+              </div>
+              <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    if (!currentQuestion) {
+      console.log('[Render] No current question, myProgress:', myProgress, 'questions:', gameRoom?.questions?.length);
+      return null;
+    }
+
+    console.log('[Render] Current question:', currentQuestion.id, 'options:', currentQuestion.options?.length);
+
+    const hasAnswered = selectedAnswer !== null;
+    const bothAnswered = showingResults && lastResult !== null;
+
+    return (
+      <div className="min-h-screen  flex flex-col p-4">
+        {/* Header */}
+        <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-xl">
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2">
+              {farcasterUser?.pfpUrl ? (
+                <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+              ) : (
+                <div className="w-10 h-10 rounded-full border-2 border-white/70 bg-white/50 flex items-center justify-center ring-2 ring-white/40">
+                  <span className="text-lg">👤</span>
+                </div>
+              )}
+              <div>
+                <p className="text-white font-semibold text-sm">{farcasterUser?.username}</p>
+                <p className="text-white/80 text-xs">Score: {myScore}</p>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-white/80 text-xs">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+              <p className="text-white font-bold">Q {myProgress + 1}/5</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <p className="text-white font-semibold text-sm">{opponent?.username}</p>
+                <p className="text-white/80 text-xs">Score: {opponentScore}</p>
+              </div>
+              {opponent?.pfpUrl ? (
+                <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
+              ) : (
+                <div className="w-10 h-10 rounded-full border-2 border-white/70 bg-white/50 flex items-center justify-center ring-2 ring-white/40">
+                  <span className="text-lg">👤</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-white/90 text-sm font-medium">{gameRoom?.currentSubject}</p>
+          </div>
+        </div>
+
+        {/* Question */}
+        <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
+          {/* Timer */}
+          {timerActive && (
+            <div className="text-center mb-4">
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
+                timeRemaining <= 5 ? 'border-red-500 bg-red-500/30 animate-pulse' : 'border-indigo-400/50 bg-white/50'
+              } shadow-xl`}>
+                <span className={`text-2xl font-bold ${timeRemaining <= 5 ? 'text-red-600' : 'text-white'}`}>
+                  {timeRemaining}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-[32px] p-6 mb-6 shadow-xl">
+            <h3 className="text-white text-xl font-bold text-center mb-4">
+              {currentQuestion.question}
+            </h3>
+          </div>
+
+          {/* Answer Options */}
+          <div className="space-y-3">
+            {currentQuestion.options?.map((option, index) => {
+              let buttonClass = "w-full backdrop-blur-lg bg-white/50 border-2 border-white/40 text-white py-4 px-6 rounded-[24px] font-semibold text-left transition-all shadow-lg";
               
-              if (lastResult) {
-                if (index === lastResult.correctAnswer) {
-                  buttonClass += "bg-green-500 text-white";
-                } else if (index === selectedAnswer) {
-                  buttonClass += "bg-red-500 text-white";
-                } else {
-                  buttonClass += "bg-gray-200 text-gray-600";
+              if (bothAnswered && lastResult) {
+                // Show results
+                const isCorrect = index === currentQuestion.correctAnswer;
+                const isMyAnswer = selectedAnswer === index;
+                
+                if (isCorrect) {
+                  buttonClass = "w-full bg-green-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-green-400";
+                } else if (isMyAnswer) {
+                  buttonClass = "w-full bg-red-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-red-400";
                 }
-              } else if (selectedAnswer === index) {
-                buttonClass += "bg-purple-500 text-white";
-              } else {
-                buttonClass += "bg-gray-100 hover:bg-purple-100 text-gray-800";
+              } else if (hasAnswered && selectedAnswer === index) {
+                buttonClass = "w-full backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-4 px-6 rounded-[24px] font-semibold text-left shadow-xl border-2 border-white/20";
+              } else if (!hasAnswered) {
+                buttonClass += " hover:bg-white/70 hover:scale-[1.02] active:scale-95 cursor-pointer";
               }
 
               return (
                 <button
                   key={index}
-                  onClick={() => handleSubmitAnswer(index)}
-                  disabled={selectedAnswer !== null}
+                  onClick={() => !hasAnswered && submitAnswer(index)}
+                  disabled={hasAnswered}
                   className={buttonClass}
                 >
-                  {String.fromCharCode(65 + index)}. {option}
+                  {option}
+                  {bothAnswered && index === currentQuestion.correctAnswer && " ✓"}
                 </button>
               );
             })}
           </div>
 
-          {lastResult && (
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-3 mb-3">
-              <h3 className="font-bold text-blue-800 mb-2 text-sm">Results:</h3>
-              {lastResult.players.map((player: any) => (
-                <div key={player.id} className="flex justify-between items-center py-1 text-xs">
-                  <span className={player.correct ? 'text-green-600 font-semibold' : 'text-red-600'}>
-                    {player.username}: {player.correct ? '✓ Correct' : '✗ Wrong'}
-                  </span>
-                  <span className="font-bold">Score: {player.score}</span>
-                </div>
-              ))}
+          {bothAnswered && lastResult && (
+            <div className="mt-4 backdrop-blur-lg bg-white/50 border border-white/30 rounded-[28px] p-4 shadow-lg">
+              <div className="flex justify-between">
+                {lastResult.map((result: any) => (
+                  <div key={result.playerId} className="text-center">
+                    <p className="text-white font-semibold">{result.username}</p>
+                    <p className="text-2xl">{result.correct ? '✅' : '❌'}</p>
+                    <p className="text-white/90 text-sm">Score: {result.score}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-
-          {selectedAnswer !== null && !opponentAnswered && (
-            <p className="text-center text-gray-600 animate-pulse text-sm">
-              Waiting for opponent to answer...
-            </p>
-          )}
         </div>
       </div>
     );
-  }
+  };
 
-  if (gameState === 'round-result') {
+  const renderRoundResult = () => {
+    const winner = gameRoom?.players.find(p => (gameRoom?.scores[p.id] || 0) > (opponent && gameRoom?.scores[opponent.id] || 0) ? true : false);
+    const isDraw = myScore === opponentScore;
+    const iAmReady = gameRoom?.playersReady?.includes(playerId) || false;
+    const opponentReady = opponent && gameRoom?.playersReady?.includes(opponent.id) || false;
+
     return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="text-5xl mb-3">{roundWinner ? '🏆' : '🤝'}</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">
-            Round Complete!
+      <div className="min-h-screen  flex items-center justify-center p-4">
+        <div className="text-center backdrop-blur-xl bg-white/40 border border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            Round {gameRoom?.currentRound} Complete! 🎉
           </h2>
-          {roundWinner ? (
-            <p className="text-base text-gray-600 mb-4">
-              <span className="font-bold text-purple-600">{roundWinner}</span> wins this round!
-            </p>
-          ) : (
-            <p className="text-base text-gray-600 mb-4">It&apos;s a tie!</p>
-          )}
           
-          <div className="bg-gray-100 rounded-xl p-4 mb-4">
-            <h3 className="font-bold text-gray-700 mb-2 text-sm">Scores:</h3>
-            {scores.map((score) => (
-              <div key={score.playerId} className="flex justify-between items-center py-1">
-                <span className="font-semibold text-sm">{score.username}</span>
-                <span className="text-purple-600 font-bold text-sm">{score.score} points</span>
+          <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[32px] p-6 mb-6 shadow-lg">
+            <div className="flex justify-around">
+              <div className="text-center relative">
+                {farcasterUser?.pfpUrl ? (
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                    <span className="text-2xl">👤</span>
+                  </div>
+                )}
+                {iAmReady && (
+                  <div className="absolute top-0 right-0 bg-green-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg">
+                    <span className="text-white text-lg">✓</span>
+                  </div>
+                )}
+                <p className="text-white font-bold">{farcasterUser?.username}</p>
+                <p className="text-white text-3xl font-bold">{myScore}</p>
+                {iAmReady && <p className="text-green-600 text-xs mt-1 font-semibold">Ready!</p>}
               </div>
-            ))}
+              
+              <div className="text-center relative">
+                {opponent?.pfpUrl ? (
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-16 h-16 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                    <span className="text-2xl">👤</span>
+                  </div>
+                )}
+                {opponentReady && (
+                  <div className="absolute top-0 right-0 bg-green-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg">
+                    <span className="text-white text-lg">✓</span>
+                  </div>
+                )}
+                <p className="text-white font-bold">{opponent?.username}</p>
+                <p className="text-white text-3xl font-bold">{opponentScore}</p>
+                {opponentReady && <p className="text-green-600 text-xs mt-1 font-semibold">Ready!</p>}
+              </div>
+            </div>
           </div>
-
-          <p className="text-xs text-gray-500">
-            Next round: <span className="font-bold">{nextRoundOwner}</span> picks the subject
+          
+          <p className="text-white text-2xl font-bold mb-6">
+            {isDraw ? "It's a Draw! 🤝" : winner?.id === playerId ? 'You Won This Round! 🏆' : `${opponent?.username} Won! 💪`}
           </p>
-          <p className="text-xs text-gray-400 mt-2 animate-pulse">Starting next round...</p>
+          
+          {gameRoom && gameRoom.currentRound < gameRoom.maxRounds ? (
+            <>
+              <button
+                onClick={startNextRound}
+                disabled={iAmReady}
+                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-xl transition-all mb-4 border ${
+                  iAmReady 
+                    ? 'bg-green-500 text-white cursor-not-allowed border-green-400' 
+                    : 'backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:scale-[1.02] active:scale-95 border-white/20'
+                }`}
+              >
+                {iAmReady ? '✓ Ready!' : 'Ready for Next Round'}
+              </button>
+              
+              {/* Waiting message */}
+              {iAmReady && !opponentReady && (
+                <p className="text-white/90 text-sm mb-4">
+                  Waiting for {opponent?.username} to be ready...
+                </p>
+              )}
+              
+              {/* Auto-start countdown */}
+              {roundOverTimeRemaining > 0 && (
+                <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[28px] p-4 shadow-lg">
+                  <p className="text-white/90 text-sm mb-2">
+                    {!iAmReady || !opponentReady ? 'Both players must click Ready, or auto-starting in:' : 'Auto-starting in:'}
+                  </p>
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full border-4 backdrop-blur-xl ${
+                    roundOverTimeRemaining <= 10 ? 'border-red-500 bg-red-500/30 animate-pulse' : 'border-indigo-400/50 bg-white/50'
+                  } shadow-xl`}>
+                    <span className={`text-xl font-bold ${roundOverTimeRemaining <= 10 ? 'text-red-600' : 'text-white'}`}>
+                      {roundOverTimeRemaining}
+                    </span>
+                  </div>
+                  <p className="text-white/80 text-xs mt-2">seconds</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-white/90 text-lg">Calculating final results...</p>
+          )}
         </div>
       </div>
     );
-  }
+  };
 
-  if (gameState === 'game-over') {
+  const renderGameOver = () => {
+    const winner = gameRoom?.players.find(p => (gameRoom?.scores[p.id] || 0) > (opponent && gameRoom?.scores[opponent.id] || 0) ? true : false);
+    const isDraw = myScore === opponentScore;
+
     return (
-      <div className="h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-indigo-700">
-        <div className="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center">
-          <div className="text-5xl mb-3">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Game Over!</h2>
-          <p className="text-xl text-purple-600 font-bold mb-5">
-            {gameWinner} wins!
-          </p>
+      <div className="min-h-screen  flex items-center justify-center p-4">
+        <div className="text-center backdrop-blur-xl bg-white/40 border border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">Game Over! 🎮</h2>
           
-          <div className="bg-gray-100 rounded-xl p-4 mb-5">
-            <h3 className="font-bold text-gray-700 mb-2 text-sm">Final Scores:</h3>
-            {scores.map((score) => (
-              <div key={score.playerId} className="flex justify-between items-center py-1">
-                <span className="font-semibold text-sm">{score.username}</span>
-                <span className="text-purple-600 font-bold text-sm">{score.score} points</span>
+          <div className="backdrop-blur-lg bg-white/50 border border-white/30 rounded-[32px] p-6 mb-6 shadow-lg">
+            <div className="flex justify-around">
+              <div className="text-center">
+                {farcasterUser?.pfpUrl ? (
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                    <span className="text-3xl">👤</span>
+                  </div>
+                )}
+                <p className="text-white font-bold text-lg">{farcasterUser?.username}</p>
+                <p className="text-white text-4xl font-bold">{myScore}</p>
               </div>
-            ))}
+              
+              <div className="text-center">
+                {opponent?.pfpUrl ? (
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/60 ring-4 ring-white/30 mx-auto mb-2" />
+                ) : (
+                  <div className="w-20 h-20 rounded-full border-4 border-white/60 bg-white/50 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/30">
+                    <span className="text-3xl">👤</span>
+                  </div>
+                )}
+                <p className="text-white font-bold text-lg">{opponent?.username}</p>
+                <p className="text-white text-4xl font-bold">{opponentScore}</p>
+              </div>
+            </div>
           </div>
-
+          
+          <div className="mb-6">
+            {isDraw ? (
+              <>
+                <p className="text-white text-3xl font-bold mb-2">It&apos;s a Draw! 🤝</p>
+                <p className="text-white/90">Great match!</p>
+              </>
+            ) : winner?.id === playerId ? (
+              <>
+                <p className="text-white text-3xl font-bold mb-2">You Won! 🏆</p>
+                <p className="text-white/90">Congratulations!</p>
+              </>
+            ) : (
+              <>
+                <p className="text-white text-3xl font-bold mb-2">{opponent?.username} Won! 💪</p>
+                <p className="text-white/90">Better luck next time!</p>
+              </>
+            )}
+          </div>
+          
           <button
             onClick={() => {
-              resetGame();
               setGameState('idle');
+              setRoomId('');
+              setOpponent(null);
+              setGameRoom(null);
+              setSelectedAnswer(null);
+              setLastResult(null);
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+              }
             }}
-            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all transform active:scale-95 shadow-lg"
+            className="backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-xl hover:scale-[1.02] transition-all active:scale-95 border border-white/20"
           >
-            🎮 Play Again
+            Play Again
           </button>
         </div>
       </div>
     );
+  };
+
+  // Main render - show loading until ready
+  if (!isReady) {
+    return renderLoading();
   }
 
-  return null;
+  // Main game render
+  switch (gameState) {
+    case 'idle':
+      return renderIdle();
+    case 'searching':
+      return renderSearching();
+    case 'matched':
+      return renderMatched();
+    case 'subject-selection':
+      return renderSubjectSelection();
+    case 'waiting-subject':
+      return renderWaitingSubject();
+    case 'playing':
+      return renderPlaying();
+    case 'round-result':
+      return renderRoundResult();
+    case 'game-over':
+      return renderGameOver();
+    default:
+      return renderIdle();
+  }
 }

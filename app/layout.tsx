@@ -5,6 +5,19 @@ export const metadata: Metadata = {
   title: "Farcaster Quiz",
   description: "Real-time multiplayer quiz game for Farcaster",
   manifest: "/manifest.json",
+  metadataBase: new URL('https://quiz-crywolf1s-projects.vercel.app'),
+  openGraph: {
+    title: "Farcaster Quiz",
+    description: "Real-time multiplayer quiz game",
+    images: ['/og-image.svg'],
+  },
+  other: {
+    'fc:frame': 'vNext',
+    'fc:frame:image': 'https://quiz-crywolf1s-projects.vercel.app/og-image.svg',
+    'fc:frame:button:1': 'Play Quiz',
+    'fc:frame:button:1:action': 'link',
+    'fc:frame:button:1:target': 'https://quiz-crywolf1s-projects.vercel.app',
+  },
 };
 
 export const viewport: Viewport = {
