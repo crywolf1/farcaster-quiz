@@ -967,29 +967,42 @@ export default function Home() {
     }
   }, [gameState, selectedSubject]);
 
-  // PROGRESS BAR TIMER - Round Result (30 seconds auto-ready)
+  // PROGRESS BAR TIMER - Round Result (30 seconds - synced with server)
   useEffect(() => {
     console.log('[ProgressBar-RoundResult] Effect triggered - gameState:', gameState);
     
     if (gameState !== 'round-result') {
       console.log('[ProgressBar-RoundResult] ❌ Not round-result, skipping');
+      if (timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
+      }
       return;
     }
 
     const currentPlayerId = playerId || playerIdRef.current;
     const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
+    const serverStartTime = gameRoom?.roundOverTimerStartedAt;
     
     console.log('[ProgressBar-RoundResult] - iAmReady:', iAmReady);
+    console.log('[ProgressBar-RoundResult] - serverStartTime:', serverStartTime);
     console.log('[ProgressBar-RoundResult] - timerIntervalIdRef.current:', timerIntervalIdRef.current);
     
-    // Only start timer if I'm not ready yet AND timer isn't already running
-    if (!iAmReady && !timerIntervalIdRef.current) {
-      console.log('[ProgressBar-RoundResult] 🎯 Starting 30s auto-ready countdown');
+    // Only show timer if not ready and server timer has started
+    if (!iAmReady && serverStartTime && !timerIntervalIdRef.current) {
+      console.log('[ProgressBar-RoundResult] 🎯 Starting synced countdown with server');
       
-      setTimeRemaining(30);
+      // Calculate initial time remaining based on server timestamp
+      const elapsed = Date.now() - serverStartTime;
+      const remaining = Math.max(0, 30 - elapsed / 1000);
+      
+      console.log('[ProgressBar-RoundResult] - Elapsed:', elapsed, 'ms');
+      console.log('[ProgressBar-RoundResult] - Remaining:', remaining, 's');
+      
+      setTimeRemaining(remaining);
       setTimerActive(true);
       
-      // Start countdown
+      // Start countdown - NO auto-start, server handles that
       timerIntervalIdRef.current = setInterval(() => {
         setTimeRemaining(t => {
           const newTime = t - 0.1;
@@ -998,8 +1011,8 @@ export default function Home() {
               clearInterval(timerIntervalIdRef.current);
               timerIntervalIdRef.current = null;
             }
-            console.log('[ProgressBar-RoundResult] ⏰ Auto-ready timeout! Starting next round');
-            startNextRound();
+            setTimerActive(false);
+            console.log('[ProgressBar-RoundResult] ⏰ Timer reached 0 - waiting for server to start round');
             return 0;
           }
           return newTime;
@@ -1011,7 +1024,7 @@ export default function Home() {
       timerIntervalIdRef.current = null;
       setTimerActive(false);
     }
-  }, [gameState, playerId, gameRoom?.playersReady, startNextRound]);
+  }, [gameState, playerId, gameRoom?.playersReady, gameRoom?.roundOverTimerStartedAt]);
 
   // Debug logging for subject selection visibility
   useEffect(() => {
