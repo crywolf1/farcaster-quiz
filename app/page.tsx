@@ -104,10 +104,11 @@ export default function Home() {
           console.log('[Timer] State:', room.state, 'myTimerStart:', myTimerStart, 'playerId:', currentPlayerId, 'finished:', room.playersFinished?.includes(currentPlayerId));
           
           // PRIORITY: Check for question timer FIRST (even if state is still transitioning)
+          console.log('[Timer] CHECKING - myTimerStart:', myTimerStart, 'playerTimers:', room.playerTimers, 'currentPlayerId:', currentPlayerId);
           if (myTimerStart && !room.playersFinished?.includes(currentPlayerId)) {
             const elapsed = Date.now() - myTimerStart;
             const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
-            console.log('[Timer] ⏱️ Question timer - elapsed:', elapsed, 'remaining:', remaining);
+            console.log('[Timer] ⏱️ Question timer ACTIVE - elapsed:', elapsed, 'remaining:', remaining);
             setTimeRemaining(Math.ceil(remaining / 1000));
             setTimerActive(true);
           } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
