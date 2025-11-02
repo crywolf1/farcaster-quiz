@@ -923,17 +923,20 @@ export default function Home() {
   
   // PROGRESS BAR TIMER - Subject Selection (20 seconds)
   useEffect(() => {
+    console.log('[ProgressBar-Subject] Effect triggered - gameState:', gameState, 'isMyTurnToPick:', isMyTurnToPick);
+    
     if (gameState !== 'subject-selection' || !isMyTurnToPick) {
+      console.log('[ProgressBar-Subject] ❌ Not my turn or not subject selection');
       return;
     }
 
-    console.log('[ProgressBar] 🎯 Subject selection - starting 20s countdown');
-    
-    // Clear any existing timer first
+    // Only start timer if not already running
     if (timerIntervalIdRef.current) {
-      clearInterval(timerIntervalIdRef.current);
-      timerIntervalIdRef.current = null;
+      console.log('[ProgressBar-Subject] ⚠️ Timer already running, skipping');
+      return;
     }
+
+    console.log('[ProgressBar-Subject] 🎯 Starting 20s countdown');
     
     setTimeRemaining(20);
     setTimerActive(true);
@@ -948,7 +951,7 @@ export default function Home() {
             timerIntervalIdRef.current = null;
           }
           const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-          console.log('[ProgressBar] ⏰ Time up! Auto-selecting:', randomSubject);
+          console.log('[ProgressBar-Subject] ⏰ Time up! Auto-selecting:', randomSubject);
           selectSubject(randomSubject);
           return 0;
         }
