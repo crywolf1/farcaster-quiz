@@ -969,22 +969,22 @@ export default function Home() {
 
   // PROGRESS BAR TIMER - Round Result (30 seconds auto-ready)
   useEffect(() => {
+    console.log('[ProgressBar-RoundResult] Effect triggered - gameState:', gameState);
+    
     if (gameState !== 'round-result') {
+      console.log('[ProgressBar-RoundResult] ❌ Not round-result, skipping');
       return;
     }
 
     const currentPlayerId = playerId || playerIdRef.current;
     const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
     
-    // Only start timer if I'm not ready yet
-    if (!iAmReady) {
-      console.log('[ProgressBar] 🎯 Round result - starting 30s auto-ready countdown');
-      
-      // Clear any existing timer first
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
-      }
+    console.log('[ProgressBar-RoundResult] - iAmReady:', iAmReady);
+    console.log('[ProgressBar-RoundResult] - timerIntervalIdRef.current:', timerIntervalIdRef.current);
+    
+    // Only start timer if I'm not ready yet AND timer isn't already running
+    if (!iAmReady && !timerIntervalIdRef.current) {
+      console.log('[ProgressBar-RoundResult] 🎯 Starting 30s auto-ready countdown');
       
       setTimeRemaining(30);
       setTimerActive(true);
@@ -998,28 +998,20 @@ export default function Home() {
               clearInterval(timerIntervalIdRef.current);
               timerIntervalIdRef.current = null;
             }
-            console.log('[ProgressBar] ⏰ Auto-ready timeout! Starting next round');
+            console.log('[ProgressBar-RoundResult] ⏰ Auto-ready timeout! Starting next round');
             startNextRound();
             return 0;
           }
           return newTime;
         });
       }, 100);
-    }
-  }, [gameState, gameRoom?.playersReady, playerId, startNextRound]);
-
-  // Stop round result timer when player clicks ready
-  useEffect(() => {
-    const currentPlayerId = playerId || playerIdRef.current;
-    const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
-    
-    if (gameState === 'round-result' && iAmReady && timerIntervalIdRef.current) {
-      console.log('[ProgressBar] 🛑 Ready clicked - stopping countdown');
+    } else if (iAmReady && timerIntervalIdRef.current) {
+      console.log('[ProgressBar-RoundResult] 🛑 Player ready - stopping timer');
       clearInterval(timerIntervalIdRef.current);
       timerIntervalIdRef.current = null;
       setTimerActive(false);
     }
-  }, [gameState, gameRoom?.playersReady, playerId]);
+  }, [gameState, playerId, gameRoom?.playersReady, startNextRound]);
 
   // Debug logging for subject selection visibility
   useEffect(() => {
