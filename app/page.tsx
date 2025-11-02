@@ -859,7 +859,7 @@ export default function Home() {
   const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
   const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
 
-  // QUESTION TIMER - 18 seconds countdown
+  // PROGRESS BAR TIMER - Questions (18 seconds)
   useEffect(() => {
     if (gameState !== 'playing' || !currentQuestion || iFinished || selectedAnswer !== null) {
       setTimerActive(false);
@@ -872,9 +872,8 @@ export default function Home() {
 
     const questionId = currentQuestion.id;
     
-    // New question detected - start timer
     if (currentQuestionId !== questionId) {
-      console.log('[Timer] 🎯 Starting 18s timer for question:', questionId);
+      console.log('[ProgressBar] 🎯 New question - starting 18s countdown');
       setCurrentQuestionId(questionId);
       setTimeRemaining(18);
       setTimerActive(true);
@@ -883,18 +882,20 @@ export default function Home() {
         clearInterval(timerIntervalIdRef.current);
       }
       
+      // Update every 100ms for smooth bar animation
       timerIntervalIdRef.current = setInterval(() => {
         setTimeRemaining(t => {
-          console.log('[Timer] ⏱️', t - 1);
-          if (t <= 1) {
+          const newTime = t - 0.1;
+          if (newTime <= 0) {
             clearInterval(timerIntervalIdRef.current!);
             timerIntervalIdRef.current = null;
+            console.log('[ProgressBar] ⏰ Time up!');
             submitAnswer(-1);
             return 0;
           }
-          return t - 1;
+          return newTime;
         });
-      }, 1000);
+      }, 100);
     }
     
     return () => {
@@ -905,13 +906,13 @@ export default function Home() {
     };
   }, [gameState, currentQuestion, currentQuestionId, iFinished, selectedAnswer, submitAnswer]);
   
-  // SUBJECT SELECTION TIMER - 20 seconds
+  // PROGRESS BAR TIMER - Subject Selection (20 seconds)
   useEffect(() => {
     if (gameState !== 'subject-selection' || !isMyTurnToPick) {
       return;
     }
 
-    console.log('[SubjectTimer] 🎯 Starting 20s subject selection timer');
+    console.log('[ProgressBar] 🎯 Subject selection - starting 20s countdown');
     setTimeRemaining(20);
     setTimerActive(true);
     
@@ -919,21 +920,21 @@ export default function Home() {
       clearInterval(timerIntervalIdRef.current);
     }
     
+    // Update every 100ms for smooth bar animation
     timerIntervalIdRef.current = setInterval(() => {
       setTimeRemaining(t => {
-        console.log('[SubjectTimer] ⏱️', t - 1);
-        if (t <= 1) {
+        const newTime = t - 0.1;
+        if (newTime <= 0) {
           clearInterval(timerIntervalIdRef.current!);
           timerIntervalIdRef.current = null;
-          // Auto-select random subject
           const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-          console.log('[SubjectTimer] ⏰ Time up! Auto-selecting:', randomSubject);
+          console.log('[ProgressBar] ⏰ Time up! Auto-selecting:', randomSubject);
           selectSubject(randomSubject);
           return 0;
         }
-        return t - 1;
+        return newTime;
       });
-    }, 1000);
+    }, 100);
     
     return () => {
       if (timerIntervalIdRef.current) {
@@ -1123,29 +1124,34 @@ export default function Home() {
       {/* Subject Selection */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-md w-full">
-          {/* Subject Timer */}
-          {isMyTurnToPick && timerActive && (
-            <div className="mb-6">
-              <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full border-4 ${
-                timeRemaining <= 5 ? 'border-red-500 bg-red-900/50 animate-pulse' : 
-                timeRemaining <= 10 ? 'border-yellow-500 bg-yellow-900/50' : 
-                'border-blue-500 bg-blue-900/50'
-              } shadow-2xl`}>
-                <span className={`text-4xl font-bold ${
-                  timeRemaining <= 5 ? 'text-red-300' : 
-                  timeRemaining <= 10 ? 'text-yellow-300' : 
-                  'text-blue-300'
-                }`}>
-                  {timeRemaining}
-                </span>
-              </div>
-              <p className="text-gray-300 text-sm mt-2">Pick a subject!</p>
-            </div>
-          )}
-          
-          <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">
+          <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl">
             {isMyTurnToPick ? 'Choose a Subject 🎯' : 'Opponent is choosing...'}
           </h2>
+          
+          {/* Subject Progress Bar */}
+          {isMyTurnToPick && timerActive && (
+            <div className="mb-6">
+              <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
+                <div 
+                  className={`h-full transition-all duration-100 ${
+                    timeRemaining <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemaining <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    'bg-gradient-to-r from-blue-500 to-blue-600'
+                  }`}
+                  style={{ width: `${(timeRemaining / 20) * 100}%` }}
+                ></div>
+              </div>
+              <p className="text-center text-xs mt-2 font-semibold">
+                <span className={`${
+                  timeRemaining <= 5 ? 'text-red-400' : 
+                  timeRemaining <= 10 ? 'text-yellow-400' : 
+                  'text-blue-400'
+                }`}>
+                  {Math.ceil(timeRemaining)}s remaining
+                </span>
+              </p>
+            </div>
+          )}
           
           {isMyTurnToPick ? (
             <div className="space-y-3">
@@ -1409,22 +1415,28 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - Always visible during questions */}
+          {/* Progress Bar Timer */}
           {timerActive && (
-            <div className="text-center mb-4">
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 transition-all duration-300 ${
-                timeRemaining <= 5 ? 'border-red-500 bg-red-900/50 animate-pulse scale-110' : 
-                timeRemaining <= 10 ? 'border-yellow-500 bg-yellow-900/50' : 
-                'border-green-500 bg-green-900/50'
-              } shadow-2xl`}>
-                <span className={`text-3xl font-bold transition-colors ${
-                  timeRemaining <= 5 ? 'text-red-300' : 
-                  timeRemaining <= 10 ? 'text-yellow-300' : 
-                  'text-green-300'
-                }`}>
-                  {timeRemaining}
-                </span>
+            <div className="mb-6">
+              <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden shadow-2xl border-2 border-gray-700">
+                <div 
+                  className={`h-full transition-all duration-100 ${
+                    timeRemaining <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemaining <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    'bg-gradient-to-r from-green-500 to-green-600'
+                  }`}
+                  style={{ width: `${(timeRemaining / 18) * 100}%` }}
+                ></div>
               </div>
+              <p className="text-center text-sm mt-2 font-semibold">
+                <span className={`${
+                  timeRemaining <= 5 ? 'text-red-400' : 
+                  timeRemaining <= 10 ? 'text-yellow-400' : 
+                  'text-green-400'
+                }`}>
+                  {Math.ceil(timeRemaining)}s
+                </span>
+              </p>
             </div>
           )}
           
