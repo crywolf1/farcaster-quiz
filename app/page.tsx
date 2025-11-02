@@ -1214,18 +1214,16 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer */}
-          {timerActive && (
-            <div className="text-center mb-4">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-              } shadow-xl`}>
-                <span className={`text-2xl font-bold ${'text-white'}`}>
-                  {timeRemaining}
-                </span>
-              </div>
+          {/* Timer - ALWAYS show when playing */}
+          <div className="text-center mb-4">
+            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
+              timeRemaining <= 5 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
+            } shadow-xl`}>
+              <span className={`text-2xl font-bold text-white`}>
+                {timeRemaining}
+              </span>
             </div>
-          )}
+          </div>
           
           <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
             <h3 className="text-white text-xl font-bold text-center mb-4">
