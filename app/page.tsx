@@ -885,6 +885,11 @@ export default function Home() {
   const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
   const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
 
+  // Debug logging for timer updates
+  useEffect(() => {
+    console.log('[TimerDebug] 🔄 Timer state changed:', timeRemaining, 'Active:', timerActive, 'GameState:', gameState);
+  }, [timeRemaining, timerActive, gameState]);
+
   // Debug logging for subject selection visibility
   useEffect(() => {
     if (gameState === 'subject-selection') {
@@ -1229,16 +1234,6 @@ export default function Home() {
       {/* Subject Result Animation */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          {/* Timer - ALWAYS show during subject animation */}
-          <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full border-4 border-yellow-500 bg-yellow-900 shadow-2xl drop-shadow-2xl">
-              <span className="text-3xl font-bold text-white drop-shadow-lg">
-                {timeRemaining}
-              </span>
-            </div>
-            <div className="text-white text-sm mt-2">DEBUG: {timeRemaining}s</div>
-          </div>
-          
           <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
             Subject Selected! </h2>
           <div className="bg-gray-900 border-4 border-white rounded-[40px] shadow-2xl p-8 animate-[bounce_1s_ease-in-out_infinite] scale-110">
@@ -1358,11 +1353,11 @@ export default function Home() {
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
           {/* Timer - ALWAYS show during playing state */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-4" key={`timer-${timeRemaining}`}>
             <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
               timeRemaining <= 5 && timeRemaining > 0 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
             } shadow-xl`}>
-              <span className={`text-2xl font-bold text-white`}>
+              <span className={`text-2xl font-bold text-white`} key={timeRemaining}>
                 {timeRemaining || 18}
               </span>
             </div>
