@@ -173,7 +173,6 @@ export default function Home() {
                 console.log('[Polling] Question changed but BLOCKING due to feedback animation');
               } else {
                 console.log('[Polling] ✓ New question for me:', myCurrentQ.id, 'changing from:', currentQuestionId);
-                setCurrentQuestionId(myCurrentQ.id);
                 setSelectedAnswer(null);
                 setAnswerFeedback(null); // Reset feedback for new question
                 setLastResult(null);
@@ -861,8 +860,11 @@ export default function Home() {
 
   // PROGRESS BAR TIMER - Questions (18 seconds)
   useEffect(() => {
+    console.log('[ProgressBar] Effect triggered - gameState:', gameState, 'currentQuestion:', currentQuestion?.id, 'currentQuestionId:', currentQuestionId, 'iFinished:', iFinished);
+    
     // Don't start timer if not in playing state or no question
     if (gameState !== 'playing' || !currentQuestion || iFinished) {
+      console.log('[ProgressBar] ❌ Not starting timer - conditions not met');
       return;
     }
 
@@ -870,10 +872,13 @@ export default function Home() {
     
     // Only start new timer if it's a different question
     if (currentQuestionId !== questionId) {
-      console.log('[ProgressBar] 🎯 New question - starting 18s countdown for:', questionId);
+      console.log('[ProgressBar] 🎯 New question detected! Starting 18s countdown');
+      console.log('[ProgressBar] - Old ID:', currentQuestionId);
+      console.log('[ProgressBar] - New ID:', questionId);
       
       // Clear any existing timer first
       if (timerIntervalIdRef.current) {
+        console.log('[ProgressBar] - Clearing existing timer');
         clearInterval(timerIntervalIdRef.current);
         timerIntervalIdRef.current = null;
       }
@@ -884,6 +889,7 @@ export default function Home() {
       setTimerActive(true);
       
       // Start countdown
+      console.log('[ProgressBar] - Starting new interval');
       timerIntervalIdRef.current = setInterval(() => {
         setTimeRemaining(t => {
           const newTime = t - 0.1;
@@ -900,6 +906,8 @@ export default function Home() {
           return newTime;
         });
       }, 100);
+    } else {
+      console.log('[ProgressBar] ⚠️ Same question ID - not restarting timer');
     }
   }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
   
