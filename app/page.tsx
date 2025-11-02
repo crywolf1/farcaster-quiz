@@ -667,7 +667,7 @@ export default function Home() {
   };
 
   // Submit answer
-  const submitAnswer = async (answerIndex: number) => {
+  const submitAnswer = useCallback(async (answerIndex: number) => {
     console.log('[Submit] submitAnswer called with index:', answerIndex);
     console.log('[Submit] gameRoom:', gameRoom ? 'exists' : 'null');
     console.log('[Submit] selectedAnswer:', selectedAnswer);
@@ -757,7 +757,7 @@ export default function Home() {
         feedbackTimeoutRef.current = null;
       }
     }
-  };
+  }, [gameRoom, selectedAnswer, iFinished, myProgress, playerId]);
 
   // Start next round
   const startNextRound = async () => {
@@ -859,8 +859,8 @@ export default function Home() {
 
   // CLIENT-SIDE TIMER - Runs independently of server polling
   useEffect(() => {
-    // Start timer when we get a new question and haven't answered yet
-    if (gameState === 'playing' && currentQuestion && selectedAnswer === null && !iFinished) {
+    // Start timer when we get a new question
+    if (gameState === 'playing' && currentQuestion && !iFinished) {
       const questionId = currentQuestion.id;
       
       // Check if this is a new question (timer should restart)
@@ -878,7 +878,6 @@ export default function Home() {
         
         // Start countdown
         timerIntervalIdRef.current = setInterval(() => {
-          const elapsed = Date.now() - Date.now(); // Will be calculated from timerStartTime
           setTimeRemaining(prev => {
             const newTime = prev - 1;
             console.log('[ClientTimer] ⏱️ Tick:', newTime);
@@ -899,15 +898,22 @@ export default function Home() {
       }
     }
     
-    // Cleanup on unmount or when answer is selected
+    // Cleanup timer when component unmounts or game state changes
     return () => {
-      if (selectedAnswer !== null && timerIntervalIdRef.current) {
-        console.log('[ClientTimer] 🛑 Stopping timer - answer selected');
+      if (timerIntervalIdRef.current) {
         clearInterval(timerIntervalIdRef.current);
-        setTimerActive(false);
       }
     };
-  }, [gameState, currentQuestion, selectedAnswer, currentQuestionId, iFinished]);
+  }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
+  
+  // Stop timer when answer is selected
+  useEffect(() => {
+    if (selectedAnswer !== null && timerIntervalIdRef.current) {
+      console.log('[ClientTimer] 🛑 Stopping timer - answer selected');
+      clearInterval(timerIntervalIdRef.current);
+      setTimerActive(false);
+    }
+  }, [selectedAnswer]);
 
   // Debug logging for subject selection visibility
   useEffect(() => {
