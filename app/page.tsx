@@ -113,9 +113,11 @@ export default function Home() {
           if (myTimerStart && !room.playersFinished?.includes(currentPlayerId)) {
             const elapsed = Date.now() - myTimerStart;
             const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
-            console.log('[Timer] ⏱️ Question timer ACTIVE - elapsed:', elapsed, 'remaining:', remaining);
-            setTimeRemaining(Math.ceil(remaining / 1000));
-            setTimerActive(true);
+            const remainingSeconds = Math.ceil(remaining / 1000);
+            console.log('[Timer] ⏱️ Question timer ACTIVE - elapsed:', elapsed, 'remaining:', remaining, 'seconds:', remainingSeconds);
+            setTimeRemaining(remainingSeconds);
+            // Keep timer active as long as we have time remaining
+            setTimerActive(remainingSeconds > 0);
           } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
             // Subject selection timer - ONLY show during subject selection
             const elapsed = Date.now() - room.timerStartedAt;
@@ -125,6 +127,7 @@ export default function Home() {
             setTimerActive(remaining > 0);
           } else {
             console.log('[Timer] No active timer');
+            setTimeRemaining(0);
             setTimerActive(false);
           }
 
@@ -542,6 +545,51 @@ export default function Home() {
       fetchLeaderboard();
     }
   }, [showLeaderboard]);
+
+  // Save score to MongoDB when game ends
+  useEffect(() => {
+    const saveScore = async () => {
+      if (gameState === 'game-over' && farcasterUser && playerId && gameRoom) {
+        try {
+          const myScore = gameRoom.scores[playerId] || 0;
+          const opponentScore = opponent ? (gameRoom.scores[opponent.id] || 0) : 0;
+          const isWinner = myScore > opponentScore;
+          const isDraw = myScore === opponentScore;
+
+          console.log('[GameOver] Saving score to MongoDB:', {
+            fid: farcasterUser.fid,
+            username: farcasterUser.username,
+            score: myScore,
+            isWin: isWinner && !isDraw
+          });
+          
+          const response = await fetch('/api/score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fid: farcasterUser.fid.toString(),
+              username: farcasterUser.username,
+              pfpUrl: farcasterUser.pfpUrl,
+              score: myScore,
+              isWin: isWinner && !isDraw
+            })
+          });
+
+          const data = await response.json();
+          console.log('[GameOver] Score saved:', data);
+
+          // Refresh player stats to show updated rank
+          if (data.success) {
+            await fetchPlayerStats();
+          }
+        } catch (error) {
+          console.error('[GameOver] Failed to save score:', error);
+        }
+      }
+    };
+
+    saveScore();
+  }, [gameState, farcasterUser, playerId, gameRoom, opponent]);
 
   const fetchPlayerStats = async () => {
     if (!farcasterUser) return;
@@ -1304,16 +1352,18 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - ALWAYS show when playing */}
-          <div className="text-center mb-4">
-            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-              timeRemaining <= 5 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
-            } shadow-xl`}>
-              <span className={`text-2xl font-bold text-white`}>
-                {timeRemaining}
-              </span>
+          {/* Timer - ALWAYS show when we have timeRemaining */}
+          {timeRemaining > 0 && (
+            <div className="text-center mb-4">
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
+                timeRemaining <= 5 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
+              } shadow-xl`}>
+                <span className={`text-2xl font-bold text-white`}>
+                  {timeRemaining}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           
           <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
             <h3 className="text-white text-xl font-bold text-center mb-4">
