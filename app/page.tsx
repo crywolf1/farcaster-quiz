@@ -57,7 +57,8 @@ export default function Home() {
   const [showingResults, setShowingResults] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(18); // seconds
   const [timerActive, setTimerActive] = useState<boolean>(false);
-  const [roundOverTimeRemaining, setRoundOverTimeRemaining] = useState<number>(30); // 30 seconds for auto-start
+  const [timerStartTime, setTimerStartTime] = useState<number | null>(null); // Track when timer started
+  const timerIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
   const [showSubjectResult, setShowSubjectResult] = useState(false); // Show which subject was selected with animation
   const [hasShownSubjectResult, setHasShownSubjectResult] = useState(false); // Track if we've shown the animation for this round
@@ -98,40 +99,9 @@ export default function Home() {
         const response = await fetch(`/api/game?playerId=${currentPlayerId}`);
         const data = await response.json();
         
-        console.log('[Polling] 📊 API Response:', { hasGameState: !!data.gameState, state: data.gameState?.state });
-
         if (data.gameState) {
           const room: GameRoom = data.gameState;
           setGameRoom(room);
-          
-          // Update MY timer (per-player timer)
-          // CRITICAL: Use playerIdRef.current as fallback to ensure timer works even if state is empty
-          const currentPlayerId = playerId || playerIdRef.current;
-          const myTimerStart = room.playerTimers?.[currentPlayerId];
-          console.log('[Timer] 🎯 POLLING TIMER CHECK - State:', room.state, 'myTimerStart:', myTimerStart, 'playerId:', currentPlayerId, 'finished:', room.playersFinished?.includes(currentPlayerId), 'playerTimers:', room.playerTimers);
-          
-          // PRIORITY: Check for question timer FIRST (even if state is still transitioning)
-          console.log('[Timer] CHECKING - myTimerStart:', myTimerStart, 'playerTimers:', room.playerTimers, 'currentPlayerId:', currentPlayerId);
-          if (myTimerStart && !room.playersFinished?.includes(currentPlayerId)) {
-            const elapsed = Date.now() - myTimerStart;
-            const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
-            const remainingSeconds = Math.ceil(remaining / 1000);
-            console.log('[Timer] ⏱️ Question timer ACTIVE - elapsed:', elapsed, 'remaining:', remaining, 'seconds:', remainingSeconds);
-            setTimeRemaining(remainingSeconds);
-            // Keep timer active as long as we have time remaining
-            setTimerActive(remainingSeconds > 0);
-          } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
-            // Subject selection timer - ONLY show during subject selection
-            const elapsed = Date.now() - room.timerStartedAt;
-            const remaining = Math.max(0, room.timerDuration - elapsed);
-            console.log('[Timer] ⏱️ Subject selection timer - remaining:', remaining);
-            setTimeRemaining(Math.ceil(remaining / 1000));
-            setTimerActive(remaining > 0);
-          } else {
-            console.log('[Timer] No active timer');
-            setTimeRemaining(0);
-            setTimerActive(false);
-          }
 
           // Update opponent - ALWAYS update to ensure correct opponent is shown
           if (room.players.length === 2) {
@@ -887,10 +857,57 @@ export default function Home() {
   const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
   const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
 
-  // Debug logging for timer updates
+  // CLIENT-SIDE TIMER - Runs independently of server polling
   useEffect(() => {
-    console.log('[TimerDebug] 🔄 Timer state changed:', timeRemaining, 'Active:', timerActive, 'GameState:', gameState);
-  }, [timeRemaining, timerActive, gameState]);
+    // Start timer when we get a new question and haven't answered yet
+    if (gameState === 'playing' && currentQuestion && selectedAnswer === null && !iFinished) {
+      const questionId = currentQuestion.id;
+      
+      // Check if this is a new question (timer should restart)
+      if (currentQuestionId !== questionId) {
+        console.log('[ClientTimer] 🎯 NEW QUESTION - Starting 18s countdown for:', questionId);
+        setCurrentQuestionId(questionId);
+        setTimerStartTime(Date.now());
+        setTimeRemaining(18);
+        setTimerActive(true);
+        
+        // Clear any existing timer
+        if (timerIntervalIdRef.current) {
+          clearInterval(timerIntervalIdRef.current);
+        }
+        
+        // Start countdown
+        timerIntervalIdRef.current = setInterval(() => {
+          const elapsed = Date.now() - Date.now(); // Will be calculated from timerStartTime
+          setTimeRemaining(prev => {
+            const newTime = prev - 1;
+            console.log('[ClientTimer] ⏱️ Tick:', newTime);
+            
+            if (newTime <= 0) {
+              console.log('[ClientTimer] ⏰ TIME UP! Auto-submitting...');
+              if (timerIntervalIdRef.current) {
+                clearInterval(timerIntervalIdRef.current);
+              }
+              setTimerActive(false);
+              // Auto-submit with answer index -1 (no answer)
+              submitAnswer(-1);
+              return 0;
+            }
+            return newTime;
+          });
+        }, 1000);
+      }
+    }
+    
+    // Cleanup on unmount or when answer is selected
+    return () => {
+      if (selectedAnswer !== null && timerIntervalIdRef.current) {
+        console.log('[ClientTimer] 🛑 Stopping timer - answer selected');
+        clearInterval(timerIntervalIdRef.current);
+        setTimerActive(false);
+      }
+    };
+  }, [gameState, currentQuestion, selectedAnswer, currentQuestionId, iFinished]);
 
   // Debug logging for subject selection visibility
   useEffect(() => {
@@ -1354,16 +1371,24 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - ALWAYS show during playing state */}
-          <div className="text-center mb-4" key={`timer-${timeRemaining}`}>
-            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-              timeRemaining <= 5 && timeRemaining > 0 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
-            } shadow-xl`}>
-              <span className={`text-2xl font-bold text-white`} key={timeRemaining}>
-                {timeRemaining || 18}
-              </span>
+          {/* Timer - Clean, always visible */}
+          {!hasAnswered && (
+            <div className="text-center mb-4">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 transition-all duration-300 ${
+                timeRemaining <= 5 ? 'border-red-500 bg-red-900/50 animate-pulse scale-110' : 
+                timeRemaining <= 10 ? 'border-yellow-500 bg-yellow-900/50' : 
+                'border-green-500 bg-green-900/50'
+              } shadow-2xl`}>
+                <span className={`text-3xl font-bold transition-colors ${
+                  timeRemaining <= 5 ? 'text-red-300' : 
+                  timeRemaining <= 10 ? 'text-yellow-300' : 
+                  'text-green-300'
+                }`}>
+                  {timeRemaining}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           
           <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
             <h3 className="text-white text-xl font-bold text-center mb-4">
