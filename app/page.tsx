@@ -97,6 +97,8 @@ export default function Home() {
       try {
         const response = await fetch(`/api/game?playerId=${currentPlayerId}`);
         const data = await response.json();
+        
+        console.log('[Polling] 📊 API Response:', { hasGameState: !!data.gameState, state: data.gameState?.state });
 
         if (data.gameState) {
           const room: GameRoom = data.gameState;
@@ -106,7 +108,7 @@ export default function Home() {
           // CRITICAL: Use playerIdRef.current as fallback to ensure timer works even if state is empty
           const currentPlayerId = playerId || playerIdRef.current;
           const myTimerStart = room.playerTimers?.[currentPlayerId];
-          console.log('[Timer] State:', room.state, 'myTimerStart:', myTimerStart, 'playerId:', currentPlayerId, 'finished:', room.playersFinished?.includes(currentPlayerId));
+          console.log('[Timer] 🎯 POLLING TIMER CHECK - State:', room.state, 'myTimerStart:', myTimerStart, 'playerId:', currentPlayerId, 'finished:', room.playersFinished?.includes(currentPlayerId), 'playerTimers:', room.playerTimers);
           
           // PRIORITY: Check for question timer FIRST (even if state is still transitioning)
           console.log('[Timer] CHECKING - myTimerStart:', myTimerStart, 'playerTimers:', room.playerTimers, 'currentPlayerId:', currentPlayerId);
