@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import type { Question } from '@/lib/types';
+import { formatScore, getRankEmoji } from '@/lib/scoreUtils';
+import type { LeaderboardEntry } from '@/lib/mongodb';
 
 type GameState = 'loading' | 'idle' | 'searching' | 'matched' | 'subject-selection' | 'waiting-subject' | 'playing' | 'round-result' | 'game-over';
 
@@ -62,6 +64,9 @@ export default function Home() {
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'incorrect' | null>(null); // Track answer feedback
   const [isShowingFeedback, setIsShowingFeedback] = useState(false); // Flag to prevent question change during feedback
   const [isRejoinAttempt, setIsRejoinAttempt] = useState(false); // Track if we're attempting to rejoin
+  const [showLeaderboard, setShowLeaderboard] = useState(false); // Show leaderboard modal
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [playerStats, setPlayerStats] = useState<{ score: number; rank: number; wins: number; losses: number } | null>(null);
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -524,6 +529,63 @@ export default function Home() {
     pollingIntervalRef.current = interval;
   };
 
+  // Fetch player stats when farcasterUser is set
+  useEffect(() => {
+    if (farcasterUser && !showLeaderboard) {
+      fetchPlayerStats();
+    }
+  }, [farcasterUser]);
+
+  // Fetch leaderboard when modal opens
+  useEffect(() => {
+    if (showLeaderboard && farcasterUser) {
+      fetchLeaderboard();
+    }
+  }, [showLeaderboard]);
+
+  const fetchPlayerStats = async () => {
+    if (!farcasterUser) return;
+    
+    try {
+      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=1`);
+      const data = await response.json();
+      
+      if (data.success && data.playerRank) {
+        setPlayerStats({
+          score: data.playerRank.player?.score || 0,
+          rank: data.playerRank.rank || 0,
+          wins: data.playerRank.player?.wins || 0,
+          losses: data.playerRank.player?.losses || 0,
+        });
+      }
+    } catch (error) {
+      console.error('[FetchPlayerStats] Error:', error);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    if (!farcasterUser) return;
+    
+    try {
+      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=100`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setLeaderboardData(data.leaderboard);
+        if (data.playerRank) {
+          setPlayerStats({
+            score: data.playerRank.player?.score || 0,
+            rank: data.playerRank.rank || 0,
+            wins: data.playerRank.player?.wins || 0,
+            losses: data.playerRank.player?.losses || 0,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[FetchLeaderboard] Error:', error);
+    }
+  };
+
   // Cleanup polling and feedback timeout on unmount
   useEffect(() => {
     return () => {
@@ -795,23 +857,51 @@ export default function Home() {
   const renderIdle = () => (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-10 shadow-2xl max-w-md w-full">
+        {/* Profile Section */}
         <div className="text-center mb-8">
           {farcasterUser?.pfpUrl ? (
-            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700" />
+            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700" />
           ) : (
-            <div className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 bg-gray-800 flex items-center justify-center">
+            <div className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 bg-gray-800 flex items-center justify-center">
               <span className="text-5xl"></span>
             </div>
           )}
-          <h1 className="text-5xl font-bold text-white drop-shadow-2xl mb-3">Farcaster Quiz</h1>
-          <p className="text-gray-300 text-lg font-medium drop-shadow-lg">Welcome, {farcasterUser?.username}!</p>
+          <h2 className="text-3xl font-bold text-white drop-shadow-2xl mb-2">{farcasterUser?.username}</h2>
+          <p className="text-gray-400 text-sm font-medium drop-shadow-lg mb-4">@{farcasterUser?.username}</p>
+          
+          {/* Player Stats */}
+          <div className="flex justify-center gap-6 mb-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{formatScore(playerStats?.score || 0)}</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Score</div>
+            </div>
+            <div className="w-px bg-gray-700"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">#{playerStats?.rank || '-'}</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Rank</div>
+            </div>
+            <div className="w-px bg-gray-700"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-500">{playerStats?.wins || 0}W</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Wins</div>
+            </div>
+          </div>
         </div>
         
+        {/* Find Match Button */}
         <button
           onClick={findMatch}
-          className="w-full backdrop-blur-2xl bg-gray-800 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.05] transition-all active:scale-95 border-2 border-gray-700"
+          className="w-full backdrop-blur-2xl bg-gray-800 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.05] transition-all active:scale-95 border-2 border-gray-700 mb-4"
         >
           Find Match
+        </button>
+        
+        {/* Leaderboard Button */}
+        <button
+          onClick={() => setShowLeaderboard(true)}
+          className="w-full bg-gray-800 text-gray-300 px-6 py-3 rounded-[24px] text-sm font-semibold shadow-xl hover:bg-gray-700 hover:text-white border-2 border-gray-700 transition-all"
+        >
+          🏆 View Leaderboard
         </button>
       </div>
     </div>
@@ -1479,9 +1569,90 @@ export default function Home() {
     );
   };
 
+  // Leaderboard Modal
+  const renderLeaderboard = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-8 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-white">🏆 Leaderboard</h2>
+          <button
+            onClick={() => setShowLeaderboard(false)}
+            className="text-gray-400 hover:text-white text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-800 transition-all"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Player Stats Card */}
+        {playerStats && (
+          <div className="bg-gray-800 border-2 border-gray-700 rounded-[24px] p-4 mb-6">
+            <div className="flex items-center gap-4">
+              {farcasterUser?.pfpUrl && (
+                <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-2 border-gray-700" />
+              )}
+              <div className="flex-1">
+                <div className="text-white font-bold text-lg">{farcasterUser?.username}</div>
+                <div className="text-gray-400 text-sm">Your Rank: #{playerStats.rank}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white">{formatScore(playerStats.score)}</div>
+                <div className="text-sm text-green-500">{playerStats.wins}W - {playerStats.losses}L</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leaderboard List */}
+        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+          {leaderboardData.map((entry, index) => {
+            const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
+            return (
+              <div
+                key={entry.fid}
+                className={`flex items-center gap-4 p-4 rounded-[20px] transition-all ${
+                  isCurrentUser
+                    ? 'bg-gray-700 border-2 border-gray-600'
+                    : 'bg-gray-800 hover:bg-gray-750'
+                }`}
+              >
+                <div className="w-12 text-center">
+                  <span className="text-2xl font-bold text-gray-400">
+                    {getRankEmoji(index + 1)}
+                  </span>
+                </div>
+                <img
+                  src={entry.pfpUrl}
+                  alt={entry.username}
+                  className="w-12 h-12 rounded-full border-2 border-gray-700"
+                />
+                <div className="flex-1">
+                  <div className={`font-bold ${isCurrentUser ? 'text-white' : 'text-gray-300'}`}>
+                    {entry.username}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {entry.wins}W - {entry.losses}L
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-white">{formatScore(entry.score)}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
   // Main render - show loading until ready
   if (!isReady) {
     return renderLoading();
+  }
+
+  // Show leaderboard modal
+  if (showLeaderboard) {
+    return renderLeaderboard();
   }
 
   // Show subject result animation if flag is set (overrides other states)
