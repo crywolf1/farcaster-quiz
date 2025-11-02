@@ -131,19 +131,6 @@ export default function Home() {
             setTimerActive(false);
           }
 
-          // Update round-over timer
-          if (room.state === 'round-over' && room.roundOverTimerStartedAt) {
-            const elapsed = Date.now() - room.roundOverTimerStartedAt;
-            const remaining = Math.max(0, 30000 - elapsed); // 30 seconds for auto-start
-            setRoundOverTimeRemaining(Math.ceil(remaining / 1000));
-            console.log('[Polling] Round-over timer - remaining:', Math.ceil(remaining / 1000), 'seconds');
-          } else if (room.state !== 'round-over') {
-            // Reset timer when not in round-over state
-            setRoundOverTimeRemaining(30);
-          } else if (room.state === 'round-over' && !room.roundOverTimerStartedAt) {
-            console.log('[Polling] Round-over state but no timer! roundOverTimerStartedAt:', room.roundOverTimerStartedAt);
-          }
-
           // Update opponent - ALWAYS update to ensure correct opponent is shown
           if (room.players.length === 2) {
             // CRITICAL: Use playerIdRef.current as fallback to ensure correct opponent
@@ -1370,18 +1357,16 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - Show during question (not during results) */}
-          {!showingResults && (
-            <div className="text-center mb-4">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-                timeRemaining <= 5 && timeRemaining > 0 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
-              } shadow-xl`}>
-                <span className={`text-2xl font-bold text-white`}>
-                  {timeRemaining}
-                </span>
-              </div>
+          {/* Timer - ALWAYS show during playing state */}
+          <div className="text-center mb-4">
+            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
+              timeRemaining <= 5 && timeRemaining > 0 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
+            } shadow-xl`}>
+              <span className={`text-2xl font-bold text-white`}>
+                {timeRemaining || 18}
+              </span>
             </div>
-          )}
+          </div>
           
           <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
             <h3 className="text-white text-xl font-bold text-center mb-4">
