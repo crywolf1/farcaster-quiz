@@ -859,114 +859,58 @@ export default function Home() {
   const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
   const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
 
-  // CLIENT-SIDE TIMER - Runs for questions
+  // SIMPLE TIMER - Just countdown from 18 when new question appears
   useEffect(() => {
-    console.log('[ClientTimer] Effect triggered - gameState:', gameState, 'currentQuestion:', currentQuestion?.id, 'iFinished:', iFinished);
+    // Only run during playing state with a question
+    if (gameState !== 'playing' || !currentQuestion || iFinished) {
+      setTimerActive(false);
+      return;
+    }
+
+    const questionId = currentQuestion.id;
     
-    // Start timer when we get a new question
-    if (gameState === 'playing' && currentQuestion && !iFinished) {
-      const questionId = currentQuestion.id;
+    // New question detected
+    if (currentQuestionId !== questionId) {
+      console.log('[Timer] New question, starting 18s timer');
+      setCurrentQuestionId(questionId);
+      setTimeRemaining(18);
+      setTimerActive(true);
       
-      // Check if this is a new question (timer should restart)
-      if (currentQuestionId !== questionId) {
-        console.log('[ClientTimer] 🎯 NEW QUESTION - Starting 18s countdown for:', questionId);
-        setCurrentQuestionId(questionId);
-        setTimerStartTime(Date.now());
-        setTimeRemaining(18);
-        setTimerActive(true);
-        
-        // Clear any existing timer
-        if (timerIntervalIdRef.current) {
-          clearInterval(timerIntervalIdRef.current);
-          timerIntervalIdRef.current = null;
-        }
-        
-        // Start countdown
-        timerIntervalIdRef.current = setInterval(() => {
-          setTimeRemaining(prev => {
-            const newTime = prev - 1;
-            console.log('[ClientTimer] ⏱️ Tick:', newTime);
-            
-            if (newTime <= 0) {
-              console.log('[ClientTimer] ⏰ TIME UP! Auto-submitting...');
-              if (timerIntervalIdRef.current) {
-                clearInterval(timerIntervalIdRef.current);
-                timerIntervalIdRef.current = null;
-              }
-              setTimerActive(false);
-              // Auto-submit with answer index -1 (no answer)
-              submitAnswer(-1);
-              return 0;
-            }
-            return newTime;
-          });
-        }, 1000);
-        
-        console.log('[ClientTimer] ✅ Timer started, interval ID:', timerIntervalIdRef.current);
+      // Clear any existing interval
+      if (timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
       }
-    } else {
-      console.log('[ClientTimer] ❌ Conditions not met for timer start');
+      
+      // Start fresh countdown
+      timerIntervalIdRef.current = setInterval(() => {
+        setTimeRemaining(t => {
+          if (t <= 1) {
+            clearInterval(timerIntervalIdRef.current!);
+            submitAnswer(-1);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
     }
     
-    // Cleanup timer when component unmounts or game state changes
+    // Cleanup
     return () => {
       if (timerIntervalIdRef.current) {
-        console.log('[ClientTimer] 🧹 Cleaning up timer');
         clearInterval(timerIntervalIdRef.current);
         timerIntervalIdRef.current = null;
       }
     };
   }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
   
-  // Subject selection timer (30 seconds)
+  // Stop timer when answer selected
   useEffect(() => {
-    if (gameState === 'subject-selection' && isMyTurnToPick) {
-      console.log('[SubjectTimer] 🎯 Starting 30s subject selection timer');
-      setTimeRemaining(30);
-      setTimerActive(true);
-      
+    if (selectedAnswer !== null) {
+      setTimerActive(false);
       if (timerIntervalIdRef.current) {
         clearInterval(timerIntervalIdRef.current);
         timerIntervalIdRef.current = null;
       }
-      
-      timerIntervalIdRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          const newTime = prev - 1;
-          console.log('[SubjectTimer] ⏱️ Tick:', newTime);
-          
-          if (newTime <= 0) {
-            console.log('[SubjectTimer] ⏰ TIME UP! Auto-selecting first subject...');
-            if (timerIntervalIdRef.current) {
-              clearInterval(timerIntervalIdRef.current);
-              timerIntervalIdRef.current = null;
-            }
-            setTimerActive(false);
-            // Auto-select first subject from the subjects array
-            if (subjects && subjects.length > 0) {
-              selectSubject(subjects[0]);
-            }
-            return 0;
-          }
-          return newTime;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (gameState !== 'subject-selection' && timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
-      }
-    };
-  }, [gameState, isMyTurnToPick, selectSubject, subjects]);
-  
-  // Stop timer when answer is selected
-  useEffect(() => {
-    if (selectedAnswer !== null && timerIntervalIdRef.current) {
-      console.log('[ClientTimer] 🛑 Stopping timer - answer selected');
-      clearInterval(timerIntervalIdRef.current);
-      setTimerActive(false);
     }
   }, [selectedAnswer]);
 
@@ -1150,24 +1094,8 @@ export default function Home() {
       {/* Subject Selection */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-md w-full">
-          {/* Timer */}
-          {timerActive && (
-            <div className="mb-6">
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-              } shadow-2xl drop-shadow-2xl`}>
-                <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
-                  {timeRemaining}
-                </span>
-              </div>
-              <p className="text-gray-300 text-sm mt-2 drop-shadow">
-                {isMyTurnToPick ? 'Pick a subject!' : 'Waiting...'}
-              </p>
-            </div>
-          )}
-          
           <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">
-            {isMyTurnToPick ? 'Choose a Subject ' : 'Opponent is choosing...'}
+            {isMyTurnToPick ? 'Choose a Subject 🎯' : 'Opponent is choosing...'}
           </h2>
           
           {isMyTurnToPick ? (
