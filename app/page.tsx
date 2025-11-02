@@ -102,20 +102,23 @@ export default function Home() {
           const currentPlayerId = playerId || playerIdRef.current;
           const myTimerStart = room.playerTimers?.[currentPlayerId];
           console.log('[Timer] State:', room.state, 'myTimerStart:', myTimerStart, 'playerId:', currentPlayerId, 'finished:', room.playersFinished?.includes(currentPlayerId));
-          if (myTimerStart && room.state === 'playing' && !room.playersFinished?.includes(currentPlayerId)) {
+          
+          // PRIORITY: Check for question timer FIRST (even if state is still transitioning)
+          if (myTimerStart && !room.playersFinished?.includes(currentPlayerId)) {
             const elapsed = Date.now() - myTimerStart;
             const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
-            console.log('[Timer] ⏱️ Setting timer - elapsed:', elapsed, 'remaining:', remaining);
+            console.log('[Timer] ⏱️ Question timer - elapsed:', elapsed, 'remaining:', remaining);
             setTimeRemaining(Math.ceil(remaining / 1000));
-            // ALWAYS show timer if we have a timer start time, even if showing subject animation
             setTimerActive(true);
           } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
             // Subject selection timer - ONLY show during subject selection
             const elapsed = Date.now() - room.timerStartedAt;
             const remaining = Math.max(0, room.timerDuration - elapsed);
+            console.log('[Timer] ⏱️ Subject selection timer - remaining:', remaining);
             setTimeRemaining(Math.ceil(remaining / 1000));
             setTimerActive(remaining > 0);
           } else {
+            console.log('[Timer] No active timer');
             setTimerActive(false);
           }
 
