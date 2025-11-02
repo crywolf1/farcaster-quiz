@@ -624,7 +624,7 @@ export default function Home() {
   }, []);
 
   // Select subject
-  const selectSubject = async (subject: string) => {
+  const selectSubject = useCallback(async (subject: string) => {
     const activePlayerId = playerId || playerIdRef.current;
     
     console.log('[SelectSubject] Button clicked! Subject:', subject);
@@ -664,7 +664,7 @@ export default function Home() {
       setSelectedSubject(null); // Reset on error
       alert('Error selecting subject: ' + error);
     }
-  };
+  }, [playerId, isMyTurnToPick, selectedSubject]);
 
   // Submit answer
   const submitAnswer = useCallback(async (answerIndex: number) => {
@@ -857,8 +857,10 @@ export default function Home() {
   const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
   const opponentFinished = opponent && gameRoom?.playersFinished?.includes(opponent.id) || false;
 
-  // CLIENT-SIDE TIMER - Runs independently of server polling
+  // CLIENT-SIDE TIMER - Runs for questions
   useEffect(() => {
+    console.log('[ClientTimer] Effect triggered - gameState:', gameState, 'currentQuestion:', currentQuestion?.id, 'iFinished:', iFinished);
+    
     // Start timer when we get a new question
     if (gameState === 'playing' && currentQuestion && !iFinished) {
       const questionId = currentQuestion.id;
@@ -874,6 +876,7 @@ export default function Home() {
         // Clear any existing timer
         if (timerIntervalIdRef.current) {
           clearInterval(timerIntervalIdRef.current);
+          timerIntervalIdRef.current = null;
         }
         
         // Start countdown
@@ -886,6 +889,7 @@ export default function Home() {
               console.log('[ClientTimer] ⏰ TIME UP! Auto-submitting...');
               if (timerIntervalIdRef.current) {
                 clearInterval(timerIntervalIdRef.current);
+                timerIntervalIdRef.current = null;
               }
               setTimerActive(false);
               // Auto-submit with answer index -1 (no answer)
@@ -895,16 +899,65 @@ export default function Home() {
             return newTime;
           });
         }, 1000);
+        
+        console.log('[ClientTimer] ✅ Timer started, interval ID:', timerIntervalIdRef.current);
       }
+    } else {
+      console.log('[ClientTimer] ❌ Conditions not met for timer start');
     }
     
     // Cleanup timer when component unmounts or game state changes
     return () => {
       if (timerIntervalIdRef.current) {
+        console.log('[ClientTimer] 🧹 Cleaning up timer');
         clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
       }
     };
   }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
+  
+  // Subject selection timer (30 seconds)
+  useEffect(() => {
+    if (gameState === 'subject-selection' && isMyTurnToPick) {
+      console.log('[SubjectTimer] 🎯 Starting 30s subject selection timer');
+      setTimeRemaining(30);
+      setTimerActive(true);
+      
+      if (timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
+      }
+      
+      timerIntervalIdRef.current = setInterval(() => {
+        setTimeRemaining(prev => {
+          const newTime = prev - 1;
+          console.log('[SubjectTimer] ⏱️ Tick:', newTime);
+          
+          if (newTime <= 0) {
+            console.log('[SubjectTimer] ⏰ TIME UP! Auto-selecting first subject...');
+            if (timerIntervalIdRef.current) {
+              clearInterval(timerIntervalIdRef.current);
+              timerIntervalIdRef.current = null;
+            }
+            setTimerActive(false);
+            // Auto-select first subject from the subjects array
+            if (subjects && subjects.length > 0) {
+              selectSubject(subjects[0]);
+            }
+            return 0;
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (gameState !== 'subject-selection' && timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
+      }
+    };
+  }, [gameState, isMyTurnToPick, selectSubject, subjects]);
   
   // Stop timer when answer is selected
   useEffect(() => {
@@ -1377,8 +1430,8 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - Clean, always visible */}
-          {!hasAnswered && (
+          {/* Timer - Always visible during questions */}
+          {timerActive && (
             <div className="text-center mb-4">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 transition-all duration-300 ${
                 timeRemaining <= 5 ? 'border-red-500 bg-red-900/50 animate-pulse scale-110' : 
