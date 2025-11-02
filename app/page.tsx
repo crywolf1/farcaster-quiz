@@ -547,48 +547,66 @@ export default function Home() {
   }, [showLeaderboard]);
 
   // Save score to MongoDB when game ends
+  const hasScoreSaved = useRef(false);
   useEffect(() => {
     const saveScore = async () => {
-      if (gameState === 'game-over' && farcasterUser && playerId && gameRoom) {
+      if (gameState === 'game-over' && farcasterUser && playerId && gameRoom && !hasScoreSaved.current) {
+        hasScoreSaved.current = true; // Prevent duplicate saves
+        
         try {
           const myScore = gameRoom.scores[playerId] || 0;
           const opponentScore = opponent ? (gameRoom.scores[opponent.id] || 0) : 0;
           const isWinner = myScore > opponentScore;
           const isDraw = myScore === opponentScore;
 
-          console.log('[GameOver] Saving score to MongoDB:', {
-            fid: farcasterUser.fid,
+          console.log('[GameOver] ========================================');
+          console.log('[GameOver] Saving score to MongoDB:');
+          console.log('[GameOver] - FID:', farcasterUser.fid);
+          console.log('[GameOver] - Username:', farcasterUser.username);
+          console.log('[GameOver] - My Score:', myScore);
+          console.log('[GameOver] - Opponent Score:', opponentScore);
+          console.log('[GameOver] - Is Winner:', isWinner && !isDraw);
+          console.log('[GameOver] ========================================');
+          
+          const payload = {
+            fid: farcasterUser.fid.toString(),
             username: farcasterUser.username,
+            pfpUrl: farcasterUser.pfpUrl || '',
             score: myScore,
             isWin: isWinner && !isDraw
-          });
+          };
+          
+          console.log('[GameOver] Sending payload:', JSON.stringify(payload, null, 2));
           
           const response = await fetch('/api/score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fid: farcasterUser.fid.toString(),
-              username: farcasterUser.username,
-              pfpUrl: farcasterUser.pfpUrl,
-              score: myScore,
-              isWin: isWinner && !isDraw
-            })
+            body: JSON.stringify(payload)
           });
 
+          console.log('[GameOver] Response status:', response.status);
           const data = await response.json();
-          console.log('[GameOver] Score saved:', data);
+          console.log('[GameOver] Response data:', data);
 
           // Refresh player stats to show updated rank
           if (data.success) {
-            await fetchPlayerStats();
+            console.log('[GameOver] Score saved successfully! Refreshing stats...');
+            setTimeout(() => fetchPlayerStats(), 1000); // Delay to ensure MongoDB is updated
+          } else {
+            console.error('[GameOver] Failed to save score:', data.error);
           }
         } catch (error) {
-          console.error('[GameOver] Failed to save score:', error);
+          console.error('[GameOver] Exception while saving score:', error);
+          hasScoreSaved.current = false; // Allow retry on error
         }
       }
     };
 
-    saveScore();
+    if (gameState === 'game-over') {
+      saveScore();
+    } else {
+      hasScoreSaved.current = false; // Reset for next game
+    }
   }, [gameState, farcasterUser, playerId, gameRoom, opponent]);
 
   const fetchPlayerStats = async () => {
@@ -1352,11 +1370,11 @@ export default function Home() {
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
-          {/* Timer - ALWAYS show when we have timeRemaining */}
-          {timeRemaining > 0 && (
+          {/* Timer - Show during question (not during results) */}
+          {!showingResults && (
             <div className="text-center mb-4">
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-                timeRemaining <= 5 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemaining <= 5 && timeRemaining > 0 ? 'border-red-500 bg-red-900 animate-pulse' : 'border-gray-700 bg-gray-800'
               } shadow-xl`}>
                 <span className={`text-2xl font-bold text-white`}>
                   {timeRemaining}
@@ -1525,20 +1543,6 @@ export default function Home() {
                 <p className="text-gray-400 text-sm mb-6">
                   Waiting for {opponent?.username}...
                 </p>
-              )}
-              
-              {/* Minimal timer */}
-              {roundOverTimeRemaining > 0 && (
-                <div className="flex items-center justify-center gap-3">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full border-2 ${
-                    roundOverTimeRemaining <= 10 ? 'border-gray-600 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-                  } shadow-lg`}>
-                    <span className={`text-lg font-bold ${roundOverTimeRemaining <= 10 ? 'text-white' : 'text-gray-300'}`}>
-                      {roundOverTimeRemaining}
-                    </span>
-                  </div>
-                  <p className="text-gray-500 text-sm">auto-start</p>
-                </div>
               )}
             </>
           ) : (
