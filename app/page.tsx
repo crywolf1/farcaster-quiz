@@ -629,8 +629,6 @@ export default function Home() {
     
     console.log('[SelectSubject] Button clicked! Subject:', subject);
     console.log('[SelectSubject] - activePlayerId:', activePlayerId);
-    console.log('[SelectSubject] - isMyTurnToPick:', isMyTurnToPick);
-    console.log('[SelectSubject] - selectedSubject before:', selectedSubject);
     
     // Immediately show selection with animation
     setSelectedSubject(subject);
@@ -664,10 +662,14 @@ export default function Home() {
       setSelectedSubject(null); // Reset on error
       alert('Error selecting subject: ' + error);
     }
-  }, [playerId, isMyTurnToPick, selectedSubject]);
+  }, [playerId]);
 
   // Submit answer
   const submitAnswer = useCallback(async (answerIndex: number) => {
+    const currentPlayerId = playerId || playerIdRef.current;
+    const myProgress = gameRoom?.myProgress || 0;
+    const iFinished = gameRoom?.playersFinished?.includes(currentPlayerId) || false;
+    
     console.log('[Submit] submitAnswer called with index:', answerIndex);
     console.log('[Submit] gameRoom:', gameRoom ? 'exists' : 'null');
     console.log('[Submit] selectedAnswer:', selectedAnswer);
@@ -757,7 +759,7 @@ export default function Home() {
         feedbackTimeoutRef.current = null;
       }
     }
-  }, [gameRoom, selectedAnswer, iFinished, myProgress, playerId]);
+  }, [gameRoom, selectedAnswer, playerId]);
 
   // Start next round
   const startNextRound = async () => {
