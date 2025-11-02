@@ -1082,8 +1082,8 @@ export default function Home() {
       {/* Subject Result Animation */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          {/* Timer - show the countdown that's already running */}
-          {timerActive && (
+          {/* Timer - ALWAYS show if we have a time value, don't wait for timerActive */}
+          {timeRemaining > 0 && (
             <div className="mb-6">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
                 timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
