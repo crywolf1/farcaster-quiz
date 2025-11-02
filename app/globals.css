@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --primary: #6366f1;
-  --secondary: #8b5cf6;
+  --primary: #ffffff;
+  --secondary: #888888;
 }
 
 html, body {
@@ -17,7 +17,7 @@ html, body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #1a1a2e;
+  background: #000000;
 }
 
 * {
@@ -25,17 +25,17 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Glassmorphism utilities */
-.glass {
-  @apply backdrop-blur-3xl bg-white/10 border-2 border-white/30 shadow-2xl;
+/* Dark theme utilities */
+.dark-card {
+  @apply bg-gray-900 border-2 border-gray-800 shadow-2xl;
 }
 
-.glass-strong {
-  @apply backdrop-blur-3xl bg-white/20 border-2 border-white/40 shadow-2xl;
+.dark-card-strong {
+  @apply bg-gray-800 border-2 border-gray-700 shadow-2xl;
 }
 
-.glass-button {
-  @apply backdrop-blur-2xl bg-white/20 border-2 border-white/40 shadow-2xl hover:bg-white/30;
+.dark-button {
+  @apply bg-gray-800 border-2 border-gray-700 shadow-2xl hover:bg-gray-700;
 }
 
 /* Mobile-first optimizations */

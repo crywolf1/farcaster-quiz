@@ -10,7 +10,7 @@ const roomTimerIds = new Map<string, { subject?: NodeJS.Timeout; roundOver?: Nod
 console.log(`[GameManager] Using Redis storage`);
 
 // Timer constants
-const SUBJECT_SELECTION_DURATION = 12000; // 12 seconds for choosing subject
+const SUBJECT_SELECTION_DURATION = 30000; // 30 seconds for choosing subject (with buffer for network delay)
 const TIMER_DURATION = 18000; // 18 seconds for answering questions
 const ROUND_OVER_AUTO_START_DURATION = 30000; // 30 seconds in milliseconds
 
@@ -87,8 +87,8 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null;
   
-  // Set subject selection timer timestamp (12 seconds)
-  room.timerStartedAt = Date.now();
+  // Set subject selection timer timestamp with grace period
+  room.timerStartedAt = Date.now() + 2000; // Add 2-second grace period
   room.timerDuration = SUBJECT_SELECTION_DURATION;
 
   // Save room back to Redis
@@ -310,6 +310,16 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
   if (queue.length >= 2) {
     const player1 = queue.shift()!;
     const player2 = queue.shift()!;
+    
+    // CRITICAL FIX: Prevent self-matching
+    // If both players have the same FID, put player2 back in queue
+    if (player1.fid === player2.fid) {
+      console.log(`[GameManager] Prevented self-match for player ${player1.id}`);
+      queue.unshift(player2); // Put player2 back in queue
+      await storage.setMatchmakingQueue(queue);
+      return { success: true, message: 'Waiting for opponent...' };
+    }
+    
     await storage.setMatchmakingQueue(queue);
 
     // Create game room
@@ -326,8 +336,8 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       questions: [],
       answers: new Map(),
       scores: new Map([[player1.id, 0], [player2.id, 0]]),
-      timerStartedAt: Date.now(), // Set timestamp immediately
-      timerDuration: SUBJECT_SELECTION_DURATION, // 12 seconds for subject selection
+      timerStartedAt: Date.now() + 2000, // Add 2-second grace period for clients to connect
+      timerDuration: SUBJECT_SELECTION_DURATION, // 30 seconds for subject selection
       playerProgress: new Map([[player1.id, 0], [player2.id, 0]]),
       playerTimers: new Map(),
       playersFinished: new Set(),
@@ -453,6 +463,8 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
   message?: string;
   playerFinished?: boolean;
   roundOver?: boolean;
+  gameOver?: boolean;
+  winner?: Player;
   myResult?: {
     correct: boolean;
     score: number;
@@ -513,10 +525,38 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
     const allPlayersFinished = room.players.every(p => room.playersFinished.has(p.id));
     
     if (allPlayersFinished) {
-      // Round over - clear all player timers
-      room.state = 'round-over';
+      // Clear all player timers
       room.players.forEach(p => clearPlayerTimer(p.id));
       clearSubjectTimer(roomId);
+      
+      // Check if this is the final round (game over)
+      if (room.currentRound >= (room.maxRounds || room.totalRounds || 3)) {
+        console.log(`[GameManager] Final round ${room.currentRound} complete - GAME OVER!`);
+        room.state = 'game-over';
+        
+        // Determine winner
+        const scores = Array.from(room.scores.entries());
+        scores.sort((a, b) => b[1] - a[1]);
+        const winnerId = scores[0][0];
+        const winner = room.players.find(p => p.id === winnerId);
+        
+        console.log(`[GameManager] Game over! Winner: ${winner?.username}`);
+        
+        // Save room back to Redis
+        await storage.setGameRoom(roomId, room);
+        
+        return { 
+          success: true, 
+          playerFinished: true, 
+          roundOver: true,
+          gameOver: true,
+          winner,
+          myResult: { correct, score: room.scores.get(playerId) || 0 }
+        };
+      }
+      
+      // Not final round - go to round-over state
+      room.state = 'round-over';
       
       // Save room state BEFORE starting timer (so startRoundOverAutoStart has latest state)
       await storage.setGameRoom(roomId, room);
@@ -583,14 +623,18 @@ export async function startNextRound(playerId: string): Promise<{
 
   // Mark this player as ready
   room.playersReady.add(playerId);
-  console.log(`[GameManager] Player ${playerId} ready for next round (${room.playersReady.size}/${room.players.length})`);
+  console.log(`[GameManager] ✅ Player ${playerId} marked as ready`);
+  console.log(`[GameManager] - playersReady Set:`, Array.from(room.playersReady));
+  console.log(`[GameManager] - Ready count: ${room.playersReady.size}/${room.players.length}`);
 
   // Check if both players are ready
   const allPlayersReady = room.players.every(p => room.playersReady.has(p.id));
+  console.log(`[GameManager] - All players ready?`, allPlayersReady);
   
   if (!allPlayersReady) {
     // Not all players ready yet - keep waiting
     console.log(`[GameManager] Waiting for other player to be ready...`);
+    console.log(`[GameManager] Saving room with playersReady:`, Array.from(room.playersReady));
     
     // Save room back to Redis
     await storage.setGameRoom(roomId, room);
@@ -638,8 +682,8 @@ export async function startNextRound(playerId: string): Promise<{
   room.playersReady.clear();
   room.roundOverTimerStartedAt = null; // Clear round-over timer
   
-  // Set subject selection timer timestamp BEFORE saving to avoid race condition (12 seconds)
-  room.timerStartedAt = Date.now();
+  // Set subject selection timer timestamp with grace period
+  room.timerStartedAt = Date.now() + 2000; // Add 2-second grace period
   room.timerDuration = SUBJECT_SELECTION_DURATION;
 
   // Save room back to Redis with timer already set
@@ -651,6 +695,61 @@ export async function startNextRound(playerId: string): Promise<{
   console.log(`[GameManager] Starting round ${room.currentRound}, timer started`);
 
   return { success: true, gameOver: false };
+}
+
+// Handle player disconnect/leave - award win to opponent
+export async function handlePlayerDisconnect(playerId: string): Promise<{ success: boolean; message: string; opponentWins?: boolean }> {
+  try {
+    console.log(`[GameManager] Handling disconnect for player: ${playerId}`);
+    
+    // Get player's room
+    const roomId = await storage.getPlayerRoom(playerId);
+    if (!roomId) {
+      // Player not in a room, just clean up
+      await removePlayer(playerId);
+      return { success: true, message: 'Player not in active game' };
+    }
+
+    const room = await storage.getGameRoom(roomId);
+    if (!room) {
+      await storage.deletePlayerRoom(playerId);
+      return { success: true, message: 'Room not found' };
+    }
+
+    // Find opponent
+    const opponent = room.players.find(p => p.id !== playerId);
+    
+    if (opponent && room.state !== 'game-over') {
+      // Game in progress - opponent wins by forfeit
+      console.log(`[GameManager] Player ${playerId} left, ${opponent.username} wins by forfeit!`);
+      
+      // Award maximum score to opponent
+      room.scores.set(opponent.id, 999);
+      room.state = 'game-over';
+      
+      // Save updated room
+      await storage.setGameRoom(roomId, room);
+      
+      // Note: Don't delete the room yet - opponent needs to see the win message
+      // The opponent will clean up when they leave or it will expire naturally
+      
+      return { 
+        success: true, 
+        message: `${opponent.username} wins by forfeit!`,
+        opponentWins: true
+      };
+    } else {
+      // Game already over or no opponent, just clean up
+      await removePlayer(playerId);
+      return { success: true, message: 'Player removed from completed game' };
+    }
+  } catch (error) {
+    console.error('[GameManager] Error handling disconnect:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to handle disconnect' 
+    };
+  }
 }
 
 // Cleanup: Remove player from game (on disconnect/leave)

@@ -81,7 +81,7 @@ export default function Home() {
       return;
     }
     
-    console.log('[Polling] ✓ Starting polling for playerId:', currentPlayerId);
+    console.log('[Polling] ✅ Starting polling for playerId:', currentPlayerId);
     
     // Clear any existing interval
     if (pollingIntervalRef.current) {
@@ -107,8 +107,7 @@ export default function Home() {
             const remaining = Math.max(0, 18000 - elapsed); // 18 seconds per question
             console.log('[Timer] ⏱️ Setting timer - elapsed:', elapsed, 'remaining:', remaining);
             setTimeRemaining(Math.ceil(remaining / 1000));
-            // ALWAYS show timer if we have a timer start time, even if showing subject animation
-            setTimerActive(true);
+            setTimerActive(remaining > 0);
           } else if (room.state === 'subject-selection' && room.timerStartedAt && room.timerDuration) {
             // Subject selection timer - ONLY show during subject selection
             const elapsed = Date.now() - room.timerStartedAt;
@@ -136,7 +135,7 @@ export default function Home() {
           if (room.players.length === 2) {
             // CRITICAL: Use playerIdRef.current as fallback to ensure correct opponent
             const currentPlayerId = playerId || playerIdRef.current;
-            console.log('[Polling] Finding opponent');
+            console.log('[Polling] 🔍 Finding opponent');
             console.log('[Polling] - playerId state:', playerId);
             console.log('[Polling] - playerIdRef.current:', playerIdRef.current);
             console.log('[Polling] - currentPlayerId:', currentPlayerId);
@@ -147,7 +146,7 @@ export default function Home() {
             console.log('[Polling] - current opponent state:', opponent ? { id: opponent.id, username: opponent.username } : 'NULL');
             
             if (opp && (!opponent || opponent.id !== opp.id)) {
-              console.log('[Polling] ✓ Updating opponent from', opponent?.username, 'to', opp.username);
+              console.log('[Polling] ✅ Updating opponent from', opponent?.username, 'to', opp.username);
               setOpponent(opp);
             }
           }
@@ -169,7 +168,7 @@ export default function Home() {
             // This prevents showing stale subject animation when transitioning
             lastShownSubjectRound.current = -1;
           } else if (room.state === 'playing') {
-            console.log('[Polling] State: playing');
+            console.log('[Polling] 🎮 State: playing');
             console.log('[Polling] - myProgress:', room.myProgress);
             console.log('[Polling] - currentRound:', room.currentRound);
             console.log('[Polling] - currentSubject:', room.currentSubject);
@@ -201,7 +200,7 @@ export default function Home() {
               if (isShowingFeedback) {
                 console.log('[Polling] Question changed but BLOCKING due to feedback animation');
               } else {
-                console.log('[Polling] ✓ New question for me:', myCurrentQ.id, 'changing from:', currentQuestionId);
+                console.log('[Polling] ✅ New question for me:', myCurrentQ.id, 'changing from:', currentQuestionId);
                 setCurrentQuestionId(myCurrentQ.id);
                 setSelectedAnswer(null);
                 setAnswerFeedback(null); // Reset feedback for new question
@@ -209,7 +208,7 @@ export default function Home() {
                 setShowingResults(false);
               }
             } else if (!myCurrentQ) {
-              console.log('[Polling] ✗ No question found at myProgress:', room.myProgress);
+              console.log('[Polling] ❌ No question found at myProgress:', room.myProgress);
             }
           } else if (room.state === 'round-over') {
             console.log('[Polling] Round over');
@@ -258,12 +257,12 @@ export default function Home() {
 
       if (data.gameState && data.gameState.state !== 'game-over') {
         // Active game found! Restore state
-        console.log('[Rejoin] ✓ Active game found! Restoring state...');
+        console.log('[Rejoin] ✅ Active game found! Restoring state...');
         
         // CRITICAL: Set both state AND ref
         setPlayerId(savedPlayerId);
         playerIdRef.current = savedPlayerId;
-        console.log('[Rejoin] ✓ Set playerIdRef.current to:', playerIdRef.current);
+        console.log('[Rejoin] ✅ Set playerIdRef.current to:', playerIdRef.current);
         
         setRoomId(data.gameState.id);
         setGameRoom(data.gameState);
@@ -288,7 +287,7 @@ export default function Home() {
         // Start polling to keep state updated
         startPolling();
         
-        console.log('[Rejoin] ✓ Successfully rejoined game!');
+        console.log('[Rejoin] ✅ Successfully rejoined game!');
       } else {
         console.log('[Rejoin] No active game found, starting fresh');
         // Clean up localStorage if game is over
@@ -308,25 +307,25 @@ export default function Home() {
   // Initialize Farcaster SDK and attempt rejoin
   useEffect(() => {
     const initializeFrame = async () => {
-      console.log('Starting Farcaster SDK initialization...');
+      console.log('🚀 Starting Farcaster SDK initialization...');
       
       try {
         // Check if we're running in a Farcaster frame context
         console.log('📡 Fetching SDK context...');
         const context = await sdk.context;
-        console.log('✓ Context received:', context);
+        console.log('✅ Context received:', context);
         
         setIsFrameContext(!!context);
 
         if (context) {
-          console.log('In Farcaster frame - calling ready()...');
+          console.log('🎯 In Farcaster frame - calling ready()...');
           
           // We're in a Farcaster frame, initialize properly
           await sdk.actions.ready({
             disableNativeGestures: true,
           });
           
-          console.log('✓ sdk.actions.ready() called successfully!');
+          console.log('✅ sdk.actions.ready() called successfully!');
 
           setIsReady(true);
           const user = (context as any).user;
@@ -357,7 +356,7 @@ export default function Home() {
           await attemptRejoin(`${fallbackUser.fid}`);
         }
       } catch (err) {
-        console.error('✗ Farcaster Frame SDK error:', err);
+        console.error('❌ Farcaster Frame SDK error:', err);
         setIsReady(true); // Still allow the app to work
         const fallbackUser = {
           username: `Player${Math.floor(Math.random() * 1000)}`,
@@ -384,7 +383,7 @@ export default function Home() {
       return;
     }
 
-    console.log('[FindMatch] Starting matchmaking process...');
+    console.log('[FindMatch] 🎮 Starting matchmaking process...');
     setGameState('searching');
 
     try {
@@ -395,11 +394,11 @@ export default function Home() {
       // CRITICAL: Set both state AND ref immediately
       setPlayerId(newPlayerId);
       playerIdRef.current = newPlayerId;
-      console.log('[FindMatch] ✓ Set playerIdRef.current to:', playerIdRef.current);
+      console.log('[FindMatch] ✅ Set playerIdRef.current to:', playerIdRef.current);
       
       // Save playerId to localStorage for rejoin capability
       localStorage.setItem(`playerId_${farcasterUser.fid}`, newPlayerId);
-      console.log('[FindMatch] ✓ Saved playerId to localStorage');
+      console.log('[FindMatch] ✅ Saved playerId to localStorage');
       
       // Join matchmaking queue
       const response = await fetch('/api/match', {
@@ -419,7 +418,7 @@ export default function Home() {
 
       if (data.roomId) {
         // Already matched! Need to fetch full game state
-        console.log('[FindMatch] ✓ Match found immediately! Room:', data.roomId);
+        console.log('[FindMatch] ✅ Match found immediately! Room:', data.roomId);
         setRoomId(data.roomId);
         
         // Fetch the full game state
@@ -536,14 +535,14 @@ export default function Home() {
   const selectSubject = async (subject: string) => {
     const activePlayerId = playerId || playerIdRef.current;
     
-    console.log('[SelectSubject] Button clicked! Subject:', subject);
+    console.log('[SelectSubject] 🎯 Button clicked! Subject:', subject);
     console.log('[SelectSubject] - activePlayerId:', activePlayerId);
     console.log('[SelectSubject] - isMyTurnToPick:', isMyTurnToPick);
     console.log('[SelectSubject] - selectedSubject before:', selectedSubject);
     
     // Immediately show selection with animation
     setSelectedSubject(subject);
-    console.log('[SelectSubject] ✓ Set selectedSubject to:', subject);
+    console.log('[SelectSubject] ✅ Set selectedSubject to:', subject);
     
     try {
       const response = await fetch('/api/subject', {
@@ -707,7 +706,7 @@ export default function Home() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ playerId: currentPlayerId }),
         });
-        console.log('[LeaveGame] ✓ Backend notified');
+        console.log('[LeaveGame] ✅ Backend notified');
       } catch (error) {
         console.error('[LeaveGame] Failed to notify backend:', error);
       }
@@ -751,7 +750,7 @@ export default function Home() {
     setIsShowingFeedback(false);
     lastShownSubjectRound.current = -1;
     
-    console.log('[LeaveGame] ✓ Successfully left game, ready for new match');
+    console.log('[LeaveGame] ✅ Successfully left game, ready for new match');
   };
 
   // Get current question based on MY progress
@@ -769,7 +768,7 @@ export default function Home() {
   // Debug logging for subject selection visibility
   useEffect(() => {
     if (gameState === 'subject-selection') {
-      console.log('[SubjectDebug] Subject selection screen active');
+      console.log('[SubjectDebug] 🎯 Subject selection screen active');
       console.log('[SubjectDebug] - isMyTurnToPick:', isMyTurnToPick);
       console.log('[SubjectDebug] - currentPlayerId:', currentPlayerId);
       console.log('[SubjectDebug] - gameRoom?.currentPickerIndex:', gameRoom?.currentPickerIndex);
@@ -781,7 +780,7 @@ export default function Home() {
   // Render functions
   const renderLoading = () => (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-12 shadow-2xl">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[32px] p-12 shadow-2xl">
         <div className="w-20 h-20 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-6 drop-shadow-2xl"></div>
         <p className="text-white text-xl font-semibold drop-shadow-lg">Loading Quiz...</p>
       </div>
@@ -790,24 +789,24 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-10 shadow-2xl max-w-md w-full">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] p-10 shadow-2xl max-w-md w-full">
         <div className="text-center mb-8">
           {farcasterUser?.pfpUrl ? (
-            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700" />
+            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-white/70 shadow-2xl ring-4 ring-white/40" />
           ) : (
-            <div className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 bg-gray-800 flex items-center justify-center">
-              <span className="text-5xl"></span>
+            <div className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-white/70 shadow-2xl ring-4 ring-white/40 backdrop-blur-xl bg-white/20 flex items-center justify-center">
+              <span className="text-5xl">👤</span>
             </div>
           )}
           <h1 className="text-5xl font-bold text-white drop-shadow-2xl mb-3">Farcaster Quiz</h1>
-          <p className="text-gray-300 text-lg font-medium drop-shadow-lg">Welcome, {farcasterUser?.username}!</p>
+          <p className="text-white/90 text-lg font-medium drop-shadow-lg">Welcome, {farcasterUser?.username}!</p>
         </div>
         
         <button
           onClick={findMatch}
-          className="w-full backdrop-blur-2xl bg-gray-800 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.05] transition-all active:scale-95 border-2 border-gray-700"
+          className="w-full backdrop-blur-2xl bg-white/20 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.05] transition-all active:scale-95 border-2 border-white/40"
         >
-          Find Match
+          🎯 Find Match
         </button>
       </div>
     </div>
@@ -815,14 +814,14 @@ export default function Home() {
 
   const renderSearching = () => (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-12 shadow-2xl max-w-md w-full">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] p-12 shadow-2xl max-w-md w-full">
         <div className="w-24 h-24 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-8 drop-shadow-2xl"></div>
         <h2 className="text-3xl font-bold text-white mb-3 text-center drop-shadow-lg">Finding opponent...</h2>
-        <p className="text-gray-400 text-center drop-shadow mb-6">Please wait</p>
+        <p className="text-white/80 text-center drop-shadow mb-6">Please wait</p>
         
         <button
           onClick={leaveGame}
-          className="w-full bg-gray-800 text-white px-8 py-3 rounded-[24px] text-sm font-semibold shadow-xl hover:bg-gray-700 border-2 border-gray-700 transition-all"
+          className="w-full backdrop-blur-2xl bg-red-500/20 text-white px-8 py-3 rounded-[24px] text-sm font-semibold shadow-xl hover:bg-red-500/30 border-2 border-red-400/40 transition-all"
         >
           Cancel Search
         </button>
@@ -832,37 +831,38 @@ export default function Home() {
 
   const renderMatched = () => (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-10 max-w-md w-full">
+      <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-10 max-w-md w-full">
         <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-8 text-center">
-          Match Found! </h2>
+          Match Found! 🎉
+        </h2>
         
         <div className="flex justify-around items-center mb-8">
           <div className="text-center">
             {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 mb-2" />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl ring-4 ring-white/40 mb-2" />
             ) : (
-              <div className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl bg-gray-800 flex items-center justify-center mb-2 ring-4 ring-gray-700">
-                <span className="text-3xl"></span>
+              <div className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl backdrop-blur-xl bg-white/20 flex items-center justify-center mb-2 ring-4 ring-white/40">
+                <span className="text-3xl">👤</span>
               </div>
             )}
             <p className="text-white font-semibold drop-shadow-lg">{farcasterUser?.username}</p>
           </div>
           
-          <div className="text-5xl drop-shadow-2xl">VS</div>
+          <div className="text-5xl drop-shadow-2xl">⚡</div>
           
           <div className="text-center">
             {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 mb-2" />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl ring-4 ring-white/40 mb-2" />
             ) : (
-              <div className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl bg-gray-800 flex items-center justify-center mb-2 ring-4 ring-gray-700">
-                <span className="text-3xl"></span>
+              <div className="w-20 h-20 rounded-full border-4 border-white/70 shadow-2xl backdrop-blur-xl bg-white/20 flex items-center justify-center mb-2 ring-4 ring-white/40">
+                <span className="text-3xl">👤</span>
               </div>
             )}
             <p className="text-white font-semibold drop-shadow-lg">{opponent?.username}</p>
           </div>
         </div>
         
-        <p className="text-gray-300 text-lg text-center drop-shadow-lg">Starting game...</p>
+        <p className="text-white/90 text-lg text-center drop-shadow-lg">Starting game...</p>
       </div>
     </div>
   );
@@ -872,43 +872,43 @@ export default function Home() {
       {/* Leave Game Button */}
       <button
         onClick={leaveGame}
-        className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
+        className="fixed top-4 right-4 z-50 backdrop-blur-xl bg-red-500/20 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-red-500/30 border border-red-400/40 transition-all"
       >
         Leave Game
       </button>
       
       {/* Header */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
             <div>
               <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
             </div>
           </div>
           
           <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
             <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           </div>
           
           <div className="flex items-center gap-2">
             <div className="text-right">
               <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
             </div>
             {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
           </div>
@@ -922,20 +922,20 @@ export default function Home() {
           {timerActive && (
             <div className="mb-6">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
               } shadow-2xl drop-shadow-2xl`}>
-                <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
                   {timeRemaining}
                 </span>
               </div>
-              <p className="text-gray-300 text-sm mt-2 drop-shadow">
+              <p className="text-white/90 text-sm mt-2 drop-shadow">
                 {isMyTurnToPick ? 'Pick a subject!' : 'Waiting...'}
               </p>
             </div>
           )}
           
           <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">
-            {isMyTurnToPick ? 'Choose a Subject ' : 'Opponent is choosing...'}
+            {isMyTurnToPick ? 'Choose a Subject 📚' : 'Opponent is choosing...'}
           </h2>
           
           {isMyTurnToPick ? (
@@ -949,13 +949,13 @@ export default function Home() {
                     disabled={!!selectedSubject}
                     className={`w-full py-4 rounded-[28px] font-bold text-lg shadow-2xl border-2 transition-all duration-500 ${
                       isSelected
-                        ? 'bg-white text-black border-white scale-105 animate-pulse shadow-2xl'
+                        ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300 scale-105 animate-pulse shadow-[0_0_40px_rgba(16,185,129,0.6)]'
                         : selectedSubject
-                        ? 'backdrop-blur-2xl bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed'
-                        : 'backdrop-blur-2xl bg-gray-800 text-white border-gray-700 hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.02] active:scale-95 cursor-pointer'
+                        ? 'backdrop-blur-2xl bg-white/10 text-white/50 border-white/20 cursor-not-allowed'
+                        : 'backdrop-blur-2xl bg-white/20 text-white border-white/40 hover:bg-white/30 hover:shadow-[0_20px_50px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-95 cursor-pointer'
                     }`}
                   >
-                    {subject} {isSelected && ''}
+                    {subject} {isSelected && '✓'}
                   </button>
                 );
               })}
@@ -973,43 +973,43 @@ export default function Home() {
       {/* Leave Game Button */}
       <button
         onClick={leaveGame}
-        className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
+        className="fixed top-4 right-4 z-50 backdrop-blur-xl bg-red-500/20 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-red-500/30 border border-red-400/40 transition-all"
       >
         Leave Game
       </button>
       
       {/* Header - same as subject selection */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
             <div>
               <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
             </div>
           </div>
           
           <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
             <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           </div>
           
           <div className="flex items-center gap-2">
             <div className="text-right">
               <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
             </div>
             {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
           </div>
@@ -1018,14 +1018,14 @@ export default function Home() {
 
       {/* Waiting message with timer */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-10">
+        <div className="text-center backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-10">
           {/* Timer */}
           {timerActive && (
             <div className="mb-6">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
               } shadow-2xl drop-shadow-2xl`}>
-                <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
                   {timeRemaining}
                 </span>
               </div>
@@ -1033,7 +1033,7 @@ export default function Home() {
           )}
           <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-4 drop-shadow-2xl"></div>
           <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">{opponent?.username} is choosing...</h2>
-          <p className="text-gray-300 drop-shadow">Get ready!</p>
+          <p className="text-white/90 drop-shadow">Get ready!</p>
         </div>
       </div>
     </div>
@@ -1042,37 +1042,37 @@ export default function Home() {
   const renderSubjectResult = () => (
     <div className="min-h-screen flex flex-col p-4">
       {/* Header */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
+      <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-2xl">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
             <div>
               <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {myScore}</p>
             </div>
           </div>
           
           <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
+            <p className="text-white/80 text-xs drop-shadow">Round</p>
             <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           </div>
           
           <div className="flex items-center gap-2">
             <div className="text-right">
               <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
+              <p className="text-white/80 text-xs drop-shadow">Score: {opponentScore}</p>
             </div>
             {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
             ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
+              <div className="w-10 h-10 rounded-full border-2 border-white/70 backdrop-blur-xl bg-white/20 flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-lg">👤</span>
               </div>
             )}
           </div>
@@ -1086,9 +1086,9 @@ export default function Home() {
           {timerActive && (
             <div className="mb-6">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemaining <= 5 ? 'border-red-400 bg-red-500/30 animate-pulse' : 'border-white/60 bg-white/20'
               } shadow-2xl drop-shadow-2xl`}>
-                <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
+                <span className={`text-3xl font-bold ${timeRemaining <= 5 ? 'text-red-100' : 'text-white'} drop-shadow-lg`}>
                   {timeRemaining}
                 </span>
               </div>
@@ -1096,13 +1096,15 @@ export default function Home() {
           )}
           
           <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
-            Subject Selected! </h2>
-          <div className="bg-gray-900 border-4 border-white rounded-[40px] shadow-2xl p-8 animate-[bounce_1s_ease-in-out_infinite] scale-110">
+            Subject Selected! 🎯
+          </h2>
+          <div className="backdrop-blur-3xl bg-gradient-to-r from-purple-500/40 via-pink-500/40 to-purple-500/40 border-4 border-white/50 rounded-[40px] shadow-2xl p-8 animate-[bounce_1s_ease-in-out_infinite] scale-110">
             <div className="text-5xl font-black text-white drop-shadow-2xl mb-2">
               {gameRoom?.currentSubject}
             </div>
-            <div className="text-gray-300 text-lg font-semibold drop-shadow-lg">
-              Get Ready! </div>
+            <div className="text-white/90 text-lg font-semibold drop-shadow-lg">
+              Get Ready! 🚀
+            </div>
           </div>
         </div>
       </div>
@@ -1115,14 +1117,14 @@ export default function Home() {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8">
-              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">You Finished! </h2>
-              <p className="text-gray-300 text-lg mb-6 drop-shadow-lg">
+            <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-8">
+              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">You Finished! 🎉</h2>
+              <p className="text-white/90 text-lg mb-6 drop-shadow-lg">
                 Waiting for {opponent?.username} to finish...
               </p>
               <div className="mb-6">
                 <p className="text-white text-5xl font-bold mb-2 drop-shadow-2xl">{myScore}</p>
-                <p className="text-gray-400 drop-shadow">Your Score</p>
+                <p className="text-white/80 drop-shadow">Your Score</p>
               </div>
               <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
             </div>
@@ -1142,9 +1144,9 @@ export default function Home() {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8">
+            <div className="backdrop-blur-3xl bg-white/10 border-2 border-white/30 rounded-[40px] shadow-2xl p-8">
               <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">Loading Question...</h2>
-              <p className="text-gray-300 text-lg mb-6 drop-shadow-lg">
+              <p className="text-white/90 text-lg mb-6 drop-shadow-lg">
                 Preparing your questions
               </p>
               <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
@@ -1164,50 +1166,50 @@ export default function Home() {
         {/* Leave Game Button - Fixed Position */}
         <button
           onClick={leaveGame}
-          className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
+          className="fixed top-4 right-4 z-50 backdrop-blur-xl bg-red-500/20 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-red-500/30 border border-red-400/40 transition-all"
         >
           Leave Game
         </button>
         
         {/* Header */}
-        <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-xl">
+        <div className="backdrop-blur-3xl bg-white/15 border-2 border-white/30 rounded-[32px] p-4 mb-4 shadow-xl">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               {farcasterUser?.pfpUrl ? (
-                <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+                <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                  <span className="text-lg"></span>
+                <div className="w-10 h-10 rounded-full border-2 border-white/70 bg-white/50 flex items-center justify-center ring-2 ring-white/40">
+                  <span className="text-lg">👤</span>
                 </div>
               )}
               <div>
                 <p className="text-white font-semibold text-sm">{farcasterUser?.username}</p>
-                <p className="text-gray-400 text-xs">Score: {myScore}</p>
+                <p className="text-white/80 text-xs">Score: {myScore}</p>
               </div>
             </div>
             
             <div className="text-center">
-              <p className="text-gray-400 text-xs">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+              <p className="text-white/80 text-xs">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
               <p className="text-white font-bold">Q {myProgress + 1}/5</p>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="text-right">
                 <p className="text-white font-semibold text-sm">{opponent?.username}</p>
-                <p className="text-gray-400 text-xs">Score: {opponentScore}</p>
+                <p className="text-white/80 text-xs">Score: {opponentScore}</p>
               </div>
               {opponent?.pfpUrl ? (
-                <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+                <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-white/70 ring-2 ring-white/40" />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                  <span className="text-lg"></span>
+                <div className="w-10 h-10 rounded-full border-2 border-white/70 bg-white/50 flex items-center justify-center ring-2 ring-white/40">
+                  <span className="text-lg">👤</span>
                 </div>
               )}
             </div>
           </div>
           
           <div className="text-center">
-            <p className="text-gray-300 text-sm font-medium">{gameRoom?.currentSubject}</p>
+            <p className="text-white/90 text-sm font-medium">{gameRoom?.currentSubject}</p>
           </div>
         </div>
 
@@ -1217,16 +1219,16 @@ export default function Home() {
           {timerActive && (
             <div className="text-center mb-4">
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemaining <= 5 ? 'border-red-500 bg-red-500/30 animate-pulse' : 'border-indigo-400/50 bg-white/50'
               } shadow-xl`}>
-                <span className={`text-2xl font-bold ${'text-white'}`}>
+                <span className={`text-2xl font-bold ${timeRemaining <= 5 ? 'text-red-600' : 'text-white'}`}>
                   {timeRemaining}
                 </span>
               </div>
             </div>
           )}
           
-          <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
+          <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-[32px] p-6 mb-6 shadow-xl">
             <h3 className="text-white text-xl font-bold text-center mb-4">
               {currentQuestion.question}
             </h3>
@@ -1244,28 +1246,28 @@ export default function Home() {
               if (bothAnswered && lastResult) {
                 // Show final results (both players answered)
                 if (isCorrect) {
-                  buttonClass += " bg-green-600 text-white border-2 border-green-500 shadow-xl";
+                  buttonClass += " bg-gradient-to-r from-green-400 to-emerald-500 text-white border-2 border-green-300 shadow-[0_0_30px_rgba(16,185,129,0.5)]";
                 } else if (isMyAnswer) {
-                  buttonClass += " bg-red-600 text-white border-2 border-red-500 shadow-xl";
+                  buttonClass += " bg-gradient-to-r from-red-400 to-rose-500 text-white border-2 border-red-300 shadow-[0_0_30px_rgba(239,68,68,0.5)]";
                 } else {
-                  buttonClass += " bg-gray-900 border-2 border-gray-800 text-gray-500";
+                  buttonClass += " backdrop-blur-lg bg-white/30 border-2 border-white/20 text-white/70";
                 }
               } else if (showInstantFeedback) {
                 // Show instant feedback after selection with dramatic animation
                 if (answerFeedback === 'correct') {
-                  buttonClass += " bg-green-600 text-white border-4 border-green-500 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-2xl transform";
+                  buttonClass += " bg-gradient-to-r from-green-400 via-emerald-400 to-emerald-500 text-white border-4 border-green-300 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-[0_0_60px_rgba(16,185,129,0.8),0_0_100px_rgba(16,185,129,0.4)] transform";
                 } else {
-                  buttonClass += " bg-red-600 text-white border-4 border-red-500 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-2xl transform";
+                  buttonClass += " bg-gradient-to-r from-red-400 via-rose-400 to-rose-500 text-white border-4 border-red-300 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-[0_0_60px_rgba(239,68,68,0.8),0_0_100px_rgba(239,68,68,0.4)] transform";
                 }
               } else if (hasAnswered && isMyAnswer) {
                 // Selected but waiting
-                buttonClass += " backdrop-blur-xl bg-gray-700 text-white border-2 border-gray-800";
+                buttonClass += " backdrop-blur-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-2 border-white/20";
               } else if (hasAnswered) {
                 // Not selected, disabled
-                buttonClass += " bg-gray-900 border-2 border-gray-800 text-gray-600 cursor-not-allowed";
+                buttonClass += " backdrop-blur-lg bg-white/20 border-2 border-white/20 text-white/50 cursor-not-allowed";
               } else {
                 // Not answered yet, hoverable
-                buttonClass += " bg-gray-800 border-2 border-gray-700 text-white hover:bg-gray-700 hover:scale-[1.02] active:scale-95 cursor-pointer";
+                buttonClass += " backdrop-blur-lg bg-white/50 border-2 border-white/40 text-white hover:bg-white/70 hover:scale-[1.02] active:scale-95 cursor-pointer";
               }
 
               return (
@@ -1276,22 +1278,22 @@ export default function Home() {
                   className={buttonClass}
                 >
                   {option}
-                  {showInstantFeedback && answerFeedback === 'correct' && " "}
+                  {showInstantFeedback && answerFeedback === 'correct' && " ✓"}
                   {showInstantFeedback && answerFeedback === 'incorrect' && " ✗"}
-                  {bothAnswered && isCorrect && " "}
+                  {bothAnswered && isCorrect && " ✓"}
                 </button>
               );
             })}
           </div>
 
           {bothAnswered && lastResult && (
-            <div className="mt-4 backdrop-blur-lg bg-gray-800 border border-gray-800 rounded-[28px] p-4 shadow-lg">
+            <div className="mt-4 backdrop-blur-lg bg-white/50 border border-white/30 rounded-[28px] p-4 shadow-lg">
               <div className="flex justify-between">
                 {lastResult.map((result: any) => (
                   <div key={result.playerId} className="text-center">
                     <p className="text-white font-semibold">{result.username}</p>
-                    <p className="text-2xl">{result.correct ? '✓' : '✗'}</p>
-                    <p className="text-gray-300 text-sm">Score: {result.score}</p>
+                    <p className="text-2xl">{result.correct ? '✅' : '❌'}</p>
+                    <p className="text-white/90 text-sm">Score: {result.score}</p>
                   </div>
                 ))}
               </div>
@@ -1310,7 +1312,7 @@ export default function Home() {
     const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
     const opponentReady = opponent && gameRoom?.playersReady?.includes(opponent.id) || false;
     
-    console.log('[RoundResult] Checking ready status');
+    console.log('[RoundResult] 🔍 Checking ready status');
     console.log('[RoundResult] - playerId state:', playerId);
     console.log('[RoundResult] - playerIdRef.current:', playerIdRef.current);
     console.log('[RoundResult] - currentPlayerId:', currentPlayerId);
@@ -1321,50 +1323,53 @@ export default function Home() {
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+        <div className="text-center backdrop-blur-3xl bg-black/40 border-2 border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
           <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">
-            Round {gameRoom?.currentRound} Complete! </h2>
+            Round {gameRoom?.currentRound} Complete! 🎉
+          </h2>
           
-          <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-6 mb-6 shadow-lg">
+          <div className="backdrop-blur-2xl bg-white/5 border-2 border-white/20 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
               <div className="text-center relative">
                 {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-2xl"></span>
+                  <div className="w-16 h-16 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
+                    <span className="text-2xl">👤</span>
                   </div>
                 )}
                 {iAmReady && (
-                  <div className="absolute top-0 right-0 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-yellow-400 shadow-lg">
-                    <span className="text-black text-lg font-bold">✓</span>
+                  <div className="absolute top-0 right-0 bg-green-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg">
+                    <span className="text-white text-lg">✓</span>
                   </div>
                 )}
                 <p className="text-white font-bold drop-shadow-lg">{farcasterUser?.username}</p>
                 <p className="text-white text-3xl font-bold drop-shadow-2xl">{myScore}</p>
+                {iAmReady && <p className="text-green-400 text-xs mt-1 font-semibold drop-shadow-lg">Ready!</p>}
               </div>
               
               <div className="text-center relative">
                 {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-16 h-16 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-16 h-16 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-16 h-16 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-2xl"></span>
+                  <div className="w-16 h-16 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
+                    <span className="text-2xl">👤</span>
                   </div>
                 )}
                 {opponentReady && (
-                  <div className="absolute top-0 right-0 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-yellow-400 shadow-lg">
-                    <span className="text-black text-lg font-bold">✓</span>
+                  <div className="absolute top-0 right-0 bg-green-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg">
+                    <span className="text-white text-lg">✓</span>
                   </div>
                 )}
                 <p className="text-white font-bold drop-shadow-lg">{opponent?.username}</p>
                 <p className="text-white text-3xl font-bold drop-shadow-2xl">{opponentScore}</p>
+                {opponentReady && <p className="text-green-400 text-xs mt-1 font-semibold drop-shadow-lg">Ready!</p>}
               </div>
             </div>
           </div>
           
           <p className="text-white text-2xl font-bold mb-6 drop-shadow-2xl">
-            {isDraw ? "It's a Draw! " : winner?.id === playerId ? 'You Won This Round! ' : `${opponent?.username} Won! `}
+            {isDraw ? "It's a Draw! 🤝" : winner?.id === playerId ? 'You Won This Round! 🏆' : `${opponent?.username} Won! 💪`}
           </p>
           
           {gameRoom && gameRoom.currentRound < gameRoom.maxRounds ? (
@@ -1372,38 +1377,41 @@ export default function Home() {
               <button
                 onClick={startNextRound}
                 disabled={iAmReady}
-                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl transition-all mb-6 border-2 ${
+                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl transition-all mb-4 border-2 ${
                   iAmReady 
-                    ? 'bg-yellow-500 text-black cursor-not-allowed border-yellow-400' 
-                    : 'bg-gray-900 text-white hover:bg-gray-700 hover:scale-[1.02] active:scale-95 border-gray-800'
+                    ? 'bg-green-500 text-white cursor-not-allowed border-green-400' 
+                    : 'backdrop-blur-3xl bg-white/10 text-white hover:bg-white/20 hover:scale-[1.02] active:scale-95 border-white/30'
                 }`}
               >
-                Ready
+                {iAmReady ? '✓ Ready!' : 'Ready for Next Round'}
               </button>
               
               {/* Waiting message */}
               {iAmReady && !opponentReady && (
-                <p className="text-gray-400 text-sm mb-6">
-                  Waiting for {opponent?.username}...
+                <p className="text-white/90 text-sm mb-4 drop-shadow-lg">
+                  Waiting for {opponent?.username} to be ready...
                 </p>
               )}
               
-              {/* Minimal timer */}
+              {/* Auto-start countdown */}
               {roundOverTimeRemaining > 0 && (
-                <div className="flex items-center justify-center gap-3">
-                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full border-2 ${
-                    roundOverTimeRemaining <= 10 ? 'border-gray-600 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-                  } shadow-lg`}>
-                    <span className={`text-lg font-bold ${roundOverTimeRemaining <= 10 ? 'text-white' : 'text-gray-300'}`}>
+                <div className="backdrop-blur-3xl bg-black/30 border-2 border-white/20 rounded-[28px] p-5 shadow-2xl">
+                  <p className="text-white text-sm mb-3 drop-shadow-lg font-semibold">
+                    {!iAmReady || !opponentReady ? 'Both players must click Ready, or auto-starting in:' : 'Auto-starting in:'}
+                  </p>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full border-4 backdrop-blur-2xl ${
+                    roundOverTimeRemaining <= 10 ? 'border-red-400 bg-red-500/20 animate-pulse' : 'border-white/50 bg-black/30'
+                  } shadow-2xl`}>
+                    <span className={`text-3xl font-bold drop-shadow-2xl ${roundOverTimeRemaining <= 10 ? 'text-red-300' : 'text-white'}`}>
                       {roundOverTimeRemaining}
                     </span>
                   </div>
-                  <p className="text-gray-500 text-sm">auto-start</p>
+                  <p className="text-white/80 text-xs mt-2 drop-shadow-lg font-semibold">seconds</p>
                 </div>
               )}
             </>
           ) : (
-            <p className="text-gray-300 text-lg drop-shadow-lg">Calculating final results...</p>
+            <p className="text-white/90 text-lg drop-shadow-lg">Calculating final results...</p>
           )}
         </div>
       </div>
@@ -1416,17 +1424,17 @@ export default function Home() {
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
-          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">Game Over! </h2>
+        <div className="text-center backdrop-blur-3xl bg-black/40 border-2 border-white/20 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
+          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">Game Over! 🎮</h2>
           
-          <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-6 mb-6 shadow-lg">
+          <div className="backdrop-blur-2xl bg-white/5 border-2 border-white/20 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
               <div className="text-center">
                 {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-3xl"></span>
+                  <div className="w-20 h-20 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
+                    <span className="text-3xl">👤</span>
                   </div>
                 )}
                 <p className="text-white font-bold text-lg drop-shadow-lg">{farcasterUser?.username}</p>
@@ -1435,10 +1443,10 @@ export default function Home() {
               
               <div className="text-center">
                 {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/70 ring-4 ring-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-3xl"></span>
+                  <div className="w-20 h-20 rounded-full border-4 border-white/70 bg-white/10 flex items-center justify-center mx-auto mb-2 ring-4 ring-white/40 shadow-2xl">
+                    <span className="text-3xl">👤</span>
                   </div>
                 )}
                 <p className="text-white font-bold text-lg drop-shadow-lg">{opponent?.username}</p>
@@ -1450,18 +1458,18 @@ export default function Home() {
           <div className="mb-6">
             {isDraw ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">It&apos;s a Draw! </p>
-                <p className="text-gray-300 drop-shadow-lg">Great match!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">It&apos;s a Draw! 🤝</p>
+                <p className="text-white/90 drop-shadow-lg">Great match!</p>
               </>
             ) : winner?.id === playerId ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">You Won! </p>
-                <p className="text-gray-300 drop-shadow-lg">Congratulations!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">You Won! 🏆</p>
+                <p className="text-white/90 drop-shadow-lg">Congratulations!</p>
               </>
             ) : (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">{opponent?.username} Won! </p>
-                <p className="text-gray-300 drop-shadow-lg">Better luck next time!</p>
+                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">{opponent?.username} Won! 💪</p>
+                <p className="text-white/90 drop-shadow-lg">Better luck next time!</p>
               </>
             )}
           </div>
@@ -1472,9 +1480,10 @@ export default function Home() {
               // Immediately start finding a new match
               findMatch();
             }}
-            className="backdrop-blur-3xl bg-gray-900 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:scale-[1.02] transition-all active:scale-95 border-2 border-gray-800"
+            className="backdrop-blur-3xl bg-white/10 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-white/20 hover:scale-[1.02] transition-all active:scale-95 border-2 border-white/30"
           >
-            Find New Match </button>
+            Find New Match 🔍
+          </button>
         </div>
       </div>
     );
