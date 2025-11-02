@@ -861,33 +861,37 @@ export default function Home() {
 
   // PROGRESS BAR TIMER - Questions (18 seconds)
   useEffect(() => {
+    // Don't start timer if not in playing state or no question
     if (gameState !== 'playing' || !currentQuestion || iFinished) {
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
-      }
       return;
     }
 
     const questionId = currentQuestion.id;
     
+    // Only start new timer if it's a different question
     if (currentQuestionId !== questionId) {
-      console.log('[ProgressBar] 🎯 New question - starting 18s countdown');
+      console.log('[ProgressBar] 🎯 New question - starting 18s countdown for:', questionId);
+      
+      // Clear any existing timer first
+      if (timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
+      }
+      
+      // Update state for new question
       setCurrentQuestionId(questionId);
       setTimeRemaining(18);
       setTimerActive(true);
       
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-      }
-      
-      // Update every 100ms for smooth bar animation
+      // Start countdown
       timerIntervalIdRef.current = setInterval(() => {
         setTimeRemaining(t => {
           const newTime = t - 0.1;
           if (newTime <= 0) {
-            clearInterval(timerIntervalIdRef.current!);
-            timerIntervalIdRef.current = null;
+            if (timerIntervalIdRef.current) {
+              clearInterval(timerIntervalIdRef.current);
+              timerIntervalIdRef.current = null;
+            }
             setTimerActive(false);
             console.log('[ProgressBar] ⏰ Time up!');
             submitAnswer(-1);
@@ -897,13 +901,6 @@ export default function Home() {
         });
       }, 100);
     }
-    
-    return () => {
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
-      }
-    };
   }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
   
   // Stop timer when answer is selected (but keep it visible)
@@ -923,20 +920,25 @@ export default function Home() {
     }
 
     console.log('[ProgressBar] 🎯 Subject selection - starting 20s countdown');
+    
+    // Clear any existing timer first
+    if (timerIntervalIdRef.current) {
+      clearInterval(timerIntervalIdRef.current);
+      timerIntervalIdRef.current = null;
+    }
+    
     setTimeRemaining(20);
     setTimerActive(true);
     
-    if (timerIntervalIdRef.current) {
-      clearInterval(timerIntervalIdRef.current);
-    }
-    
-    // Update every 100ms for smooth bar animation
+    // Start countdown
     timerIntervalIdRef.current = setInterval(() => {
       setTimeRemaining(t => {
         const newTime = t - 0.1;
         if (newTime <= 0) {
-          clearInterval(timerIntervalIdRef.current!);
-          timerIntervalIdRef.current = null;
+          if (timerIntervalIdRef.current) {
+            clearInterval(timerIntervalIdRef.current);
+            timerIntervalIdRef.current = null;
+          }
           const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
           console.log('[ProgressBar] ⏰ Time up! Auto-selecting:', randomSubject);
           selectSubject(randomSubject);
@@ -945,13 +947,6 @@ export default function Home() {
         return newTime;
       });
     }, 100);
-    
-    return () => {
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
-      }
-    };
   }, [gameState, isMyTurnToPick, subjects, selectSubject]);
 
   // Stop timer when subject is selected but keep bar visible
