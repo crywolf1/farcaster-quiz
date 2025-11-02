@@ -761,7 +761,7 @@ export default function Home() {
   }, [gameRoom, selectedAnswer, playerId]);
 
   // Start next round
-  const startNextRound = async () => {
+  const startNextRound = useCallback(async () => {
     try {
       // CRITICAL: Use playerIdRef.current as fallback
       const activePlayerId = playerId || playerIdRef.current;
@@ -783,7 +783,7 @@ export default function Home() {
     } catch (error) {
       console.error('Start next round error:', error);
     }
-  };
+  }, [playerId]);
 
   // Leave/Reset game - clears localStorage and resets to idle
   const leaveGame = async () => {
@@ -966,6 +966,60 @@ export default function Home() {
       // Keep timerActive true so bar stays visible
     }
   }, [gameState, selectedSubject]);
+
+  // PROGRESS BAR TIMER - Round Result (30 seconds auto-ready)
+  useEffect(() => {
+    if (gameState !== 'round-result') {
+      return;
+    }
+
+    const currentPlayerId = playerId || playerIdRef.current;
+    const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
+    
+    // Only start timer if I'm not ready yet
+    if (!iAmReady) {
+      console.log('[ProgressBar] 🎯 Round result - starting 30s auto-ready countdown');
+      
+      // Clear any existing timer first
+      if (timerIntervalIdRef.current) {
+        clearInterval(timerIntervalIdRef.current);
+        timerIntervalIdRef.current = null;
+      }
+      
+      setTimeRemaining(30);
+      setTimerActive(true);
+      
+      // Start countdown
+      timerIntervalIdRef.current = setInterval(() => {
+        setTimeRemaining(t => {
+          const newTime = t - 0.1;
+          if (newTime <= 0) {
+            if (timerIntervalIdRef.current) {
+              clearInterval(timerIntervalIdRef.current);
+              timerIntervalIdRef.current = null;
+            }
+            console.log('[ProgressBar] ⏰ Auto-ready timeout! Starting next round');
+            startNextRound();
+            return 0;
+          }
+          return newTime;
+        });
+      }, 100);
+    }
+  }, [gameState, gameRoom?.playersReady, playerId, startNextRound]);
+
+  // Stop round result timer when player clicks ready
+  useEffect(() => {
+    const currentPlayerId = playerId || playerIdRef.current;
+    const iAmReady = gameRoom?.playersReady?.includes(currentPlayerId) || false;
+    
+    if (gameState === 'round-result' && iAmReady && timerIntervalIdRef.current) {
+      console.log('[ProgressBar] 🛑 Ready clicked - stopping countdown');
+      clearInterval(timerIntervalIdRef.current);
+      timerIntervalIdRef.current = null;
+      setTimerActive(false);
+    }
+  }, [gameState, gameRoom?.playersReady, playerId]);
 
   // Debug logging for subject selection visibility
   useEffect(() => {
@@ -1561,6 +1615,31 @@ export default function Home() {
         <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
           <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">
             Round {gameRoom?.currentRound} Complete! </h2>
+          
+          {/* Auto-ready timer progress bar */}
+          {!iAmReady && timerActive && (
+            <div className="mb-6">
+              <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
+                <div 
+                  className={`h-full transition-all duration-100 ${
+                    timeRemaining <= 10 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemaining <= 20 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    'bg-gradient-to-r from-purple-500 to-purple-600'
+                  }`}
+                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
+                ></div>
+              </div>
+              <p className="text-center text-sm mt-2 font-semibold">
+                <span className={
+                  timeRemaining <= 10 ? 'text-red-400' : 
+                  timeRemaining <= 20 ? 'text-yellow-400' : 
+                  'text-purple-400'
+                }>
+                  Auto-ready in {Math.ceil(timeRemaining)}s
+                </span>
+              </p>
+            </div>
+          )}
           
           <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
