@@ -861,8 +861,7 @@ export default function Home() {
 
   // PROGRESS BAR TIMER - Questions (18 seconds)
   useEffect(() => {
-    if (gameState !== 'playing' || !currentQuestion || iFinished || selectedAnswer !== null) {
-      setTimerActive(false);
+    if (gameState !== 'playing' || !currentQuestion || iFinished) {
       if (timerIntervalIdRef.current) {
         clearInterval(timerIntervalIdRef.current);
         timerIntervalIdRef.current = null;
@@ -889,6 +888,7 @@ export default function Home() {
           if (newTime <= 0) {
             clearInterval(timerIntervalIdRef.current!);
             timerIntervalIdRef.current = null;
+            setTimerActive(false);
             console.log('[ProgressBar] ⏰ Time up!');
             submitAnswer(-1);
             return 0;
@@ -904,7 +904,17 @@ export default function Home() {
         timerIntervalIdRef.current = null;
       }
     };
-  }, [gameState, currentQuestion, currentQuestionId, iFinished, selectedAnswer, submitAnswer]);
+  }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
+  
+  // Stop timer when answer is selected (but keep it visible)
+  useEffect(() => {
+    if (selectedAnswer !== null && timerIntervalIdRef.current) {
+      console.log('[ProgressBar] 🛑 Answer selected - stopping countdown');
+      clearInterval(timerIntervalIdRef.current);
+      timerIntervalIdRef.current = null;
+      // Keep timerActive true so bar stays visible
+    }
+  }, [selectedAnswer]);
   
   // PROGRESS BAR TIMER - Subject Selection (20 seconds)
   useEffect(() => {
