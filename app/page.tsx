@@ -954,6 +954,16 @@ export default function Home() {
     };
   }, [gameState, isMyTurnToPick, subjects, selectSubject]);
 
+  // Stop timer when subject is selected but keep bar visible
+  useEffect(() => {
+    if (gameState === 'subject-selection' && selectedSubject && timerIntervalIdRef.current) {
+      console.log('[ProgressBar] 🛑 Subject selected - stopping countdown');
+      clearInterval(timerIntervalIdRef.current);
+      timerIntervalIdRef.current = null;
+      // Keep timerActive true so bar stays visible
+    }
+  }, [gameState, selectedSubject]);
+
   // Debug logging for subject selection visibility
   useEffect(() => {
     if (gameState === 'subject-selection') {
