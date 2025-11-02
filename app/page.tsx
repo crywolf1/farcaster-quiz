@@ -1087,13 +1087,12 @@ export default function Home() {
         <div className="text-center">
           {/* Timer - ALWAYS show during subject animation */}
           <div className="mb-6">
-            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-              timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-            } shadow-2xl drop-shadow-2xl`}>
-              <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full border-4 border-yellow-500 bg-yellow-900 shadow-2xl drop-shadow-2xl">
+              <span className="text-3xl font-bold text-white drop-shadow-lg">
                 {timeRemaining}
               </span>
             </div>
+            <div className="text-white text-sm mt-2">DEBUG: {timeRemaining}s</div>
           </div>
           
           <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
