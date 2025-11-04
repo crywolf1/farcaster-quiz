@@ -937,6 +937,9 @@ export default function Home() {
       
       // Update state for new question
       setCurrentQuestionId(questionId);
+      setSelectedAnswer(null); // Reset selected answer for new question
+      setAnswerFeedback(null); // Reset answer feedback
+      setIsShowingFeedback(false); // Reset feedback flag
       
       // Calculate initial time based on server timestamp if available
       let initialTime = 18;
@@ -1601,63 +1604,58 @@ export default function Home() {
     const bothAnswered = showingResults && lastResult !== null;
 
     return (
-      <div className="min-h-screen  flex flex-col p-4">
-        {/* Header - Clean horizontal layout */}
-        <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-6 mb-6 shadow-2xl">
-          {/* Two rows layout */}
-          <div className="space-y-4">
-            {/* Top row: Players info and Leave button */}
-            <div className="flex justify-between items-center gap-6">
-              {/* Your info */}
-              <div className="flex items-center gap-3 flex-1">
-                {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-12 h-12 rounded-full border-2 border-purple-500 shadow-lg" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg">
-                    <span className="text-lg">👤</span>
-                  </div>
-                )}
-                <div>
-                  <p className="text-white font-bold text-sm">{farcasterUser?.username}</p>
-                  <p className="text-gray-400 text-xs font-semibold">Score: {myScore}</p>
+      <div className="min-h-screen flex flex-col p-4">
+        {/* Header */}
+        <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-5 mb-6 shadow-2xl max-w-5xl w-full mx-auto">
+          <div className="grid grid-cols-3 gap-4 items-center">
+            {/* Left: Your Profile */}
+            <div className="flex items-center gap-3">
+              {farcasterUser?.pfpUrl ? (
+                <img src={farcasterUser.pfpUrl} alt="You" className="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
+              ) : (
+                <div className="w-14 h-14 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <span className="text-lg">👤</span>
                 </div>
-              </div>
-              
-              {/* Leave Game Button */}
-              <button
-                onClick={leaveGame}
-                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-[16px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all flex-shrink-0"
-              >
-                Leave Game
-              </button>
-              
-              {/* Opponent info */}
-              <div className="flex items-center gap-3 flex-1 justify-end">
-                <div className="text-right">
-                  <p className="text-white font-bold text-sm">{opponent?.username}</p>
-                  <p className="text-gray-400 text-xs font-semibold">Score: {opponentScore}</p>
-                </div>
-                {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg">
-                    <span className="text-lg">👤</span>
-                  </div>
-                )}
+              )}
+              <div className="min-w-0">
+                <p className="text-white font-bold text-sm truncate">{farcasterUser?.username}</p>
+                <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {myScore}</p>
               </div>
             </div>
             
-            {/* Bottom row: Round/Question and Subject */}
-            <div className="flex justify-between items-center">
-              <div className="text-left">
-                <p className="text-gray-400 text-xs font-semibold">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-                <p className="text-white font-bold text-base">Question {myProgress + 1}/5</p>
-              </div>
-              
-              <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+            {/* Center: Round & Question Info */}
+            <div className="text-center">
+              <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+              <p className="text-white font-bold text-lg mb-2">Q {myProgress + 1}/5</p>
+              <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg">
                 {gameRoom?.currentSubject}
               </span>
             </div>
+            
+            {/* Right: Opponent Profile */}
+            <div className="flex items-center gap-3 justify-end">
+              <div className="text-right min-w-0">
+                <p className="text-white font-bold text-sm truncate">{opponent?.username}</p>
+                <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {opponentScore}</p>
+              </div>
+              {opponent?.pfpUrl ? (
+                <img src={opponent.pfpUrl} alt="Opponent" className="w-14 h-14 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
+              ) : (
+                <div className="w-14 h-14 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <span className="text-lg">👤</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Leave Game Button - Below */}
+          <div className="mt-3 text-right">
+            <button
+              onClick={leaveGame}
+              className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
+            >
+              Leave Game
+            </button>
           </div>
         </div>
 
