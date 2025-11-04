@@ -641,6 +641,12 @@ export default function Home() {
     console.log('[SelectSubject] Button clicked! Subject:', subject);
     console.log('[SelectSubject] - activePlayerId:', activePlayerId);
     
+    // Check if a subject was already selected (race condition)
+    if (selectedSubject) {
+      console.log('[SelectSubject] ⚠️ Subject already selected, ignoring');
+      return;
+    }
+    
     // Immediately show selection with animation
     setSelectedSubject(subject);
     console.log('[SelectSubject] ✓ Set selectedSubject to:', subject);
@@ -673,7 +679,7 @@ export default function Home() {
       setSelectedSubject(null); // Reset on error
       alert('Error selecting subject: ' + error);
     }
-  }, [playerId]);
+  }, [playerId, selectedSubject]);
 
   // Submit answer
   const submitAnswer = useCallback(async (answerIndex: number) => {
@@ -971,9 +977,16 @@ export default function Home() {
             clearInterval(subjectTimerRef.current as NodeJS.Timeout);
             subjectTimerRef.current = null;
           }
-          const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
-          console.log('[ProgressBar-Subject] ⏰ Time up! Auto-selecting:', randomSubject);
-          selectSubject(randomSubject);
+          // Double-check it's still our turn before auto-selecting
+          const currentPlayerId = playerId || playerIdRef.current;
+          const stillMyTurn = gameRoom?.players[gameRoom.currentPickerIndex]?.id === currentPlayerId;
+          if (stillMyTurn) {
+            const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+            console.log('[ProgressBar-Subject] ⏰ Time up! Auto-selecting:', randomSubject);
+            selectSubject(randomSubject);
+          } else {
+            console.log('[ProgressBar-Subject] ⏰ Time up but not my turn anymore - skipping auto-select');
+          }
           return 0;
         }
         return newTime;
