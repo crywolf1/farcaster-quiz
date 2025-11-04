@@ -753,8 +753,14 @@ export default function Home() {
       console.log('[Submit] Response data:', data);
 
       if (!data.success) {
-        console.error('[Submit] Failed:', data.message || data.error);
-        alert(data.message || data.error || 'Failed to submit answer');
+        const errorMsg = data.message || data.error;
+        console.error('[Submit] Failed:', errorMsg);
+        
+        // Don't show alert for expected state transitions (e.g., round already ended)
+        if (errorMsg !== 'Not in playing phase' && errorMsg !== 'Game room not found') {
+          alert(errorMsg || 'Failed to submit answer');
+        }
+        
         setSelectedAnswer(null);
         setAnswerFeedback(null);
         setIsShowingFeedback(false);
