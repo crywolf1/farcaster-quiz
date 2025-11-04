@@ -780,7 +780,8 @@ export default function Home() {
       // Answer submitted - polling will update to next question
     } catch (error) {
       console.error('[Submit] Submit answer error:', error);
-      alert('Error submitting answer: ' + error);
+      // Don't show alert for network errors during state transitions
+      // The game will continue via polling updates
       setSelectedAnswer(null);
       setAnswerFeedback(null);
       setIsShowingFeedback(false);
