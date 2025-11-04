@@ -1079,7 +1079,7 @@ export default function Home() {
       roundTimerRef.current = setInterval(() => {
         // Recalculate remaining time from server timestamp each tick for accuracy
         const elapsed = Date.now() - serverStartTime;
-        const remaining = Math.max(0, 30 - elapsed / 1000);
+        const remaining = Math.max(0, 15 - elapsed / 1000);
         
         setTimeRemainingRound(remaining);
         

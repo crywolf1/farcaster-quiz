@@ -12,7 +12,7 @@ console.log(`[GameManager] Using Redis storage`);
 // Timer constants
 const SUBJECT_SELECTION_DURATION = 30000; // 30 seconds for choosing subject (with buffer for network delay)
 const TIMER_DURATION = 18000; // 18 seconds for answering questions
-const ROUND_OVER_AUTO_START_DURATION = 30000; // 30 seconds in milliseconds
+const ROUND_OVER_AUTO_START_DURATION = 15000; // 15 seconds in milliseconds
 
 // Helper: Start auto-advance timer when round is over
 async function startRoundOverAutoStart(roomId: string): Promise<void> {
@@ -31,7 +31,7 @@ async function startRoundOverAutoStart(roomId: string): Promise<void> {
   await storage.setGameRoom(roomId, room);
   console.log(`[GameManager] Set roundOverTimerStartedAt=${timestamp} for room ${roomId}, saved to Redis`);
 
-  // Start 30-second timer to auto-start next round
+  // Start 15-second timer to auto-start next round
   const timerId = setTimeout(() => {
     console.log(`[GameManager] Auto-starting next round for room ${roomId}`);
     handleRoundOverAutoStart(roomId);
@@ -42,7 +42,7 @@ async function startRoundOverAutoStart(roomId: string): Promise<void> {
   timers.roundOver = timerId;
   roomTimerIds.set(roomId, timers);
 
-  console.log(`[GameManager] Round over - 30 second auto-start timer started, countdown from ${ROUND_OVER_AUTO_START_DURATION}ms`);
+  console.log(`[GameManager] Round over - 15 second auto-start timer started, countdown from ${ROUND_OVER_AUTO_START_DURATION}ms`);
 }
 
 // Helper: Clear round over auto-start timer
