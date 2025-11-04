@@ -689,12 +689,19 @@ export default function Home() {
     
     console.log('[Submit] submitAnswer called with index:', answerIndex);
     console.log('[Submit] gameRoom:', gameRoom ? 'exists' : 'null');
+    console.log('[Submit] gameRoom?.state:', gameRoom?.state);
     console.log('[Submit] selectedAnswer:', selectedAnswer);
     console.log('[Submit] iFinished:', iFinished);
     console.log('[Submit] myProgress:', myProgress);
     
     if (!gameRoom) {
       console.error('[Submit] No game room - cannot submit');
+      return;
+    }
+    
+    // Check if we're still in playing state
+    if (gameRoom.state !== 'playing') {
+      console.error('[Submit] Game not in playing state - skipping submit');
       return;
     }
     
@@ -927,7 +934,12 @@ export default function Home() {
             }
             setTimerActiveQuestion(false);
             console.log('[ProgressBar] ⏰ Question time up!');
-            submitAnswer(-1);
+            // Check if still in playing state before auto-submitting
+            if (gameRoom?.state === 'playing' && !iFinished) {
+              submitAnswer(-1);
+            } else {
+              console.log('[ProgressBar] ⏰ State changed, skipping auto-submit');
+            }
             return 0;
           }
           return newTime;
