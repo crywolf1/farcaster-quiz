@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
       playerTimers: gameState.playerTimers ? Object.fromEntries(gameState.playerTimers) : {},
       playersFinished: gameState.playersFinished ? Array.from(gameState.playersFinished) : [],
       playersReady: gameState.playersReady ? Array.from(gameState.playersReady) : [],
+      usedSubjects: gameState.usedSubjects ? Array.from(gameState.usedSubjects) : [],
+      availableSubjectsForRound: gameState.availableSubjectsForRound || [],
       timerTimeoutId: undefined, // Don't send timeout ID to client
       roundOverAutoStartTimeoutId: undefined, // Don't send timeout ID to client
       // Add player-specific current question

@@ -39,6 +39,8 @@ interface GameRoom {
   myProgress: number;
   roundOverTimerStartedAt: number | null;
   playersReady: string[];
+  usedSubjects: string[];
+  availableSubjectsForRound: string[];
 }
 
 export default function Home() {
