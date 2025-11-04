@@ -263,6 +263,24 @@ export default function Home() {
           setGameState(isMyTurn ? 'subject-selection' : 'waiting-subject');
         } else if (room.state === 'playing') {
           setGameState('playing');
+          
+          // Restore answer if already answered current question
+          const myProgress = room.playerProgress?.[savedPlayerId] || 0;
+          const currentQuestionKey = `${savedPlayerId}-${myProgress}`;
+          const myAnswer = room.answers?.[currentQuestionKey];
+          
+          console.log('[Rejoin] Checking for existing answer:', {
+            myProgress,
+            currentQuestionKey,
+            myAnswer,
+            allAnswers: room.answers
+          });
+          
+          if (myAnswer !== undefined) {
+            console.log('[Rejoin] ✓ Restoring answer:', myAnswer);
+            setSelectedAnswer(myAnswer);
+            // Don't start timer if already answered
+          }
         } else if (room.state === 'round-over') {
           setGameState('round-result');
         } else if (room.state === 'game-over') {
@@ -921,7 +939,7 @@ export default function Home() {
     const currentPlayerId = playerId || playerIdRef.current;
     const serverQuestionStartTime = gameRoom?.playerTimers?.[currentPlayerId];
     
-    // Only start new timer if it's a different question
+    // Only start new timer if it's a different question OR if timer not running
     if (currentQuestionId !== questionId) {
       console.log('[ProgressBar] 🎯 New question detected! Starting 18s countdown');
       console.log('[ProgressBar] - Old ID:', currentQuestionId);
@@ -937,9 +955,15 @@ export default function Home() {
       
       // Update state for new question
       setCurrentQuestionId(questionId);
-      setSelectedAnswer(null); // Reset selected answer for new question
-      setAnswerFeedback(null); // Reset answer feedback
-      setIsShowingFeedback(false); // Reset feedback flag
+      
+      // Only reset answer state if this is truly a NEW question (not a rejoin)
+      if (currentQuestionId !== '') {
+        // Had a previous question, so this is a new one - reset state
+        setSelectedAnswer(null);
+        setAnswerFeedback(null);
+        setIsShowingFeedback(false);
+      }
+      // If currentQuestionId is empty, this is initial load/rejoin - don't reset
       
       // Calculate initial time based on server timestamp if available
       let initialTime = 18;
@@ -950,31 +974,38 @@ export default function Home() {
       }
       
       setTimeRemainingQuestion(initialTime);
-      setTimerActiveQuestion(true);
       
-      // Start countdown
-      console.log('[ProgressBar] - Starting new question interval');
-      questionTimerRef.current = setInterval(() => {
-        setTimeRemainingQuestion(t => {
-          const newTime = t - 0.1;
-          if (newTime <= 0) {
-            if (questionTimerRef.current) {
-              clearInterval(questionTimerRef.current as NodeJS.Timeout);
-              questionTimerRef.current = null;
+      // Only start timer if no answer selected
+      if (selectedAnswer === null) {
+        setTimerActiveQuestion(true);
+        
+        // Start countdown
+        console.log('[ProgressBar] - Starting new question interval');
+        questionTimerRef.current = setInterval(() => {
+          setTimeRemainingQuestion(t => {
+            const newTime = t - 0.1;
+            if (newTime <= 0) {
+              if (questionTimerRef.current) {
+                clearInterval(questionTimerRef.current as NodeJS.Timeout);
+                questionTimerRef.current = null;
+              }
+              setTimerActiveQuestion(false);
+              console.log('[ProgressBar] ⏰ Question time up!');
+              // Check if still in playing state before auto-submitting
+              if (gameRoom?.state === 'playing' && !iFinished) {
+                submitAnswer(-1);
+              } else {
+                console.log('[ProgressBar] ⏰ State changed, skipping auto-submit');
+              }
+              return 0;
             }
-            setTimerActiveQuestion(false);
-            console.log('[ProgressBar] ⏰ Question time up!');
-            // Check if still in playing state before auto-submitting
-            if (gameRoom?.state === 'playing' && !iFinished) {
-              submitAnswer(-1);
-            } else {
-              console.log('[ProgressBar] ⏰ State changed, skipping auto-submit');
-            }
-            return 0;
-          }
-          return newTime;
-        });
-      }, 100);
+            return newTime;
+          });
+        }, 100);
+      } else {
+        console.log('[ProgressBar] - Answer already selected, not starting timer');
+        setTimerActiveQuestion(false);
+      }
     } else {
       console.log('[ProgressBar] ⚠️ Same question ID - not restarting timer');
     }
