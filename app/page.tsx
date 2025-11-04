@@ -906,6 +906,12 @@ export default function Home() {
     // Don't start timer if not in playing state or no question
     if (gameState !== 'playing' || !currentQuestion || iFinished) {
       console.log('[ProgressBar] ❌ Not starting timer - conditions not met');
+      // Clear and hide timer when leaving playing state
+      if (questionTimerRef.current) {
+        clearInterval(questionTimerRef.current as NodeJS.Timeout);
+        questionTimerRef.current = null;
+        setTimerActiveQuestion(false);
+      }
       return;
     }
 
@@ -1032,6 +1038,7 @@ export default function Home() {
       if (roundTimerRef.current) {
         clearInterval(roundTimerRef.current as NodeJS.Timeout);
         roundTimerRef.current = null;
+        setTimerActiveRound(false);
       }
       return;
     }
@@ -1042,7 +1049,16 @@ export default function Home() {
     
     console.log('[ProgressBar-RoundResult] - iAmReady:', iAmReady);
     console.log('[ProgressBar-RoundResult] - serverStartTime:', serverStartTime);
-  console.log('[ProgressBar-RoundResult] - roundTimerRef.current:', roundTimerRef.current);
+    console.log('[ProgressBar-RoundResult] - roundTimerRef.current:', roundTimerRef.current);
+    
+    // Stop timer if player is ready
+    if (iAmReady && roundTimerRef.current) {
+      console.log('[ProgressBar-RoundResult] 🛑 Player is ready, stopping timer');
+      clearInterval(roundTimerRef.current as NodeJS.Timeout);
+      roundTimerRef.current = null;
+      setTimerActiveRound(false);
+      return;
+    }
     
     // Only show timer if not ready and server timer has started
     if (!iAmReady && serverStartTime && !roundTimerRef.current) {

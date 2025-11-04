@@ -379,10 +379,35 @@ export async function checkMatchStatus(playerId: string): Promise<{
 // Get game state for a player
 export async function getGameState(playerId: string): Promise<GameRoom | null> {
   const roomId = await storage.getPlayerRoom(playerId);
-  if (roomId) {
-    return await storage.getGameRoom(roomId);
+  if (!roomId) {
+    return null;
   }
-  return null;
+  
+  const room = await storage.getGameRoom(roomId);
+  
+  // Check if auto-start timer has elapsed (handles server restarts/cold starts)
+  if (room && room.state === 'round-over' && room.roundOverTimerStartedAt) {
+    const elapsed = Date.now() - room.roundOverTimerStartedAt;
+    const autoStartDelay = ROUND_OVER_AUTO_START_DURATION;
+    
+    if (elapsed >= autoStartDelay) {
+      console.log(`[GameManager] Auto-start timer elapsed (${elapsed}ms), triggering auto-start`);
+      // Timer has elapsed - trigger auto-start immediately
+      await handleRoundOverAutoStart(roomId);
+      // Fetch the updated room
+      return await storage.getGameRoom(roomId);
+    } else {
+      // Timer still running - ensure setTimeout is active (in case of cold start)
+      if (!roomTimerIds.has(roomId) || !roomTimerIds.get(roomId)?.roundOver) {
+        const remainingTime = autoStartDelay - elapsed;
+        console.log(`[GameManager] Restarting auto-start timer with ${remainingTime}ms remaining`);
+        const timerId = setTimeout(() => handleRoundOverAutoStart(roomId), remainingTime);
+        roomTimerIds.set(roomId, { roundOver: timerId });
+      }
+    }
+  }
+  
+  return room;
 }
 
 // Select subject
