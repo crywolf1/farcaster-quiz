@@ -1156,20 +1156,22 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Find Match Button */}
+        {/* Find Match Button - 3D Style */}
         <button
           onClick={findMatch}
-          className="w-full backdrop-blur-2xl bg-gray-800 text-white px-12 py-5 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.05] transition-all active:scale-95 border-2 border-gray-700 mb-4"
+          className="relative group w-full px-12 py-6 rounded-[32px] text-2xl font-black shadow-2xl transition-all mb-4 border-2 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.7)] overflow-hidden"
         >
-          Find Match
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+          <span className="relative z-10">Find Match 🎮</span>
         </button>
         
         {/* Leaderboard Button */}
         <button
           onClick={() => setShowLeaderboard(true)}
-          className="w-full bg-gray-800 text-gray-300 px-6 py-3 rounded-[24px] text-sm font-semibold shadow-xl hover:bg-gray-700 hover:text-white border-2 border-gray-700 transition-all"
+          className="relative group w-full px-6 py-3 rounded-[28px] text-sm font-bold shadow-xl transition-all bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-gray-300 hover:text-white border-2 border-gray-700 hover:border-purple-500 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] overflow-hidden"
         >
-          🏆 View Leaderboard
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+          <span className="relative z-10">🏆 View Leaderboard</span>
         </button>
       </div>
     </div>
@@ -1177,17 +1179,26 @@ export default function Home() {
 
   const renderSearching = () => (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-12 shadow-2xl max-w-md w-full">
-        <div className="w-24 h-24 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-8 drop-shadow-2xl"></div>
-        <h2 className="text-3xl font-bold text-white mb-3 text-center drop-shadow-lg">Finding opponent...</h2>
-        <p className="text-gray-400 text-center drop-shadow mb-6">Please wait</p>
-        
-        <button
-          onClick={leaveGame}
-          className="w-full bg-gray-800 text-white px-8 py-3 rounded-[24px] text-sm font-semibold shadow-xl hover:bg-gray-700 border-2 border-gray-700 transition-all"
-        >
-          Cancel Search
-        </button>
+      <div className="relative max-w-md w-full">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse"></div>
+        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-12 shadow-[0_0_40px_rgba(168,85,247,0.3)] backdrop-blur-xl">
+          {/* Animated spinner */}
+          <div className="relative w-24 h-24 mx-auto mb-8">
+            <div className="absolute inset-0 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-pink-500 rounded-full animate-spin" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
+          </div>
+          
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 mb-3 text-center animate-pulse">Finding opponent...</h2>
+          <p className="text-gray-400 text-center mb-8">Please wait ⏳</p>
+          
+          <button
+            onClick={leaveGame}
+            className="relative group w-full px-8 py-3 rounded-[28px] text-sm font-bold shadow-xl transition-all bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white hover:text-white border-2 border-gray-700 hover:border-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+            <span className="relative z-10">Cancel Search</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1660,46 +1671,52 @@ export default function Home() {
             </div>
           )}
           
-          <div className="bg-gray-800 border border-gray-700 rounded-[32px] p-6 mb-6 shadow-xl">
-            <h3 className="text-white text-xl font-bold text-center mb-4">
-              {currentQuestion.question}
-            </h3>
+          {/* Question Card with 3D effect */}
+          <div className="relative mb-8 animate-[slideIn_0.5s_ease-out]">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-xl rounded-[40px]"></div>
+            <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[40px] p-8 shadow-2xl backdrop-blur-xl">
+              <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
+              <h3 className="text-white text-2xl font-bold text-center leading-relaxed">
+                {currentQuestion.question}
+              </h3>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
+            </div>
           </div>
 
-          {/* Answer Options */}
-          <div className="space-y-3">
+          {/* Answer Options with 3D styling */}
+          <div className="space-y-4">
             {currentQuestion.options?.map((option, index) => {
               const isCorrect = index === currentQuestion.correctAnswer;
               const isMyAnswer = selectedAnswer === index;
               const showInstantFeedback = hasAnswered && answerFeedback && isMyAnswer;
               
-              let buttonClass = "w-full py-4 px-6 rounded-[24px] font-semibold text-left transition-all duration-500 shadow-lg";
+              let buttonClass = "group relative w-full py-5 px-6 rounded-[28px] font-bold text-left transition-all duration-500 shadow-xl overflow-hidden";
               
               if (bothAnswered && lastResult) {
                 // Show final results (both players answered)
                 if (isCorrect) {
-                  buttonClass += " bg-green-600 text-white border-2 border-green-500 shadow-xl";
+                  buttonClass += " bg-gradient-to-br from-green-500 via-green-600 to-green-500 text-white border-2 border-green-400 shadow-[0_0_30px_rgba(34,197,94,0.5)]";
                 } else if (isMyAnswer) {
-                  buttonClass += " bg-red-600 text-white border-2 border-red-500 shadow-xl";
+                  buttonClass += " bg-gradient-to-br from-red-500 via-red-600 to-red-500 text-white border-2 border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.5)]";
                 } else {
-                  buttonClass += " bg-gray-900 border-2 border-gray-800 text-gray-500";
+                  buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-500 backdrop-blur-sm";
                 }
               } else if (showInstantFeedback) {
                 // Show instant feedback after selection with dramatic animation
                 if (answerFeedback === 'correct') {
-                  buttonClass += " bg-green-600 text-white border-4 border-green-500 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-2xl transform";
+                  buttonClass += " bg-gradient-to-br from-green-500 via-green-600 to-green-500 text-white border-4 border-green-400 animate-[pulse_0.8s_ease-in-out_infinite] scale-105 shadow-[0_0_40px_rgba(34,197,94,0.6)]";
                 } else {
-                  buttonClass += " bg-red-600 text-white border-4 border-red-500 animate-[pulse_0.8s_ease-in-out_infinite] scale-110 shadow-2xl transform";
+                  buttonClass += " bg-gradient-to-br from-red-500 via-red-600 to-red-500 text-white border-4 border-red-400 animate-[pulse_0.8s_ease-in-out_infinite] scale-105 shadow-[0_0_40px_rgba(239,68,68,0.6)]";
                 }
               } else if (hasAnswered && isMyAnswer) {
                 // Selected but waiting
-                buttonClass += " backdrop-blur-xl bg-gray-700 text-white border-2 border-gray-800";
+                buttonClass += " bg-gradient-to-br from-blue-500 via-blue-600 to-blue-500 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.4)]";
               } else if (hasAnswered) {
                 // Not selected, disabled
-                buttonClass += " bg-gray-900 border-2 border-gray-800 text-gray-600 cursor-not-allowed";
+                buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-600 cursor-not-allowed backdrop-blur-sm";
               } else {
                 // Not answered yet, hoverable
-                buttonClass += " bg-gray-800 border-2 border-gray-700 text-white hover:bg-gray-700 hover:scale-[1.02] active:scale-95 cursor-pointer";
+                buttonClass += " bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-gray-700 text-white hover:border-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-95 cursor-pointer";
               }
 
               return (
@@ -1707,12 +1724,21 @@ export default function Home() {
                   key={index}
                   onClick={() => !hasAnswered && submitAnswer(index)}
                   disabled={hasAnswered}
-                  className={buttonClass}
+                  style={{ animationDelay: `${index * 0.1 + 0.3}s` }}
+                  className={`${buttonClass} ${!hasAnswered ? 'animate-[slideIn_0.5s_ease-out_forwards] opacity-0' : ''}`}
                 >
-                  {option}
-                  {showInstantFeedback && answerFeedback === 'correct' && " "}
-                  {showInstantFeedback && answerFeedback === 'incorrect' && " ✗"}
-                  {bothAnswered && isCorrect && " "}
+                  {/* Shimmer effect */}
+                  {!hasAnswered && !showInstantFeedback && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+                  )}
+                  
+                  {/* Content */}
+                  <span className="relative z-10 flex items-center justify-between">
+                    <span>{option}</span>
+                    {showInstantFeedback && answerFeedback === 'correct' && <span className="text-2xl">✓</span>}
+                    {showInstantFeedback && answerFeedback === 'incorrect' && <span className="text-2xl">✗</span>}
+                    {bothAnswered && isCorrect && <span className="text-2xl">✓</span>}
+                  </span>
                 </button>
               );
             })}
@@ -1755,9 +1781,14 @@ export default function Home() {
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
-          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">
-            Round {gameRoom?.currentRound} Complete! </h2>
+        <div className="text-center max-w-md w-full">
+          {/* 3D Card with glow effect */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-purple-500/30 blur-2xl animate-pulse"></div>
+            <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] shadow-[0_0_50px_rgba(168,85,247,0.3)] p-8 backdrop-blur-xl">
+              <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 drop-shadow-2xl mb-6 animate-[scaleIn_0.5s_ease-out]">
+                Round {gameRoom?.currentRound} Complete! 🎉
+              </h2>
           
           {/* Auto-ready timer progress bar */}
           {!iAmReady && timerActiveRound && (
@@ -1831,25 +1862,30 @@ export default function Home() {
               <button
                 onClick={startNextRound}
                 disabled={iAmReady}
-                className={`px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl transition-all mb-6 border-2 ${
+                className={`relative px-12 py-5 rounded-[32px] text-xl font-black shadow-2xl transition-all mb-6 border-2 overflow-hidden group ${
                   iAmReady 
-                    ? 'bg-yellow-500 text-black cursor-not-allowed border-yellow-400' 
-                    : 'bg-gray-900 text-white hover:bg-gray-700 hover:scale-[1.02] active:scale-95 border-gray-800'
+                    ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 text-black cursor-not-allowed border-yellow-300 shadow-[0_0_30px_rgba(234,179,8,0.5)]' 
+                    : 'bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'
                 }`}
               >
-                Ready
+                {!iAmReady && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+                )}
+                <span className="relative z-10">{iAmReady ? '✓ Ready!' : 'Ready'}</span>
               </button>
               
               {/* Waiting message */}
               {iAmReady && !opponentReady && (
-                <p className="text-gray-400 text-sm mb-6">
+                <p className="text-gray-400 text-sm mb-6 animate-pulse">
                   Waiting for {opponent?.username}...
                 </p>
               )}
             </>
           ) : (
-            <p className="text-gray-300 text-lg drop-shadow-lg">Calculating final results...</p>
+            <p className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 text-lg font-bold animate-pulse">Calculating final results...</p>
           )}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1858,11 +1894,18 @@ export default function Home() {
   const renderGameOver = () => {
     const winner = gameRoom?.players.find(p => (gameRoom?.scores[p.id] || 0) > (opponent && gameRoom?.scores[opponent.id] || 0) ? true : false);
     const isDraw = myScore === opponentScore;
+    const iWon = winner?.id === (playerId || playerIdRef.current);
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 max-w-md w-full">
-          <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-6">Game Over! </h2>
+        <div className="text-center max-w-md w-full">
+          {/* 3D Card with celebration effect */}
+          <div className="relative">
+            <div className={`absolute inset-0 blur-2xl animate-pulse ${iWon ? 'bg-gradient-to-r from-green-500/40 via-yellow-500/40 to-green-500/40' : isDraw ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-500/30' : 'bg-gradient-to-r from-gray-500/20 via-gray-600/20 to-gray-500/20'}`}></div>
+            <div className={`relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 rounded-[48px] shadow-2xl p-8 backdrop-blur-xl ${iWon ? 'border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.4)]' : isDraw ? 'border-blue-500/50 shadow-[0_0_60px_rgba(59,130,246,0.4)]' : 'border-gray-700'}`}>
+              <h2 className={`text-5xl font-black mb-6 animate-[scaleIn_0.6s_ease-out] ${iWon ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300' : isDraw ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400' : 'text-white'}`}>
+                {iWon ? '🏆 Victory! 🏆' : isDraw ? '🤝 Draw! 🤝' : 'Game Over! 👏'}
+              </h2>
           
           <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-6 mb-6 shadow-lg">
             <div className="flex justify-around">
@@ -1892,20 +1935,20 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="mb-6">
+          <div className="mb-8">
             {isDraw ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">It&apos;s a Draw! </p>
+                <p className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">It&apos;s a Draw! 🤝</p>
                 <p className="text-gray-300 drop-shadow-lg">Great match!</p>
               </>
-            ) : winner?.id === playerId ? (
+            ) : iWon ? (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">You Won! </p>
+                <p className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">You Won! 🎉</p>
                 <p className="text-gray-300 drop-shadow-lg">Congratulations!</p>
               </>
             ) : (
               <>
-                <p className="text-white text-3xl font-bold mb-2 drop-shadow-2xl">{opponent?.username} Won! </p>
+                <p className="text-white text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">{opponent?.username} Won! 👑</p>
                 <p className="text-gray-300 drop-shadow-lg">Better luck next time!</p>
               </>
             )}
@@ -1917,9 +1960,13 @@ export default function Home() {
               // Immediately start finding a new match
               findMatch();
             }}
-            className="backdrop-blur-3xl bg-gray-900 text-white px-10 py-4 rounded-[28px] text-xl font-bold shadow-2xl hover:bg-gray-700 hover:scale-[1.02] transition-all active:scale-95 border-2 border-gray-800"
+            className="relative group px-12 py-5 rounded-[32px] text-xl font-black shadow-2xl transition-all border-2 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] overflow-hidden"
           >
-            Find New Match </button>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+            <span className="relative z-10">Find New Match 🎮</span>
+          </button>
+            </div>
+          </div>
         </div>
       </div>
     );
