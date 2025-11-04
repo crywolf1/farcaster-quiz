@@ -55,10 +55,21 @@ export default function Home() {
   const [lastResult, setLastResult] = useState<any>(null);
   const [currentQuestionId, setCurrentQuestionId] = useState<string>('');
   const [showingResults, setShowingResults] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(18); // seconds
-  const [timerActive, setTimerActive] = useState<boolean>(false);
-  const [timerStartTime, setTimerStartTime] = useState<number | null>(null); // Track when timer started
-  const timerIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  // Separate timers/state for question, subject selection and round-result
+  // Question timer (18s)
+  const [timeRemainingQuestion, setTimeRemainingQuestion] = useState<number>(18);
+  const [timerActiveQuestion, setTimerActiveQuestion] = useState<boolean>(false);
+  const questionTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Subject selection timer (20s)
+  const [timeRemainingSubject, setTimeRemainingSubject] = useState<number>(20);
+  const [timerActiveSubject, setTimerActiveSubject] = useState<boolean>(false);
+  const subjectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Round-result auto-ready timer (30s) - synced with server
+  const [timeRemainingRound, setTimeRemainingRound] = useState<number>(30);
+  const [timerActiveRound, setTimerActiveRound] = useState<boolean>(false);
+  const roundTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
   const [showSubjectResult, setShowSubjectResult] = useState(false); // Show which subject was selected with animation
   const [hasShownSubjectResult, setHasShownSubjectResult] = useState(false); // Track if we've shown the animation for this round
@@ -70,7 +81,8 @@ export default function Home() {
   const [playerStats, setPlayerStats] = useState<{ score: number; rank: number; wins: number; losses: number } | null>(null);
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Per-timer refs (keep per-timer refs above; remove generic timer ref)
+  // const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastShownSubjectRound = useRef<number>(-1); // Track which round we showed the animation for
   const hasAttemptedRejoin = useRef<boolean>(false); // Track if we've already tried to rejoin (only once at startup)
@@ -810,9 +822,18 @@ export default function Home() {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
+    // Clear any active per-timer intervals
+    if (questionTimerRef.current) {
+      clearInterval(questionTimerRef.current as NodeJS.Timeout);
+      questionTimerRef.current = null;
+    }
+    if (subjectTimerRef.current) {
+      clearInterval(subjectTimerRef.current as NodeJS.Timeout);
+      subjectTimerRef.current = null;
+    }
+    if (roundTimerRef.current) {
+      clearInterval(roundTimerRef.current as NodeJS.Timeout);
+      roundTimerRef.current = null;
     }
     if (feedbackTimeoutRef.current) {
       clearTimeout(feedbackTimeoutRef.current);
@@ -876,30 +897,30 @@ export default function Home() {
       console.log('[ProgressBar] - Old ID:', currentQuestionId);
       console.log('[ProgressBar] - New ID:', questionId);
       
-      // Clear any existing timer first
-      if (timerIntervalIdRef.current) {
-        console.log('[ProgressBar] - Clearing existing timer');
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
+      // Clear any existing question timer first
+      if (questionTimerRef.current) {
+        console.log('[ProgressBar] - Clearing existing question timer');
+        clearInterval(questionTimerRef.current as NodeJS.Timeout);
+        questionTimerRef.current = null;
       }
       
       // Update state for new question
-      setCurrentQuestionId(questionId);
-      setTimeRemaining(18);
-      setTimerActive(true);
+  setCurrentQuestionId(questionId);
+  setTimeRemainingQuestion(18);
+  setTimerActiveQuestion(true);
       
       // Start countdown
-      console.log('[ProgressBar] - Starting new interval');
-      timerIntervalIdRef.current = setInterval(() => {
-        setTimeRemaining(t => {
+      console.log('[ProgressBar] - Starting new question interval');
+      questionTimerRef.current = setInterval(() => {
+        setTimeRemainingQuestion(t => {
           const newTime = t - 0.1;
           if (newTime <= 0) {
-            if (timerIntervalIdRef.current) {
-              clearInterval(timerIntervalIdRef.current);
-              timerIntervalIdRef.current = null;
+            if (questionTimerRef.current) {
+              clearInterval(questionTimerRef.current as NodeJS.Timeout);
+              questionTimerRef.current = null;
             }
-            setTimerActive(false);
-            console.log('[ProgressBar] ⏰ Time up!');
+            setTimerActiveQuestion(false);
+            console.log('[ProgressBar] ⏰ Question time up!');
             submitAnswer(-1);
             return 0;
           }
@@ -911,12 +932,12 @@ export default function Home() {
     }
   }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
   
-  // Stop timer when answer is selected (but keep it visible)
+  // Stop question timer when answer is selected (but keep it visible)
   useEffect(() => {
-    if (selectedAnswer !== null && timerIntervalIdRef.current) {
-      console.log('[ProgressBar] 🛑 Answer selected - stopping countdown');
-      clearInterval(timerIntervalIdRef.current);
-      timerIntervalIdRef.current = null;
+    if (selectedAnswer !== null && questionTimerRef.current) {
+      console.log('[ProgressBar] 🛑 Answer selected - stopping question countdown');
+      clearInterval(questionTimerRef.current as NodeJS.Timeout);
+      questionTimerRef.current = null;
       // Keep timerActive true so bar stays visible
     }
   }, [selectedAnswer]);
@@ -931,24 +952,24 @@ export default function Home() {
     }
 
     // Only start timer if not already running
-    if (timerIntervalIdRef.current) {
-      console.log('[ProgressBar-Subject] ⚠️ Timer already running, skipping');
+    if (subjectTimerRef.current) {
+      console.log('[ProgressBar-Subject] ⚠️ Subject timer already running, skipping');
       return;
     }
 
     console.log('[ProgressBar-Subject] 🎯 Starting 20s countdown');
     
-    setTimeRemaining(20);
-    setTimerActive(true);
+    setTimeRemainingSubject(20);
+    setTimerActiveSubject(true);
     
     // Start countdown
-    timerIntervalIdRef.current = setInterval(() => {
-      setTimeRemaining(t => {
+    subjectTimerRef.current = setInterval(() => {
+      setTimeRemainingSubject(t => {
         const newTime = t - 0.1;
         if (newTime <= 0) {
-          if (timerIntervalIdRef.current) {
-            clearInterval(timerIntervalIdRef.current);
-            timerIntervalIdRef.current = null;
+          if (subjectTimerRef.current) {
+            clearInterval(subjectTimerRef.current as NodeJS.Timeout);
+            subjectTimerRef.current = null;
           }
           const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
           console.log('[ProgressBar-Subject] ⏰ Time up! Auto-selecting:', randomSubject);
@@ -962,10 +983,10 @@ export default function Home() {
 
   // Stop timer when subject is selected but keep bar visible
   useEffect(() => {
-    if (gameState === 'subject-selection' && selectedSubject && timerIntervalIdRef.current) {
-      console.log('[ProgressBar] 🛑 Subject selected - stopping countdown');
-      clearInterval(timerIntervalIdRef.current);
-      timerIntervalIdRef.current = null;
+    if (gameState === 'subject-selection' && selectedSubject && subjectTimerRef.current) {
+      console.log('[ProgressBar] 🛑 Subject selected - stopping subject countdown');
+      clearInterval(subjectTimerRef.current as NodeJS.Timeout);
+      subjectTimerRef.current = null;
       // Keep timerActive true so bar stays visible
     }
   }, [gameState, selectedSubject]);
@@ -976,9 +997,9 @@ export default function Home() {
     
     if (gameState !== 'round-result') {
       console.log('[ProgressBar-RoundResult] ❌ Not round-result, skipping');
-      if (timerIntervalIdRef.current) {
-        clearInterval(timerIntervalIdRef.current);
-        timerIntervalIdRef.current = null;
+      if (roundTimerRef.current) {
+        clearInterval(roundTimerRef.current as NodeJS.Timeout);
+        roundTimerRef.current = null;
       }
       return;
     }
@@ -989,10 +1010,10 @@ export default function Home() {
     
     console.log('[ProgressBar-RoundResult] - iAmReady:', iAmReady);
     console.log('[ProgressBar-RoundResult] - serverStartTime:', serverStartTime);
-    console.log('[ProgressBar-RoundResult] - timerIntervalIdRef.current:', timerIntervalIdRef.current);
+  console.log('[ProgressBar-RoundResult] - roundTimerRef.current:', roundTimerRef.current);
     
     // Only show timer if not ready and server timer has started
-    if (!iAmReady && serverStartTime && !timerIntervalIdRef.current) {
+    if (!iAmReady && serverStartTime && !roundTimerRef.current) {
       console.log('[ProgressBar-RoundResult] 🎯 Starting synced countdown with server');
       
       // Calculate initial time remaining based on server timestamp
@@ -1002,30 +1023,30 @@ export default function Home() {
       console.log('[ProgressBar-RoundResult] - Elapsed:', elapsed, 'ms');
       console.log('[ProgressBar-RoundResult] - Remaining:', remaining, 's');
       
-      setTimeRemaining(remaining);
-      setTimerActive(true);
+  setTimeRemainingRound(remaining);
+  setTimerActiveRound(true);
       
       // Start countdown - NO auto-start, server handles that
-      timerIntervalIdRef.current = setInterval(() => {
-        setTimeRemaining(t => {
+      roundTimerRef.current = setInterval(() => {
+        setTimeRemainingRound(t => {
           const newTime = t - 0.1;
           if (newTime <= 0) {
-            if (timerIntervalIdRef.current) {
-              clearInterval(timerIntervalIdRef.current);
-              timerIntervalIdRef.current = null;
+            if (roundTimerRef.current) {
+              clearInterval(roundTimerRef.current as NodeJS.Timeout);
+              roundTimerRef.current = null;
             }
-            setTimerActive(false);
+            setTimerActiveRound(false);
             console.log('[ProgressBar-RoundResult] ⏰ Timer reached 0 - waiting for server to start round');
             return 0;
           }
           return newTime;
         });
       }, 100);
-    } else if (iAmReady && timerIntervalIdRef.current) {
-      console.log('[ProgressBar-RoundResult] 🛑 Player ready - stopping timer');
-      clearInterval(timerIntervalIdRef.current);
-      timerIntervalIdRef.current = null;
-      setTimerActive(false);
+    } else if (iAmReady && roundTimerRef.current) {
+      console.log('[ProgressBar-RoundResult] 🛑 Player ready - stopping round timer');
+      clearInterval(roundTimerRef.current as NodeJS.Timeout);
+      roundTimerRef.current = null;
+      setTimerActiveRound(false);
     }
   }, [gameState, playerId, gameRoom?.playersReady, gameRoom?.roundOverTimerStartedAt]);
 
@@ -1214,25 +1235,25 @@ export default function Home() {
           </h2>
           
           {/* Subject Progress Bar */}
-          {isMyTurnToPick && timerActive && (
+          {isMyTurnToPick && timerActiveSubject && (
             <div className="mb-6">
               <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
                 <div 
                   className={`h-full transition-all duration-100 ${
-                    timeRemaining <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
-                    timeRemaining <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    timeRemainingSubject <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemainingSubject <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
                     'bg-gradient-to-r from-blue-500 to-blue-600'
                   }`}
-                  style={{ width: `${(timeRemaining / 20) * 100}%` }}
+                  style={{ width: `${(timeRemainingSubject / 20) * 100}%` }}
                 ></div>
               </div>
               <p className="text-center text-xs mt-2 font-semibold">
                 <span className={`${
-                  timeRemaining <= 5 ? 'text-red-400' : 
-                  timeRemaining <= 10 ? 'text-yellow-400' : 
+                  timeRemainingSubject <= 5 ? 'text-red-400' : 
+                  timeRemainingSubject <= 10 ? 'text-yellow-400' : 
                   'text-blue-400'
                 }`}>
-                  {Math.ceil(timeRemaining)}s remaining
+                  {Math.ceil(timeRemainingSubject)}s remaining
                 </span>
               </p>
             </div>
@@ -1320,13 +1341,13 @@ export default function Home() {
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-10">
           {/* Timer */}
-          {timerActive && (
+          {timerActiveSubject && (
             <div className="mb-6">
               <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemaining <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
+                timeRemainingSubject <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
               } shadow-2xl drop-shadow-2xl`}>
                 <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
-                  {timeRemaining}
+                  {Math.ceil(timeRemainingSubject)}
                 </span>
               </div>
             </div>
@@ -1501,25 +1522,25 @@ export default function Home() {
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
           {/* Progress Bar Timer */}
-          {timerActive && (
+          {timerActiveQuestion && (
             <div className="mb-6">
               <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden shadow-2xl border-2 border-gray-700">
                 <div 
                   className={`h-full transition-all duration-100 ${
-                    timeRemaining <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
-                    timeRemaining <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    timeRemainingQuestion <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemainingQuestion <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
                     'bg-gradient-to-r from-green-500 to-green-600'
                   }`}
-                  style={{ width: `${(timeRemaining / 18) * 100}%` }}
+                  style={{ width: `${(timeRemainingQuestion / 18) * 100}%` }}
                 ></div>
               </div>
               <p className="text-center text-sm mt-2 font-semibold">
                 <span className={`${
-                  timeRemaining <= 5 ? 'text-red-400' : 
-                  timeRemaining <= 10 ? 'text-yellow-400' : 
+                  timeRemainingQuestion <= 5 ? 'text-red-400' : 
+                  timeRemainingQuestion <= 10 ? 'text-yellow-400' : 
                   'text-green-400'
                 }`}>
-                  {Math.ceil(timeRemaining)}s
+                  {Math.ceil(timeRemainingQuestion)}s
                 </span>
               </p>
             </div>
@@ -1625,25 +1646,25 @@ export default function Home() {
             Round {gameRoom?.currentRound} Complete! </h2>
           
           {/* Auto-ready timer progress bar */}
-          {!iAmReady && timerActive && (
+          {!iAmReady && timerActiveRound && (
             <div className="mb-6">
               <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
                 <div 
                   className={`h-full transition-all duration-100 ${
-                    timeRemaining <= 10 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
-                    timeRemaining <= 20 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    timeRemainingRound <= 10 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemainingRound <= 20 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
                     'bg-gradient-to-r from-purple-500 to-purple-600'
                   }`}
-                  style={{ width: `${(timeRemaining / 30) * 100}%` }}
+                  style={{ width: `${(timeRemainingRound / 30) * 100}%` }}
                 ></div>
               </div>
               <p className="text-center text-sm mt-2 font-semibold">
                 <span className={
-                  timeRemaining <= 10 ? 'text-red-400' : 
-                  timeRemaining <= 20 ? 'text-yellow-400' : 
+                  timeRemainingRound <= 10 ? 'text-red-400' : 
+                  timeRemainingRound <= 20 ? 'text-yellow-400' : 
                   'text-purple-400'
                 }>
-                  Auto-ready in {Math.ceil(timeRemaining)}s
+                  Auto-ready in {Math.ceil(timeRemainingRound)}s
                 </span>
               </p>
             </div>
