@@ -232,13 +232,13 @@ export async function getRemainingTime(roomId: string): Promise<number> {
 
 // Helper: Get available subjects
 export function getSubjects(): string[] {
-  const subjects = new Set(questions.map(q => q.subject));
+  const subjects = new Set((questions as Question[]).map(q => q.subject));
   return Array.from(subjects);
 }
 
 // Helper: Get random questions for a subject (1 easy, 1 moderate, 1 hard)
 function getRandomQuestions(subject: string): Question[] {
-  const subjectQuestions = questions.filter(q => q.subject === subject);
+  const subjectQuestions = (questions as Question[]).filter(q => q.subject === subject);
   
   // Get one question from each difficulty level
   const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
