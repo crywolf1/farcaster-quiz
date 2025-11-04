@@ -979,6 +979,12 @@ export default function Home() {
     
     if (gameState !== 'subject-selection' || !isMyTurnToPick) {
       console.log('[ProgressBar-Subject] ❌ Not my turn or not subject selection');
+      // Clear timer when leaving subject selection or no longer our turn
+      if (subjectTimerRef.current) {
+        clearInterval(subjectTimerRef.current as NodeJS.Timeout);
+        subjectTimerRef.current = null;
+        setTimerActiveSubject(false);
+      }
       return;
     }
 
@@ -1002,15 +1008,16 @@ export default function Home() {
             clearInterval(subjectTimerRef.current as NodeJS.Timeout);
             subjectTimerRef.current = null;
           }
-          // Double-check it's still our turn before auto-selecting
+          // Double-check it's still our turn and game is still in subject-selection before auto-selecting
           const currentPlayerId = playerId || playerIdRef.current;
           const stillMyTurn = gameRoom?.players[gameRoom.currentPickerIndex]?.id === currentPlayerId;
-          if (stillMyTurn) {
+          const stillInSubjectSelection = gameRoom?.state === 'subject-selection';
+          if (stillMyTurn && stillInSubjectSelection) {
             const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
             console.log('[ProgressBar-Subject] ⏰ Time up! Auto-selecting:', randomSubject);
             selectSubject(randomSubject);
           } else {
-            console.log('[ProgressBar-Subject] ⏰ Time up but not my turn anymore - skipping auto-select');
+            console.log('[ProgressBar-Subject] ⏰ Time up but conditions not met - skipping auto-select (stillMyTurn:', stillMyTurn, 'stillInSubjectSelection:', stillInSubjectSelection, ')');
           }
           return 0;
         }
