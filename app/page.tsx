@@ -1718,7 +1718,13 @@ export default function Home() {
               return (
                 <button
                   key={index}
-                  onClick={() => !hasAnswered && submitAnswer(index)}
+                  onClick={(e) => {
+                    if (!hasAnswered) {
+                      submitAnswer(index);
+                      // Remove focus from button to prevent hover state staying
+                      (e.target as HTMLButtonElement).blur();
+                    }
+                  }}
                   disabled={hasAnswered}
                   style={{ animationDelay: `${index * 0.1 + 0.3}s` }}
                   className={`${buttonClass} ${!hasAnswered ? 'animate-[slideIn_0.5s_ease-out_forwards] opacity-0' : ''}`}
