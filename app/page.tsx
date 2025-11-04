@@ -1041,31 +1041,24 @@ export default function Home() {
     if (!iAmReady && serverStartTime && !roundTimerRef.current) {
       console.log('[ProgressBar-RoundResult] 🎯 Starting synced countdown with server');
       
-      // Calculate initial time remaining based on server timestamp
-      const elapsed = Date.now() - serverStartTime;
-      const remaining = Math.max(0, 30 - elapsed / 1000);
+      setTimerActiveRound(true);
       
-      console.log('[ProgressBar-RoundResult] - Elapsed:', elapsed, 'ms');
-      console.log('[ProgressBar-RoundResult] - Remaining:', remaining, 's');
-      
-  setTimeRemainingRound(remaining);
-  setTimerActiveRound(true);
-      
-      // Start countdown - NO auto-start, server handles that
+      // Start countdown - continuously recalculate from server timestamp
       roundTimerRef.current = setInterval(() => {
-        setTimeRemainingRound(t => {
-          const newTime = t - 0.1;
-          if (newTime <= 0) {
-            if (roundTimerRef.current) {
-              clearInterval(roundTimerRef.current as NodeJS.Timeout);
-              roundTimerRef.current = null;
-            }
-            setTimerActiveRound(false);
-            console.log('[ProgressBar-RoundResult] ⏰ Timer reached 0 - waiting for server to start round');
-            return 0;
+        // Recalculate remaining time from server timestamp each tick for accuracy
+        const elapsed = Date.now() - serverStartTime;
+        const remaining = Math.max(0, 30 - elapsed / 1000);
+        
+        setTimeRemainingRound(remaining);
+        
+        if (remaining <= 0) {
+          if (roundTimerRef.current) {
+            clearInterval(roundTimerRef.current as NodeJS.Timeout);
+            roundTimerRef.current = null;
           }
-          return newTime;
-        });
+          setTimerActiveRound(false);
+          console.log('[ProgressBar-RoundResult] ⏰ Timer reached 0 - waiting for server to start round');
+        }
       }, 100);
     } else if (iAmReady && roundTimerRef.current) {
       console.log('[ProgressBar-RoundResult] 🛑 Player ready - stopping round timer');
