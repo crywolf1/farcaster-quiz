@@ -1148,7 +1148,7 @@ export default function Home() {
           
           {/* Wins - Right */}
           <div className="flex-1 text-center">
-            <div className="text-3xl font-black text-cyan-400 mb-1">{playerStats?.wins || 0}</div>
+            <div className="text-3xl font-black text-purple-400 mb-1">{playerStats?.wins || 0}</div>
             <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Wins</div>
           </div>
         </div>
@@ -1156,7 +1156,7 @@ export default function Home() {
         {/* Find Match Button - Professional Style */}
         <button
           onClick={findMatch}
-          className="relative group w-full px-8 py-4 rounded-[20px] text-lg font-bold shadow-lg transition-all mb-3 border-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-500 border-cyan-500 hover:shadow-[0_10px_40px_rgba(6,182,212,0.4)] active:scale-98 overflow-hidden"
+          className="relative group w-full px-8 py-4 rounded-[20px] text-lg font-bold shadow-lg transition-all mb-3 border-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 border-purple-500 hover:shadow-[0_10px_40px_rgba(168,85,247,0.4)] active:scale-98 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
           <span className="relative z-10">Find Match</span>
