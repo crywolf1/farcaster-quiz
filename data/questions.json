@@ -198,5 +198,125 @@
     "question": "What is the most popular programming language in 2025?",
     "options": ["Python", "Java", "C++", "JavaScript"],
     "correctAnswer": 0
+  },
+  {
+    "id": "q26",
+    "subject": "Crypto",
+    "difficulty": "easy",
+    "question": "What is the first and most well-known cryptocurrency?",
+    "options": ["Ethereum", "Bitcoin", "Ripple", "Litecoin"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q27",
+    "subject": "Crypto",
+    "difficulty": "easy",
+    "question": "What is a blockchain?",
+    "options": ["A type of cryptocurrency", "A distributed ledger technology", "A mining device", "A crypto wallet"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q28",
+    "subject": "Crypto",
+    "difficulty": "moderate",
+    "question": "What does 'NFT' stand for?",
+    "options": ["New Financial Token", "Non-Fungible Token", "Network File Transfer", "Next Future Technology"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q29",
+    "subject": "Crypto",
+    "difficulty": "moderate",
+    "question": "Which blockchain platform introduced smart contracts?",
+    "options": ["Bitcoin", "Ethereum", "Cardano", "Solana"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q30",
+    "subject": "Crypto",
+    "difficulty": "hard",
+    "question": "What consensus mechanism does Bitcoin use?",
+    "options": ["Proof of Stake", "Proof of Work", "Delegated Proof of Stake", "Proof of Authority"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q31",
+    "subject": "Movies",
+    "difficulty": "easy",
+    "question": "Who directed the movie 'Titanic'?",
+    "options": ["Steven Spielberg", "James Cameron", "Christopher Nolan", "Martin Scorsese"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q32",
+    "subject": "Movies",
+    "difficulty": "easy",
+    "question": "Which movie won the Academy Award for Best Picture in 2020?",
+    "options": ["1917", "Joker", "Parasite", "Once Upon a Time in Hollywood"],
+    "correctAnswer": 2
+  },
+  {
+    "id": "q33",
+    "subject": "Movies",
+    "difficulty": "moderate",
+    "question": "What is the highest-grossing film of all time (not adjusted for inflation)?",
+    "options": ["Avengers: Endgame", "Avatar", "Titanic", "Star Wars: The Force Awakens"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q34",
+    "subject": "Movies",
+    "difficulty": "moderate",
+    "question": "Which actor played Iron Man in the Marvel Cinematic Universe?",
+    "options": ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"],
+    "correctAnswer": 2
+  },
+  {
+    "id": "q35",
+    "subject": "Movies",
+    "difficulty": "hard",
+    "question": "What year was the first 'Lord of the Rings' movie released?",
+    "options": ["1999", "2000", "2001", "2002"],
+    "correctAnswer": 2
+  },
+  {
+    "id": "q36",
+    "subject": "Music",
+    "difficulty": "easy",
+    "question": "Who is known as the 'King of Pop'?",
+    "options": ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"],
+    "correctAnswer": 1
+  },
+  {
+    "id": "q37",
+    "subject": "Music",
+    "difficulty": "easy",
+    "question": "Which band sang 'Bohemian Rhapsody'?",
+    "options": ["The Beatles", "Led Zeppelin", "Queen", "Pink Floyd"],
+    "correctAnswer": 2
+  },
+  {
+    "id": "q38",
+    "subject": "Music",
+    "difficulty": "moderate",
+    "question": "What is the best-selling album of all time?",
+    "options": ["Thriller", "Back in Black", "The Dark Side of the Moon", "Rumours"],
+    "correctAnswer": 0
+  },
+  {
+    "id": "q39",
+    "subject": "Music",
+    "difficulty": "moderate",
+    "question": "Which artist has won the most Grammy Awards?",
+    "options": ["Beyoncé", "Taylor Swift", "Kanye West", "Jay-Z"],
+    "correctAnswer": 0
+  },
+  {
+    "id": "q40",
+    "subject": "Music",
+    "difficulty": "hard",
+    "question": "What year did the music streaming service Spotify launch?",
+    "options": ["2006", "2008", "2010", "2012"],
+    "correctAnswer": 1
   }
 ]
