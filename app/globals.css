@@ -118,6 +118,11 @@ input, select, textarea {
 .leaderboard-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(168, 85, 247, 0.5) rgba(31, 41, 55, 0.5);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+  touch-action: pan-y; /* Allow vertical touch scrolling */
 }
 
 .leaderboard-scroll::-webkit-scrollbar {

@@ -1975,12 +1975,12 @@ export default function Home() {
   // Leaderboard Modal
   const renderLeaderboard = () => (
     <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
-      <div className="relative max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+      <div className="relative max-w-2xl w-full max-h-[85vh] flex flex-col">
         {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse rounded-[48px]"></div>
         
         {/* Main container */}
-        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-8 shadow-[0_0_60px_rgba(168,85,247,0.4)] backdrop-blur-xl flex flex-col">
+        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-8 shadow-[0_0_60px_rgba(168,85,247,0.4)] backdrop-blur-xl flex flex-col overflow-hidden max-h-[85vh]">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 drop-shadow-2xl">
@@ -2024,7 +2024,7 @@ export default function Home() {
           )}
 
           {/* Leaderboard List with custom scrollbar */}
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 leaderboard-scroll">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2 leaderboard-scroll min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
             {leaderboardData.map((entry, index) => {
               const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
               const isTopThree = index < 3;
