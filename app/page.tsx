@@ -918,12 +918,15 @@ export default function Home() {
     }
 
     const questionId = currentQuestion.id;
+    const currentPlayerId = playerId || playerIdRef.current;
+    const serverQuestionStartTime = gameRoom?.playerTimers?.[currentPlayerId];
     
     // Only start new timer if it's a different question
     if (currentQuestionId !== questionId) {
       console.log('[ProgressBar] 🎯 New question detected! Starting 18s countdown');
       console.log('[ProgressBar] - Old ID:', currentQuestionId);
       console.log('[ProgressBar] - New ID:', questionId);
+      console.log('[ProgressBar] - Server start time:', serverQuestionStartTime);
       
       // Clear any existing question timer first
       if (questionTimerRef.current) {
@@ -933,9 +936,18 @@ export default function Home() {
       }
       
       // Update state for new question
-  setCurrentQuestionId(questionId);
-  setTimeRemainingQuestion(18);
-  setTimerActiveQuestion(true);
+      setCurrentQuestionId(questionId);
+      
+      // Calculate initial time based on server timestamp if available
+      let initialTime = 18;
+      if (serverQuestionStartTime) {
+        const elapsed = (Date.now() - serverQuestionStartTime) / 1000;
+        initialTime = Math.max(0, 18 - elapsed);
+        console.log('[ProgressBar] - Syncing with server: elapsed=' + elapsed.toFixed(1) + 's, remaining=' + initialTime.toFixed(1) + 's');
+      }
+      
+      setTimeRemainingQuestion(initialTime);
+      setTimerActiveQuestion(true);
       
       // Start countdown
       console.log('[ProgressBar] - Starting new question interval');
@@ -963,7 +975,7 @@ export default function Home() {
     } else {
       console.log('[ProgressBar] ⚠️ Same question ID - not restarting timer');
     }
-  }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer]);
+  }, [gameState, currentQuestion, currentQuestionId, iFinished, submitAnswer, gameRoom?.playerTimers, playerId]);
   
   // Stop question timer when answer is selected (but keep it visible)
   useEffect(() => {
@@ -1591,59 +1603,61 @@ export default function Home() {
     return (
       <div className="min-h-screen  flex flex-col p-4">
         {/* Header - Clean horizontal layout */}
-        <div className="relative backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-4 mb-6 shadow-2xl">
-          {/* Leave Game Button - Inside header */}
-          <button
-            onClick={leaveGame}
-            className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-[16px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
-          >
-            Leave
-          </button>
-          
-          {/* Top row: Players and Round/Question info */}
-          <div className="flex justify-between items-center mb-3 pr-20">
-            {/* Your info */}
-            <div className="flex items-center gap-3">
-              {farcasterUser?.pfpUrl ? (
-                <img src={farcasterUser.pfpUrl} alt="You" className="w-12 h-12 rounded-full border-2 border-purple-500 shadow-lg" />
-              ) : (
-                <div className="w-12 h-12 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg">
-                  <span className="text-lg">👤</span>
+        <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-6 mb-6 shadow-2xl">
+          {/* Two rows layout */}
+          <div className="space-y-4">
+            {/* Top row: Players info and Leave button */}
+            <div className="flex justify-between items-center gap-6">
+              {/* Your info */}
+              <div className="flex items-center gap-3 flex-1">
+                {farcasterUser?.pfpUrl ? (
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-12 h-12 rounded-full border-2 border-purple-500 shadow-lg" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg">
+                    <span className="text-lg">👤</span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-white font-bold text-sm">{farcasterUser?.username}</p>
+                  <p className="text-gray-400 text-xs font-semibold">Score: {myScore}</p>
                 </div>
-              )}
-              <div>
-                <p className="text-white font-bold text-sm">{farcasterUser?.username}</p>
-                <p className="text-gray-400 text-xs font-semibold">Score: {myScore}</p>
+              </div>
+              
+              {/* Leave Game Button */}
+              <button
+                onClick={leaveGame}
+                className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-[16px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all flex-shrink-0"
+              >
+                Leave Game
+              </button>
+              
+              {/* Opponent info */}
+              <div className="flex items-center gap-3 flex-1 justify-end">
+                <div className="text-right">
+                  <p className="text-white font-bold text-sm">{opponent?.username}</p>
+                  <p className="text-gray-400 text-xs font-semibold">Score: {opponentScore}</p>
+                </div>
+                {opponent?.pfpUrl ? (
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg">
+                    <span className="text-lg">👤</span>
+                  </div>
+                )}
               </div>
             </div>
             
-            {/* Center: Round and Question */}
-            <div className="text-center">
-              <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-              <p className="text-white font-bold text-lg">Question {myProgress + 1}/5</p>
-            </div>
-            
-            {/* Opponent info */}
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-white font-bold text-sm">{opponent?.username}</p>
-                <p className="text-gray-400 text-xs font-semibold">Score: {opponentScore}</p>
+            {/* Bottom row: Round/Question and Subject */}
+            <div className="flex justify-between items-center">
+              <div className="text-left">
+                <p className="text-gray-400 text-xs font-semibold">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+                <p className="text-white font-bold text-base">Question {myProgress + 1}/5</p>
               </div>
-              {opponent?.pfpUrl ? (
-                <img src={opponent.pfpUrl} alt="Opponent" className="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg" />
-              ) : (
-                <div className="w-12 h-12 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg">
-                  <span className="text-lg">👤</span>
-                </div>
-              )}
+              
+              <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                {gameRoom?.currentSubject}
+              </span>
             </div>
-          </div>
-          
-          {/* Subject pill */}
-          <div className="text-center">
-            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-              {gameRoom?.currentSubject}
-            </span>
           </div>
         </div>
 
