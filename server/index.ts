@@ -32,16 +32,39 @@ function generateRoomId(): string {
 }
 
 function getAvailableSubjects(): string[] {
-  const subjectsSet = new Set(questions.map(q => q.subject));
+  const subjectsSet = new Set((questions as Question[]).map(q => q.subject));
   const subjects = Array.from(subjectsSet);
   return subjects;
 }
 
-function getQuestionsBySubject(subject: string, count: number = 5): Question[] {
-  const subjectQuestions = questions.filter(q => q.subject === subject);
-  // Shuffle and take first 'count' questions
-  const shuffled = subjectQuestions.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, Math.min(count, subjectQuestions.length));
+function getQuestionsBySubject(subject: string): Question[] {
+  const subjectQuestions = (questions as Question[]).filter(q => q.subject === subject);
+  
+  // Get one question from each difficulty level
+  const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
+  const moderateQuestions = subjectQuestions.filter(q => q.difficulty === 'moderate');
+  const hardQuestions = subjectQuestions.filter(q => q.difficulty === 'hard');
+  
+  const selectedQuestions: Question[] = [];
+  
+  // Pick one random question from each difficulty
+  if (easyQuestions.length > 0) {
+    const randomEasy = easyQuestions[Math.floor(Math.random() * easyQuestions.length)];
+    selectedQuestions.push(randomEasy);
+  }
+  
+  if (moderateQuestions.length > 0) {
+    const randomModerate = moderateQuestions[Math.floor(Math.random() * moderateQuestions.length)];
+    selectedQuestions.push(randomModerate);
+  }
+  
+  if (hardQuestions.length > 0) {
+    const randomHard = hardQuestions[Math.floor(Math.random() * hardQuestions.length)];
+    selectedQuestions.push(randomHard);
+  }
+  
+  // Shuffle the 3 questions so they're not always in easy->moderate->hard order
+  return selectedQuestions.sort(() => Math.random() - 0.5);
 }
 
 function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): GameRoom {
@@ -68,12 +91,17 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
     }
   ];
 
+  const allSubjects = getAvailableSubjects();
+  const availableSubjects = allSubjects.sort(() => Math.random() - 0.5).slice(0, 3);
+  
   const room: GameRoom = {
     id: roomId,
     players,
     currentRound: 1,
-    totalRounds: 3,
+    totalRounds: 6,
+    maxRounds: 6,
     roundOwnerIndex: 0,
+    currentPickerIndex: 0,
     currentSubject: null,
     questions: [],
     currentQuestionIndex: 0,
@@ -86,7 +114,9 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
     playerTimers: new Map(),
     playersFinished: new Set(),
     roundOverTimerStartedAt: null,
-    playersReady: new Set()
+    playersReady: new Set(),
+    usedSubjects: new Set(),
+    availableSubjectsForRound: availableSubjects
   };
 
   gameRooms.set(roomId, room);
@@ -186,7 +216,7 @@ function endRound(room: GameRoom) {
   });
 
   // Check if game is over
-  if (room.currentRound >= room.totalRounds) {
+  if (room.currentRound >= (room.maxRounds || room.totalRounds || 6)) {
     setTimeout(() => endGame(room), 3000);
   } else {
     // Reset for next round
@@ -195,6 +225,16 @@ function endRound(room: GameRoom) {
       room.currentQuestionIndex = 0;
       room.questions = [];
       room.players.forEach(p => p.score = 0);
+      
+      // Get 3 new random subjects for this round (excluding used ones)
+      const allSubjects = getAvailableSubjects();
+      const usedSubjectsArray = Array.from(room.usedSubjects);
+      const availableSubjects = allSubjects
+        .filter(s => !usedSubjectsArray.includes(s))
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3);
+      room.availableSubjectsForRound = availableSubjects.length > 0 ? availableSubjects : allSubjects.slice(0, 3);
+      
       startSubjectSelection(room);
     }, 5000);
   }
@@ -300,9 +340,16 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Verify subject is available for this round
+    if (!room.availableSubjectsForRound.includes(subject)) {
+      socket.emit('error', { message: 'Subject not available for this round' });
+      return;
+    }
+
     room.currentSubject = subject;
-    room.questions = getQuestionsBySubject(subject, 5);
+    room.questions = getQuestionsBySubject(subject);
     room.currentQuestionIndex = 0;
+    room.usedSubjects.add(subject);
 
     // Notify both players
     room.players.forEach(p => {
