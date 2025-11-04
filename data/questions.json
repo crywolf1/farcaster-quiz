@@ -2,6 +2,7 @@
   {
     "id": "q1",
     "subject": "Science",
+    "difficulty": "easy",
     "question": "What is the chemical symbol for gold?",
     "options": ["Go", "Au", "Gd", "Ag"],
     "correctAnswer": 1
@@ -9,6 +10,7 @@
   {
     "id": "q2",
     "subject": "Science",
+    "difficulty": "easy",
     "question": "What planet is known as the Red Planet?",
     "options": ["Venus", "Jupiter", "Mars", "Saturn"],
     "correctAnswer": 2
@@ -16,6 +18,7 @@
   {
     "id": "q3",
     "subject": "Science",
+    "difficulty": "moderate",
     "question": "What is the speed of light in vacuum?",
     "options": ["300,000 km/s", "150,000 km/s", "450,000 km/s", "600,000 km/s"],
     "correctAnswer": 0
@@ -23,6 +26,7 @@
   {
     "id": "q4",
     "subject": "Science",
+    "difficulty": "moderate",
     "question": "What is the largest organ in the human body?",
     "options": ["Heart", "Brain", "Liver", "Skin"],
     "correctAnswer": 3
@@ -30,6 +34,7 @@
   {
     "id": "q5",
     "subject": "Science",
+    "difficulty": "easy",
     "question": "What is H2O commonly known as?",
     "options": ["Salt", "Water", "Oxygen", "Hydrogen"],
     "correctAnswer": 1
@@ -37,6 +42,7 @@
   {
     "id": "q6",
     "subject": "History",
+    "difficulty": "easy",
     "question": "In what year did World War II end?",
     "options": ["1943", "1944", "1945", "1946"],
     "correctAnswer": 2
@@ -44,6 +50,7 @@
   {
     "id": "q7",
     "subject": "History",
+    "difficulty": "easy",
     "question": "Who was the first President of the United States?",
     "options": ["Thomas Jefferson", "George Washington", "Abraham Lincoln", "John Adams"],
     "correctAnswer": 1
@@ -51,6 +58,7 @@
   {
     "id": "q8",
     "subject": "History",
+    "difficulty": "moderate",
     "question": "What year did the Titanic sink?",
     "options": ["1910", "1911", "1912", "1913"],
     "correctAnswer": 2
@@ -58,6 +66,7 @@
   {
     "id": "q9",
     "subject": "History",
+    "difficulty": "moderate",
     "question": "Who painted the Mona Lisa?",
     "options": ["Michelangelo", "Leonardo da Vinci", "Raphael", "Donatello"],
     "correctAnswer": 1
@@ -65,6 +74,7 @@
   {
     "id": "q10",
     "subject": "History",
+    "difficulty": "hard",
     "question": "What ancient wonder was located in Egypt?",
     "options": ["Hanging Gardens", "Colossus of Rhodes", "Great Pyramid", "Lighthouse of Alexandria"],
     "correctAnswer": 2
@@ -72,6 +82,7 @@
   {
     "id": "q11",
     "subject": "Geography",
+    "difficulty": "easy",
     "question": "What is the capital of France?",
     "options": ["London", "Berlin", "Paris", "Madrid"],
     "correctAnswer": 2
@@ -79,6 +90,7 @@
   {
     "id": "q12",
     "subject": "Geography",
+    "difficulty": "moderate",
     "question": "Which is the longest river in the world?",
     "options": ["Amazon", "Nile", "Yangtze", "Mississippi"],
     "correctAnswer": 1
@@ -86,6 +98,7 @@
   {
     "id": "q13",
     "subject": "Geography",
+    "difficulty": "hard",
     "question": "What is the smallest country in the world?",
     "options": ["Monaco", "Vatican City", "San Marino", "Liechtenstein"],
     "correctAnswer": 1
@@ -93,6 +106,7 @@
   {
     "id": "q14",
     "subject": "Geography",
+    "difficulty": "easy",
     "question": "Which ocean is the largest?",
     "options": ["Atlantic", "Indian", "Arctic", "Pacific"],
     "correctAnswer": 3
@@ -100,6 +114,7 @@
   {
     "id": "q15",
     "subject": "Geography",
+    "difficulty": "moderate",
     "question": "What is the tallest mountain in the world?",
     "options": ["K2", "Mount Everest", "Kilimanjaro", "Denali"],
     "correctAnswer": 1
@@ -107,6 +122,7 @@
   {
     "id": "q16",
     "subject": "Sports",
+    "difficulty": "easy",
     "question": "How many players are on a soccer team?",
     "options": ["9", "10", "11", "12"],
     "correctAnswer": 2
@@ -114,6 +130,7 @@
   {
     "id": "q17",
     "subject": "Sports",
+    "difficulty": "easy",
     "question": "What sport is known as 'the beautiful game'?",
     "options": ["Basketball", "Soccer", "Tennis", "Baseball"],
     "correctAnswer": 1
@@ -121,6 +138,7 @@
   {
     "id": "q18",
     "subject": "Sports",
+    "difficulty": "moderate",
     "question": "How many rings are on the Olympic flag?",
     "options": ["4", "5", "6", "7"],
     "correctAnswer": 1
@@ -128,6 +146,7 @@
   {
     "id": "q19",
     "subject": "Sports",
+    "difficulty": "easy",
     "question": "In which sport would you perform a slam dunk?",
     "options": ["Volleyball", "Tennis", "Basketball", "Badminton"],
     "correctAnswer": 2
@@ -135,6 +154,7 @@
   {
     "id": "q20",
     "subject": "Sports",
+    "difficulty": "hard",
     "question": "What is the maximum score in a single frame of bowling?",
     "options": ["100", "200", "300", "30"],
     "correctAnswer": 3
@@ -142,6 +162,7 @@
   {
     "id": "q21",
     "subject": "Technology",
+    "difficulty": "easy",
     "question": "Who is the founder of Microsoft?",
     "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Elon Musk"],
     "correctAnswer": 1
@@ -149,6 +170,7 @@
   {
     "id": "q22",
     "subject": "Technology",
+    "difficulty": "moderate",
     "question": "What does 'HTTP' stand for?",
     "options": ["HyperText Transfer Protocol", "High Transfer Text Protocol", "Home Tool Transfer Protocol", "HyperText Tech Protocol"],
     "correctAnswer": 0
@@ -156,6 +178,7 @@
   {
     "id": "q23",
     "subject": "Technology",
+    "difficulty": "moderate",
     "question": "What year was the first iPhone released?",
     "options": ["2005", "2006", "2007", "2008"],
     "correctAnswer": 2
@@ -163,6 +186,7 @@
   {
     "id": "q24",
     "subject": "Technology",
+    "difficulty": "easy",
     "question": "What does 'AI' stand for?",
     "options": ["Automated Intelligence", "Artificial Intelligence", "Applied Intelligence", "Advanced Intelligence"],
     "correctAnswer": 1
@@ -170,6 +194,7 @@
   {
     "id": "q25",
     "subject": "Technology",
+    "difficulty": "hard",
     "question": "What is the most popular programming language in 2025?",
     "options": ["Python", "Java", "C++", "JavaScript"],
     "correctAnswer": 0

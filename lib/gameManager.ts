@@ -62,7 +62,7 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   console.log(`[GameManager] Auto-starting round ${room.currentRound + 1}`);
 
   // Check if game is over
-  if (room.currentRound >= (room.maxRounds || room.totalRounds || 3)) {
+  if (room.currentRound >= (room.maxRounds || room.totalRounds || 6)) {
     room.state = 'game-over';
     console.log(`[GameManager] Game over after auto-start check`);
     await storage.setGameRoom(roomId, room);
@@ -77,6 +77,11 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   room.questions = [];
   room.currentQuestionIndex = 0;
   room.answers.clear();
+  
+  // Get 3 new random subjects for this round (excluding used ones)
+  const allSubjects = getSubjects();
+  const usedSubjectsArray = Array.from(room.usedSubjects || new Set<string>()) as string[];
+  room.availableSubjectsForRound = getRandomSubjectsForRound(usedSubjectsArray, allSubjects, 3);
   
   // Reset player progress and ready status
   room.players.forEach(p => {
@@ -231,10 +236,48 @@ export function getSubjects(): string[] {
   return Array.from(subjects);
 }
 
-// Helper: Get random questions for a subject
-function getRandomQuestions(subject: string, count: number = 5): Question[] {
+// Helper: Get random questions for a subject (1 easy, 1 moderate, 1 hard)
+function getRandomQuestions(subject: string): Question[] {
   const subjectQuestions = questions.filter(q => q.subject === subject);
-  const shuffled = [...subjectQuestions].sort(() => Math.random() - 0.5);
+  
+  // Get one question from each difficulty level
+  const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
+  const moderateQuestions = subjectQuestions.filter(q => q.difficulty === 'moderate');
+  const hardQuestions = subjectQuestions.filter(q => q.difficulty === 'hard');
+  
+  const selectedQuestions: Question[] = [];
+  
+  // Pick one random question from each difficulty
+  if (easyQuestions.length > 0) {
+    const randomEasy = easyQuestions[Math.floor(Math.random() * easyQuestions.length)];
+    selectedQuestions.push(randomEasy);
+  }
+  
+  if (moderateQuestions.length > 0) {
+    const randomModerate = moderateQuestions[Math.floor(Math.random() * moderateQuestions.length)];
+    selectedQuestions.push(randomModerate);
+  }
+  
+  if (hardQuestions.length > 0) {
+    const randomHard = hardQuestions[Math.floor(Math.random() * hardQuestions.length)];
+    selectedQuestions.push(randomHard);
+  }
+  
+  // Shuffle the 3 questions so they're not always in easy->moderate->hard order
+  return selectedQuestions.sort(() => Math.random() - 0.5);
+}
+
+// Helper: Get random subjects for round (excluding used subjects)
+function getRandomSubjectsForRound(usedSubjects: string[], allSubjects: string[], count: number = 3): string[] {
+  const availableSubjects = allSubjects.filter(s => !usedSubjects.includes(s));
+  
+  // If not enough unused subjects, return what's available
+  if (availableSubjects.length <= count) {
+    return availableSubjects;
+  }
+  
+  // Shuffle and return requested count
+  const shuffled = [...availableSubjects].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 }
 
@@ -256,9 +299,12 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
 
   console.log(`[GameManager] Subject selection timeout for room ${roomId}`);
   
-  // Pick random subject
-  const randomSubject = getRandomSubject();
-  const selectedQuestions = getRandomQuestions(randomSubject, 5);
+  // Pick random subject from available subjects for this round
+  const randomSubject = room.availableSubjectsForRound[Math.floor(Math.random() * room.availableSubjectsForRound.length)];
+  const selectedQuestions = getRandomQuestions(randomSubject);
+  
+  // Mark subject as used
+  room.usedSubjects.add(randomSubject);
   
   // Update room
   room.currentSubject = randomSubject;
@@ -324,11 +370,14 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
 
     // Create game room
     const roomId = generateRoomId();
+    const allSubjects = getSubjects();
+    const availableSubjects = getRandomSubjectsForRound([], allSubjects, 3);
+    
     const gameRoom: GameRoom = {
       id: roomId,
       players: [player1, player2],
       currentRound: 1,
-      maxRounds: 3,
+      maxRounds: 6,
       state: 'subject-selection',
       currentPickerIndex: 0,
       currentSubject: null,
@@ -343,6 +392,8 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       playersFinished: new Set(),
       roundOverTimerStartedAt: null,
       playersReady: new Set(),
+      usedSubjects: new Set(),
+      availableSubjectsForRound: availableSubjects,
     };
 
     await storage.setGameRoom(roomId, gameRoom);
@@ -448,8 +499,16 @@ export async function selectSubject(playerId: string, subject: string): Promise<
     return { success: false, message: `Not in subject selection phase (current: ${room.state})` };
   }
 
-  // Get questions
-  const selectedQuestions = getRandomQuestions(subject, 5);
+  // Verify subject is available for this round
+  if (!room.availableSubjectsForRound.includes(subject)) {
+    return { success: false, message: 'Subject not available for this round' };
+  }
+
+  // Get questions (1 easy, 1 moderate, 1 hard)
+  const selectedQuestions = getRandomQuestions(subject);
+  
+  // Mark subject as used
+  room.usedSubjects.add(subject);
   
   // Clear subject selection timer
   clearSubjectTimer(roomId);
@@ -556,7 +615,7 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
       clearSubjectTimer(roomId);
       
       // Check if this is the final round (game over)
-      if (room.currentRound >= (room.maxRounds || room.totalRounds || 3)) {
+      if (room.currentRound >= (room.maxRounds || room.totalRounds || 6)) {
         console.log(`[GameManager] Final round ${room.currentRound} complete - GAME OVER!`);
         room.state = 'game-over';
         
@@ -673,7 +732,7 @@ export async function startNextRound(playerId: string): Promise<{
   console.log(`[GameManager] Both players ready - starting next round`);
 
   // Check if game is over
-  if (room.currentRound >= (room.maxRounds || room.totalRounds || 3)) {
+  if (room.currentRound >= (room.maxRounds || room.totalRounds || 6)) {
     room.state = 'game-over';
     
     // Determine winner
@@ -698,6 +757,11 @@ export async function startNextRound(playerId: string): Promise<{
   room.questions = [];
   room.currentQuestionIndex = 0;
   room.answers.clear();
+  
+  // Get 3 new random subjects for this round (excluding used ones)
+  const allSubjects = getSubjects();
+  const usedSubjectsArray = Array.from(room.usedSubjects || new Set<string>()) as string[];
+  room.availableSubjectsForRound = getRandomSubjectsForRound(usedSubjectsArray, allSubjects, 3);
   
   // Reset player progress and ready status
   room.players.forEach(p => {

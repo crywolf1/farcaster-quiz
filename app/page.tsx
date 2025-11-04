@@ -1309,7 +1309,7 @@ export default function Home() {
           
           {isMyTurnToPick ? (
             <div className="space-y-3">
-              {subjects.map((subject) => {
+              {(gameRoom?.availableSubjectsForRound || subjects).map((subject) => {
                 const isSelected = selectedSubject === subject;
                 return (
                   <button

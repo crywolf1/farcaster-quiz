@@ -3,6 +3,7 @@
 export interface Question {
   id: string;
   subject: string;
+  difficulty: 'easy' | 'moderate' | 'hard';
   question: string;
   options: string[];
   correctAnswer: number; // Index of correct option (0-3)
@@ -35,12 +36,14 @@ export interface GameRoom {
   timerStartedAt: number | null; // Timestamp when timer started
   timerDuration: number; // Duration in milliseconds (18000ms = 18sec)
   timerTimeoutId?: NodeJS.Timeout; // Server-side timeout ID
-  playerProgress: Map<string, number>; // playerId -> currentQuestionIndex (0-4)
+  playerProgress: Map<string, number>; // playerId -> currentQuestionIndex (0-2 for 3 questions)
   playerTimers: Map<string, number>; // playerId -> timer start timestamp
-  playersFinished: Set<string>; // playerIds who finished all 5 questions
+  playersFinished: Set<string>; // playerIds who finished all 3 questions
   roundOverTimerStartedAt?: number | null; // Timestamp when round over screen started
   roundOverAutoStartTimeoutId?: NodeJS.Timeout; // Auto-start next round timeout
   playersReady: Set<string>; // playerIds who clicked "Next Round"
+  usedSubjects: Set<string>; // Subjects that have been used in this game
+  availableSubjectsForRound: string[]; // 3 random subjects available for current round
 }
 
 export interface MatchmakingQueue {
