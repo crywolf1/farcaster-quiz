@@ -402,7 +402,8 @@ export async function getGameState(playerId: string): Promise<GameRoom | null> {
         const remainingTime = autoStartDelay - elapsed;
         console.log(`[GameManager] Restarting auto-start timer with ${remainingTime}ms remaining`);
         const timerId = setTimeout(() => handleRoundOverAutoStart(roomId), remainingTime);
-        roomTimerIds.set(roomId, { roundOver: timerId });
+        const existingTimers = roomTimerIds.get(roomId) || {};
+        roomTimerIds.set(roomId, { ...existingTimers, roundOver: timerId });
       }
     }
   }
