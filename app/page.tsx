@@ -1590,53 +1590,60 @@ export default function Home() {
 
     return (
       <div className="min-h-screen  flex flex-col p-4">
-        {/* Leave Game Button - Fixed Position */}
-        <button
-          onClick={leaveGame}
-          className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
-        >
-          Leave Game
-        </button>
-        
-        {/* Header */}
-        <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-xl">
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2">
+        {/* Header - Clean horizontal layout */}
+        <div className="relative backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-4 mb-6 shadow-2xl">
+          {/* Leave Game Button - Inside header */}
+          <button
+            onClick={leaveGame}
+            className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-[16px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
+          >
+            Leave
+          </button>
+          
+          {/* Top row: Players and Round/Question info */}
+          <div className="flex justify-between items-center mb-3 pr-20">
+            {/* Your info */}
+            <div className="flex items-center gap-3">
               {farcasterUser?.pfpUrl ? (
-                <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+                <img src={farcasterUser.pfpUrl} alt="You" className="w-12 h-12 rounded-full border-2 border-purple-500 shadow-lg" />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                  <span className="text-lg"></span>
+                <div className="w-12 h-12 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg">
+                  <span className="text-lg">👤</span>
                 </div>
               )}
               <div>
-                <p className="text-white font-semibold text-sm">{farcasterUser?.username}</p>
-                <p className="text-gray-400 text-xs">Score: {myScore}</p>
+                <p className="text-white font-bold text-sm">{farcasterUser?.username}</p>
+                <p className="text-gray-400 text-xs font-semibold">Score: {myScore}</p>
               </div>
             </div>
             
+            {/* Center: Round and Question */}
             <div className="text-center">
-              <p className="text-gray-400 text-xs">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-              <p className="text-white font-bold">Q {myProgress + 1}/5</p>
+              <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+              <p className="text-white font-bold text-lg">Question {myProgress + 1}/5</p>
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Opponent info */}
+            <div className="flex items-center gap-3">
               <div className="text-right">
-                <p className="text-white font-semibold text-sm">{opponent?.username}</p>
-                <p className="text-gray-400 text-xs">Score: {opponentScore}</p>
+                <p className="text-white font-bold text-sm">{opponent?.username}</p>
+                <p className="text-gray-400 text-xs font-semibold">Score: {opponentScore}</p>
               </div>
               {opponent?.pfpUrl ? (
-                <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
+                <img src={opponent.pfpUrl} alt="Opponent" className="w-12 h-12 rounded-full border-2 border-pink-500 shadow-lg" />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                  <span className="text-lg"></span>
+                <div className="w-12 h-12 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg">
+                  <span className="text-lg">👤</span>
                 </div>
               )}
             </div>
           </div>
           
+          {/* Subject pill */}
           <div className="text-center">
-            <p className="text-gray-300 text-sm font-medium">{gameRoom?.currentSubject}</p>
+            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+              {gameRoom?.currentSubject}
+            </span>
           </div>
         </div>
 
@@ -1718,16 +1725,17 @@ export default function Home() {
               return (
                 <button
                   key={index}
-                  onClick={(e) => {
+                  onMouseDown={(e) => {
                     if (!hasAnswered) {
                       submitAnswer(index);
-                      // Remove focus from button to prevent hover state staying
-                      (e.target as HTMLButtonElement).blur();
+                      // Prevent focus completely
+                      e.preventDefault();
+                      (e.currentTarget as HTMLButtonElement).blur();
                     }
                   }}
                   disabled={hasAnswered}
                   style={{ animationDelay: `${index * 0.1 + 0.3}s` }}
-                  className={`${buttonClass} ${!hasAnswered ? 'animate-[slideIn_0.5s_ease-out_forwards] opacity-0' : ''}`}
+                  className={`${buttonClass} ${!hasAnswered ? 'animate-[slideIn_0.5s_ease-out_forwards] opacity-0' : ''} focus:outline-none focus-visible:outline-none`}
                 >
                   {/* Shimmer effect */}
                   {!hasAnswered && !showInstantFeedback && (
