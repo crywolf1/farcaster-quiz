@@ -1310,29 +1310,55 @@ export default function Home() {
           )}
           
           {isMyTurnToPick ? (
-            <div className="space-y-3">
-              {(gameRoom?.availableSubjectsForRound || subjects).map((subject) => {
+            <div className="space-y-4">
+              {(gameRoom?.availableSubjectsForRound || subjects).map((subject, index) => {
                 const isSelected = selectedSubject === subject;
                 return (
                   <button
                     key={subject}
                     onClick={() => !selectedSubject && selectSubject(subject)}
                     disabled={!!selectedSubject}
-                    className={`w-full py-4 rounded-[28px] font-bold text-lg shadow-2xl border-2 transition-all duration-500 ${
+                    style={{
+                      animationDelay: `${index * 0.1}s`,
+                      transform: isSelected ? 'translateZ(50px) scale(1.05)' : 'translateZ(0)',
+                    }}
+                    className={`group relative w-full py-6 rounded-[32px] font-black text-xl shadow-2xl border-2 transition-all duration-500 overflow-hidden animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
                       isSelected
-                        ? 'bg-white text-black border-white scale-105 animate-pulse shadow-2xl'
+                        ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 text-white border-purple-400 scale-105 shadow-[0_0_40px_rgba(168,85,247,0.6)]'
                         : selectedSubject
-                        ? 'backdrop-blur-2xl bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed'
-                        : 'backdrop-blur-2xl bg-gray-800 text-white border-gray-700 hover:bg-gray-700 hover:shadow-2xl hover:scale-[1.02] active:scale-95 cursor-pointer'
+                        ? 'bg-gray-900/50 text-gray-600 border-gray-800 cursor-not-allowed backdrop-blur-sm'
+                        : 'bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white border-gray-700 hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-95 cursor-pointer'
                     }`}
                   >
-                    {subject} {isSelected && ''}
+                    {/* 3D shine effect */}
+                    <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 ${isSelected ? 'animate-[shimmer_2s_ease-in-out_infinite]' : 'group-hover:animate-[shimmer_2s_ease-in-out_infinite]'}`}></div>
+                    
+                    {/* Glow effect */}
+                    {!selectedSubject && !isSelected && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    )}
+                    
+                    {/* Content */}
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {subject}
+                      {isSelected && (
+                        <span className="animate-bounce text-2xl">✨</span>
+                      )}
+                    </span>
+                    
+                    {/* Bottom glow */}
+                    {isSelected && (
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
+                    )}
                   </button>
                 );
               })}
             </div>
           ) : (
-            <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-pink-500 rounded-full animate-spin mx-auto" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
+            </div>
           )}
         </div>
       </div>
@@ -1451,16 +1477,54 @@ export default function Home() {
       </div>
 
       {/* Subject Result Animation */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-6 drop-shadow-2xl animate-pulse">
-            Subject Selected! </h2>
-          <div className="bg-gray-900 border-4 border-white rounded-[40px] shadow-2xl p-8 animate-[bounce_1s_ease-in-out_infinite] scale-110">
-            <div className="text-5xl font-black text-white drop-shadow-2xl mb-2">
-              {gameRoom?.currentSubject}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center max-w-md w-full">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 mb-8 drop-shadow-2xl animate-pulse">
+            Subject Selected! ✨
+          </h2>
+          
+          {/* 3D Card with modern animations */}
+          <div className="relative perspective-1000">
+            {/* Animated glow rings */}
+            <div className="absolute inset-0 animate-[ping_2s_ease-in-out_infinite]">
+              <div className="w-full h-full rounded-[48px] bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-2xl"></div>
             </div>
-            <div className="text-gray-300 text-lg font-semibold drop-shadow-lg">
-              Get Ready! </div>
+            
+            {/* Main card */}
+            <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/30 to-gray-900 border-4 border-purple-500/50 rounded-[48px] shadow-[0_0_60px_rgba(168,85,247,0.5)] p-10 animate-[float_3s_ease-in-out_infinite] backdrop-blur-xl">
+              {/* Top shine effect */}
+              <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
+              
+              {/* Sparkle effects */}
+              <div className="absolute top-4 right-4 w-2 h-2 bg-white rounded-full animate-ping"></div>
+              <div className="absolute bottom-4 left-4 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute top-1/2 right-8 w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse"></div>
+              
+              {/* Subject text with 3D effect */}
+              <div className="relative">
+                <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-purple-200 to-purple-400 drop-shadow-2xl mb-4 animate-[scaleIn_0.5s_ease-out] leading-tight">
+                  {gameRoom?.currentSubject}
+                </div>
+                
+                {/* Text shadow for 3D depth */}
+                <div className="absolute inset-0 text-6xl font-black text-purple-500/20 blur-sm -z-10" style={{ transform: 'translate(4px, 4px)' }}>
+                  {gameRoom?.currentSubject}
+                </div>
+              </div>
+              
+              <div className="text-purple-300 text-xl font-bold drop-shadow-lg animate-[fadeIn_1s_ease-in]">
+                Get Ready! 🚀
+              </div>
+              
+              {/* Bottom glow line */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-[shimmer_2s_ease-in-out_infinite]"></div>
+            </div>
+            
+            {/* Orbiting particles */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none">
+              <div className="absolute top-0 left-1/2 w-3 h-3 bg-purple-400 rounded-full blur-sm animate-[orbit_4s_linear_infinite]"></div>
+              <div className="absolute top-0 left-1/2 w-2 h-2 bg-pink-400 rounded-full blur-sm animate-[orbit_5s_linear_infinite]" style={{ animationDelay: '1s' }}></div>
+            </div>
           </div>
         </div>
       </div>
