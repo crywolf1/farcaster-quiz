@@ -1124,54 +1124,50 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-10 shadow-2xl max-w-md w-full">
-        {/* Profile Section */}
-        <div className="text-center mb-8">
-          {farcasterUser?.pfpUrl ? (
-            <img src={farcasterUser.pfpUrl} alt="Profile" className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700" />
-          ) : (
-            <div className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 bg-gray-800 flex items-center justify-center">
-              <span className="text-5xl"></span>
-            </div>
-          )}
-          <h2 className="text-3xl font-bold text-white drop-shadow-2xl mb-2">{farcasterUser?.username}</h2>
-          <p className="text-gray-400 text-sm font-medium drop-shadow-lg mb-4">@{farcasterUser?.username}</p>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 rounded-[32px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5)] max-w-lg w-full">
+        {/* Profile Section - Horizontal Layout */}
+        <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-700">
+          {/* Score - Left */}
+          <div className="flex-1 text-center">
+            <div className="text-3xl font-black text-white mb-1">{formatScore(playerStats?.score || 0)}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Score</div>
+          </div>
           
-          {/* Player Stats */}
-          <div className="flex justify-center gap-6 mb-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">{formatScore(playerStats?.score || 0)}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Score</div>
-            </div>
-            <div className="w-px bg-gray-700"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-white">#{playerStats?.rank || '-'}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Rank</div>
-            </div>
-            <div className="w-px bg-gray-700"></div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-500">{playerStats?.wins || 0}W</div>
-              <div className="text-xs text-gray-400 uppercase tracking-wider">Wins</div>
-            </div>
+          {/* Profile - Center */}
+          <div className="flex flex-col items-center">
+            {farcasterUser?.pfpUrl ? (
+              <img src={farcasterUser.pfpUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-gray-600 shadow-xl mb-2" />
+            ) : (
+              <div className="w-20 h-20 rounded-full border-2 border-gray-600 shadow-xl bg-gray-800 flex items-center justify-center mb-2">
+                <span className="text-3xl">👤</span>
+              </div>
+            )}
+            <h2 className="text-lg font-bold text-white">{farcasterUser?.username}</h2>
+            <p className="text-xs text-gray-500">#{playerStats?.rank || '-'} Rank</p>
+          </div>
+          
+          {/* Wins - Right */}
+          <div className="flex-1 text-center">
+            <div className="text-3xl font-black text-cyan-400 mb-1">{playerStats?.wins || 0}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Wins</div>
           </div>
         </div>
         
-        {/* Find Match Button - 3D Style */}
+        {/* Find Match Button - Professional Style */}
         <button
           onClick={findMatch}
-          className="relative group w-full px-12 py-6 rounded-[32px] text-2xl font-black shadow-2xl transition-all mb-4 border-2 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_50px_rgba(168,85,247,0.7)] overflow-hidden"
+          className="relative group w-full px-8 py-4 rounded-[20px] text-lg font-bold shadow-lg transition-all mb-3 border-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-500 border-cyan-500 hover:shadow-[0_10px_40px_rgba(6,182,212,0.4)] active:scale-98 overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
-          <span className="relative z-10">Find Match 🎮</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
+          <span className="relative z-10">Find Match</span>
         </button>
         
         {/* Leaderboard Button */}
         <button
           onClick={() => setShowLeaderboard(true)}
-          className="relative group w-full px-6 py-3 rounded-[28px] text-sm font-bold shadow-xl transition-all bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-gray-300 hover:text-white border-2 border-gray-700 hover:border-purple-500 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] overflow-hidden"
+          className="w-full px-6 py-3 rounded-[16px] text-sm font-semibold shadow-md transition-all bg-gray-800 text-gray-400 hover:text-gray-200 border border-gray-700 hover:border-gray-600 hover:bg-gray-750"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
-          <span className="relative z-10">🏆 View Leaderboard</span>
+          View Leaderboard
         </button>
       </div>
     </div>
