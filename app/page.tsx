@@ -68,8 +68,8 @@ export default function Home() {
   const [timerActiveSubject, setTimerActiveSubject] = useState<boolean>(false);
   const subjectTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Round-result auto-ready timer (30s) - synced with server
-  const [timeRemainingRound, setTimeRemainingRound] = useState<number>(30);
+  // Round-result auto-ready timer (15s) - synced with server
+  const [timeRemainingRound, setTimeRemainingRound] = useState<number>(15);
   const [timerActiveRound, setTimerActiveRound] = useState<boolean>(false);
   const roundTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null); // Track selected subject for animation
@@ -1701,17 +1701,17 @@ export default function Home() {
               <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
                 <div 
                   className={`h-full transition-all duration-100 ${
-                    timeRemainingRound <= 10 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
-                    timeRemainingRound <= 20 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
+                    timeRemainingRound <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
+                    timeRemainingRound <= 10 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
                     'bg-gradient-to-r from-purple-500 to-purple-600'
                   }`}
-                  style={{ width: `${(timeRemainingRound / 30) * 100}%` }}
+                  style={{ width: `${(timeRemainingRound / 15) * 100}%` }}
                 ></div>
               </div>
               <p className="text-center text-sm mt-2 font-semibold">
                 <span className={
-                  timeRemainingRound <= 10 ? 'text-red-400' : 
-                  timeRemainingRound <= 20 ? 'text-yellow-400' : 
+                  timeRemainingRound <= 5 ? 'text-red-400' : 
+                  timeRemainingRound <= 10 ? 'text-yellow-400' : 
                   'text-purple-400'
                 }>
                   Auto-ready in {Math.ceil(timeRemainingRound)}s
