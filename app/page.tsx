@@ -1974,75 +1974,114 @@ export default function Home() {
 
   // Leaderboard Modal
   const renderLeaderboard = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] p-8 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-white">🏆 Leaderboard</h2>
-          <button
-            onClick={() => setShowLeaderboard(false)}
-            className="text-gray-400 hover:text-white text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-800 transition-all"
-          >
-            ×
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
+      <div className="relative max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse"></div>
+        
+        {/* Main container */}
+        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-8 shadow-[0_0_60px_rgba(168,85,247,0.4)] backdrop-blur-xl flex flex-col">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 drop-shadow-2xl">
+              🏆 Leaderboard
+            </h2>
+            <button
+              onClick={() => setShowLeaderboard(false)}
+              className="text-gray-400 hover:text-white text-3xl w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-800/50 transition-all hover:scale-110 active:scale-95"
+            >
+              ×
+            </button>
+          </div>
 
-        {/* Player Stats Card */}
-        {playerStats && (
-          <div className="bg-gray-800 border-2 border-gray-700 rounded-[24px] p-4 mb-6">
-            <div className="flex items-center gap-4">
-              {farcasterUser?.pfpUrl && (
-                <img src={farcasterUser.pfpUrl} alt="You" className="w-16 h-16 rounded-full border-2 border-gray-700" />
-              )}
-              <div className="flex-1">
-                <div className="text-white font-bold text-lg">{farcasterUser?.username}</div>
-                <div className="text-gray-400 text-sm">Your Rank: #{playerStats.rank}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">{formatScore(playerStats.score)}</div>
-                <div className="text-sm text-green-500">{playerStats.wins}W - {playerStats.losses}L</div>
+          {/* Player Stats Card with 3D effect */}
+          {playerStats && (
+            <div className="relative mb-6 animate-[slideIn_0.4s_ease-out]">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-lg rounded-[28px]"></div>
+              <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[28px] p-5 shadow-xl">
+                <div className="flex items-center gap-4">
+                  {farcasterUser?.pfpUrl && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-purple-500/30 blur-md rounded-full"></div>
+                      <img src={farcasterUser.pfpUrl} alt="You" className="relative w-16 h-16 rounded-full border-2 border-purple-500/50" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="text-white font-black text-lg drop-shadow-lg">{farcasterUser?.username}</div>
+                    <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 text-sm font-bold">
+                      Your Rank: #{playerStats.rank}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">
+                      {formatScore(playerStats.score)}
+                    </div>
+                    <div className="text-sm font-bold text-green-400">{playerStats.wins}W - {playerStats.losses}L</div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Leaderboard List */}
-        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-          {leaderboardData.map((entry, index) => {
-            const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
-            return (
-              <div
-                key={entry.fid}
-                className={`flex items-center gap-4 p-4 rounded-[20px] transition-all ${
-                  isCurrentUser
-                    ? 'bg-gray-700 border-2 border-gray-600'
-                    : 'bg-gray-800 hover:bg-gray-750'
-                }`}
-              >
-                <div className="w-12 text-center">
-                  <span className="text-2xl font-bold text-gray-400">
-                    {getRankEmoji(index + 1)}
-                  </span>
-                </div>
-                <img
-                  src={entry.pfpUrl}
-                  alt={entry.username}
-                  className="w-12 h-12 rounded-full border-2 border-gray-700"
-                />
-                <div className="flex-1">
-                  <div className={`font-bold ${isCurrentUser ? 'text-white' : 'text-gray-300'}`}>
-                    {entry.username}
+          {/* Leaderboard List with custom scrollbar */}
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 leaderboard-scroll">
+            {leaderboardData.map((entry, index) => {
+              const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
+              const isTopThree = index < 3;
+              return (
+                <div
+                  key={entry.fid}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                  className={`group relative flex items-center gap-4 p-4 rounded-[24px] transition-all animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
+                    isCurrentUser
+                      ? 'bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 border-2 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
+                      : 'bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-800/50 border border-gray-700/50 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]'
+                  }`}
+                >
+                  {/* Shimmer on hover */}
+                  {!isCurrentUser && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] rounded-[24px]"></div>
+                  )}
+                  
+                  {/* Rank */}
+                  <div className="relative w-12 text-center z-10">
+                    <span className={`text-3xl font-bold ${isTopThree ? 'drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]' : ''}`}>
+                      {getRankEmoji(index + 1)}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {entry.wins}W - {entry.losses}L
+                  
+                  {/* Avatar */}
+                  <div className="relative z-10">
+                    {isTopThree && (
+                      <div className="absolute inset-0 bg-yellow-500/20 blur-lg rounded-full"></div>
+                    )}
+                    <img
+                      src={entry.pfpUrl}
+                      alt={entry.username}
+                      className={`relative w-12 h-12 rounded-full border-2 ${isTopThree ? 'border-yellow-500/50' : 'border-gray-700'}`}
+                    />
+                  </div>
+                  
+                  {/* User info */}
+                  <div className="flex-1 relative z-10">
+                    <div className={`font-black text-base ${isCurrentUser ? 'text-white' : isTopThree ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500' : 'text-gray-300'}`}>
+                      {entry.username}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-500">
+                      <span className="text-green-400">{entry.wins}W</span> - <span className="text-red-400">{entry.losses}L</span>
+                    </div>
+                  </div>
+                  
+                  {/* Score */}
+                  <div className="text-right relative z-10">
+                    <div className={`text-xl font-black ${isTopThree ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500' : 'text-white'}`}>
+                      {formatScore(entry.score)}
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold text-white">{formatScore(entry.score)}</div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
