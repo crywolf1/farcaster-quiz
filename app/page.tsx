@@ -1251,53 +1251,67 @@ export default function Home() {
     </div>
   );
 
-  const renderSubjectSelection = () => (
-    <div className="min-h-screen flex flex-col p-4">
-      {/* Leave Game Button */}
-      <button
-        onClick={leaveGame}
-        className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
-      >
-        Leave Game
-      </button>
-      
-      {/* Header */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
-            <div>
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
+  // Unified Header Component
+  const renderGameHeader = (showSubject = false) => (
+    <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-5 mb-6 shadow-2xl max-w-5xl w-full mx-auto">
+      <div className="grid grid-cols-3 gap-4 items-center">
+        {/* Left: Your Profile */}
+        <div className="flex items-center gap-3">
+          {farcasterUser?.pfpUrl ? (
+            <img src={farcasterUser.pfpUrl} alt="You" className="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-lg">👤</span>
             </div>
-          </div>
-          
-          <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
-            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
-            </div>
-            {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
+          )}
+          <div className="min-w-0">
+            <p className="text-white font-bold text-sm truncate">{farcasterUser?.username}</p>
+            <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {myScore}</p>
           </div>
         </div>
+        
+        {/* Center: Round Info */}
+        <div className="text-center">
+          <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
+          <p className="text-white font-bold text-lg">{showSubject ? `Q ${myProgress + 1}/5` : `Round ${gameRoom?.currentRound}`}</p>
+          {showSubject && gameRoom?.currentSubject && (
+            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg mt-2">
+              {gameRoom.currentSubject}
+            </span>
+          )}
+        </div>
+        
+        {/* Right: Opponent Profile */}
+        <div className="flex items-center gap-3 justify-end">
+          <div className="text-right min-w-0">
+            <p className="text-white font-bold text-sm truncate">{opponent?.username}</p>
+            <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {opponentScore}</p>
+          </div>
+          {opponent?.pfpUrl ? (
+            <img src={opponent.pfpUrl} alt="Opponent" className="w-14 h-14 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-lg">👤</span>
+            </div>
+          )}
+        </div>
       </div>
+      
+      {/* Leave Game Button - Below */}
+      <div className="mt-3 text-right">
+        <button
+          onClick={leaveGame}
+          className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
+        >
+          Leave Game
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderSubjectSelection = () => (
+    <div className="min-h-screen flex flex-col p-4">
+      {renderGameHeader(false)}
 
       {/* Subject Selection */}
       <div className="flex-1 flex items-center justify-center">
@@ -1389,51 +1403,7 @@ export default function Home() {
 
   const renderWaitingSubject = () => (
     <div className="min-h-screen flex flex-col p-4">
-      {/* Leave Game Button */}
-      <button
-        onClick={leaveGame}
-        className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-3 py-2 rounded-[16px] text-xs font-semibold shadow-lg hover:bg-gray-700 border border-gray-700 transition-all"
-      >
-        Leave Game
-      </button>
-      
-      {/* Header - same as subject selection */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
-            <div>
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
-            </div>
-          </div>
-          
-          <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
-            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
-            </div>
-            {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {renderGameHeader(false)}
 
       {/* Waiting message with timer */}
       <div className="flex-1 flex items-center justify-center">
@@ -1460,43 +1430,7 @@ export default function Home() {
 
   const renderSubjectResult = () => (
     <div className="min-h-screen flex flex-col p-4">
-      {/* Header */}
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-4 mb-4 shadow-2xl">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
-            <div>
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{farcasterUser?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {myScore}</p>
-            </div>
-          </div>
-          
-          <div className="text-center">
-            <p className="text-gray-400 text-xs drop-shadow">Round</p>
-            <p className="text-white font-bold text-xl drop-shadow-lg">{gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <p className="text-white font-semibold text-sm drop-shadow-lg">{opponent?.username}</p>
-              <p className="text-gray-400 text-xs drop-shadow">Score: {opponentScore}</p>
-            </div>
-            {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-gray-700 ring-2 ring-gray-700" />
-            ) : (
-              <div className="w-10 h-10 rounded-full border-2 border-gray-700 bg-gray-800 flex items-center justify-center ring-2 ring-gray-700">
-                <span className="text-lg"></span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {renderGameHeader(false)}
 
       {/* Subject Result Animation */}
       <div className="flex-1 flex items-center justify-center px-4">
@@ -1605,59 +1539,7 @@ export default function Home() {
 
     return (
       <div className="min-h-screen flex flex-col p-4">
-        {/* Header */}
-        <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-5 mb-6 shadow-2xl max-w-5xl w-full mx-auto">
-          <div className="grid grid-cols-3 gap-4 items-center">
-            {/* Left: Your Profile */}
-            <div className="flex items-center gap-3">
-              {farcasterUser?.pfpUrl ? (
-                <img src={farcasterUser.pfpUrl} alt="You" className="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
-              ) : (
-                <div className="w-14 h-14 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
-                  <span className="text-lg">👤</span>
-                </div>
-              )}
-              <div className="min-w-0">
-                <p className="text-white font-bold text-sm truncate">{farcasterUser?.username}</p>
-                <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {myScore}</p>
-              </div>
-            </div>
-            
-            {/* Center: Round & Question Info */}
-            <div className="text-center">
-              <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-              <p className="text-white font-bold text-lg mb-2">Q {myProgress + 1}/5</p>
-              <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg">
-                {gameRoom?.currentSubject}
-              </span>
-            </div>
-            
-            {/* Right: Opponent Profile */}
-            <div className="flex items-center gap-3 justify-end">
-              <div className="text-right min-w-0">
-                <p className="text-white font-bold text-sm truncate">{opponent?.username}</p>
-                <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {opponentScore}</p>
-              </div>
-              {opponent?.pfpUrl ? (
-                <img src={opponent.pfpUrl} alt="Opponent" className="w-14 h-14 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
-              ) : (
-                <div className="w-14 h-14 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
-                  <span className="text-lg">👤</span>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          {/* Leave Game Button - Below */}
-          <div className="mt-3 text-right">
-            <button
-              onClick={leaveGame}
-              className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
-            >
-              Leave Game
-            </button>
-          </div>
-        </div>
+        {renderGameHeader(true)}
 
         {/* Question */}
         <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
@@ -1728,7 +1610,7 @@ export default function Home() {
                 buttonClass += " bg-gradient-to-br from-blue-500 via-blue-600 to-blue-500 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.4)]";
               } else if (hasAnswered) {
                 // Not selected, disabled
-                buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-600 cursor-not-allowed backdrop-blur-sm";
+                buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-600 pointer-events-none backdrop-blur-sm";
               } else {
                 // Not answered yet, hoverable
                 buttonClass += " bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-gray-700 text-white hover:border-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-95 cursor-pointer";
@@ -1737,12 +1619,12 @@ export default function Home() {
               return (
                 <button
                   key={index}
-                  onMouseDown={(e) => {
+                  onClick={(e) => {
                     if (!hasAnswered) {
                       submitAnswer(index);
-                      // Prevent focus completely
-                      e.preventDefault();
-                      (e.currentTarget as HTMLButtonElement).blur();
+                      // Remove focus and prevent hover
+                      e.currentTarget.blur();
+                      e.currentTarget.style.pointerEvents = 'none';
                     }
                   }}
                   disabled={hasAnswered}
