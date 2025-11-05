@@ -79,7 +79,7 @@ async function handleRoundOverAutoStart(roomId: string): Promise<void> {
   room.answers.clear();
   
   // Get 3 new random subjects for this round (excluding used ones)
-  const allSubjects = getSubjects();
+  const allSubjects = await getSubjects();
   const usedSubjectsArray = Array.from(room.usedSubjects || new Set<string>()) as string[];
   room.availableSubjectsForRound = getRandomSubjectsForRound(usedSubjectsArray, allSubjects, 3);
   
@@ -231,8 +231,9 @@ export async function getRemainingTime(roomId: string): Promise<number> {
 }
 
 // Helper: Get available subjects
-export function getSubjects(): string[] {
-  const subjects = new Set((questions as Question[]).map(q => q.subject));
+export async function getSubjects(): Promise<string[]> {
+  const dbQuestions = await getApprovedQuestions();
+  const subjects = new Set(dbQuestions.map(q => q.subject));
   return Array.from(subjects);
 }
 
@@ -322,8 +323,8 @@ function generateRoomId(): string {
 }
 
 // Helper: Get random subject
-function getRandomSubject(): string {
-  const subjects = getSubjects();
+async function getRandomSubject(): Promise<string> {
+  const subjects = await getSubjects();
   return subjects[Math.floor(Math.random() * subjects.length)];
 }
 
@@ -405,7 +406,7 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
 
     // Create game room
     const roomId = generateRoomId();
-    const allSubjects = getSubjects();
+    const allSubjects = await getSubjects();
     const availableSubjects = getRandomSubjectsForRound([], allSubjects, 3);
     
     const gameRoom: GameRoom = {
@@ -794,7 +795,7 @@ export async function startNextRound(playerId: string): Promise<{
   room.answers.clear();
   
   // Get 3 new random subjects for this round (excluding used ones)
-  const allSubjects = getSubjects();
+  const allSubjects = await getSubjects();
   const usedSubjectsArray = Array.from(room.usedSubjects || new Set<string>()) as string[];
   room.availableSubjectsForRound = getRandomSubjectsForRound(usedSubjectsArray, allSubjects, 3);
   
