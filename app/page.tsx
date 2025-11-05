@@ -727,9 +727,11 @@ export default function Home() {
       
       // Update countdown every second
       countdownIntervalRef.current = setInterval(() => {
+        console.log('[AutoReturn] 🔄 Interval callback executing...');
         timeLeft = timeLeft - 1;
-        console.log('[AutoReturn] Countdown tick:', timeLeft);
+        console.log('[AutoReturn] Countdown tick:', timeLeft, '(state will update to:', timeLeft, ')');
         setAutoReturnCountdown(timeLeft);
+        console.log('[AutoReturn] State update called with:', timeLeft);
         
         // When countdown reaches 0, return to home
         if (timeLeft <= 0) {
@@ -785,6 +787,8 @@ export default function Home() {
           }, 500);
         }
       }, 1000);
+      
+      console.log('[AutoReturn] ✓ setInterval created, ID:', countdownIntervalRef.current);
     } else {
       // Reset countdown when not in end state
       setAutoReturnCountdown(6);
