@@ -6,6 +6,7 @@ import type { PendingQuestion } from '@/lib/mongodb';
 
 // ADMIN FID - Replace this with your actual Farcaster ID
 const ADMIN_FID = 344203;
+const ADMIN_PASSWORD = 'Maryam8935@';
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState<PendingQuestion[]>([]);
@@ -57,14 +58,15 @@ export default function AdminDashboard() {
   };
 
   const handlePasswordSubmit = () => {
-    // Simple password check - use your FID as password
-    if (passwordInput === ADMIN_FID.toString()) {
+    // Check password
+    if (passwordInput === ADMIN_PASSWORD) {
       setUserFid(ADMIN_FID);
       setIsAuthenticated(true);
       setShowPasswordInput(false);
       localStorage.setItem('admin_fid', ADMIN_FID.toString());
     } else {
-      alert('Invalid admin code');
+      alert('Invalid password');
+      setPasswordInput('');
     }
   };
 
@@ -162,7 +164,7 @@ export default function AdminDashboard() {
 
           {/* Message */}
           <p className="text-gray-300 text-base mb-6">
-            Enter your admin code to continue
+            Enter your admin password to continue
           </p>
 
           {/* Password Input */}
@@ -171,8 +173,8 @@ export default function AdminDashboard() {
             value={passwordInput}
             onChange={(e) => setPasswordInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-            placeholder="Enter admin code"
-            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all mb-4 text-center"
+            placeholder="Enter password"
+            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all mb-4"
             autoFocus
           />
 
