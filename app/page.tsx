@@ -1187,79 +1187,87 @@ export default function Home() {
   const renderIdle = () => (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
       <div className="relative max-w-md w-full">
-        {/* Animated red glow effect */}
-        <div className="absolute -inset-4 bg-gradient-to-r from-red-600/20 via-red-500/20 to-red-600/20 rounded-[48px] blur-2xl animate-pulse"></div>
+        {/* Animated purple glow effect */}
+        <div className="absolute -inset-4 rounded-[48px] blur-2xl animate-pulse" style={{ background: 'radial-gradient(circle, rgba(106, 60, 255, 0.2), rgba(106, 60, 255, 0.1))' }}></div>
         
         {/* Main card with black/grey styling */}
-        <div className="relative bg-gradient-to-b from-black via-gray-950 to-black border-2 border-gray-800 rounded-[40px] shadow-[0_0_60px_rgba(239,68,68,0.3)] p-6">
-          {/* Decorative red glow elements */}
-          <div className="absolute top-4 right-4 w-16 h-16 bg-red-600/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-8 left-6 w-20 h-20 bg-red-700/10 rounded-full blur-2xl"></div>
+        <div className="relative bg-gradient-to-b from-black via-gray-950 to-black border-2 border-gray-800 rounded-[40px] p-6" style={{ boxShadow: '0 0 60px rgba(106, 60, 255, 0.3)' }}>
+          {/* Decorative purple glow elements */}
+          <div className="absolute top-4 right-4 w-16 h-16 rounded-full blur-2xl" style={{ backgroundColor: 'rgba(106, 60, 255, 0.1)' }}></div>
+          <div className="absolute bottom-8 left-6 w-20 h-20 rounded-full blur-2xl" style={{ backgroundColor: 'rgba(106, 60, 255, 0.15)' }}></div>
           
           {/* Profile Section - Vertical Layout */}
           <div className="flex flex-col items-center mb-6 relative">
             {/* Profile Avatar */}
             <div className="relative mb-4">
-              {/* Rotating red border effect */}
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-red-600 animate-spin-slow blur-md opacity-75" style={{ animationDuration: '3s' }}></div>
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 animate-spin-slow blur-sm" style={{ animationDuration: '4s', animationDirection: 'reverse' }}></div>
+              {/* Rotating purple border effect */}
+              <div className="absolute -inset-2 rounded-full animate-spin-slow blur-md opacity-75" style={{ animationDuration: '3s', background: 'linear-gradient(90deg, #6a3cff, #8a5cff, #6a3cff)' }}></div>
+              <div className="absolute -inset-1 rounded-full animate-spin-slow blur-sm" style={{ animationDuration: '4s', animationDirection: 'reverse', background: 'linear-gradient(90deg, #8a5cff, #6a3cff, #8a5cff)' }}></div>
               
               {farcasterUser?.pfpUrl ? (
                 <img 
                   src={farcasterUser.pfpUrl} 
                   alt="Profile" 
-                  className="relative w-32 h-32 rounded-full border-4 border-black shadow-[0_0_40px_rgba(239,68,68,0.6)] ring-4 ring-gray-900" 
+                  className="relative w-32 h-32 rounded-full border-4 border-black ring-4 ring-gray-900" 
+                  style={{ boxShadow: '0 0 40px rgba(106, 60, 255, 0.6)' }}
                 />
               ) : (
-                <div className="relative w-32 h-32 rounded-full border-4 border-black shadow-[0_0_40px_rgba(239,68,68,0.6)] bg-gradient-to-br from-gray-900 to-black flex items-center justify-center ring-4 ring-gray-900">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-600/30 to-red-800/30 animate-pulse"></div>
+                <div className="relative w-32 h-32 rounded-full border-4 border-black bg-gradient-to-br from-gray-900 to-black flex items-center justify-center ring-4 ring-gray-900" style={{ boxShadow: '0 0 40px rgba(106, 60, 255, 0.6)' }}>
+                  <div className="w-24 h-24 rounded-full animate-pulse" style={{ background: 'linear-gradient(135deg, rgba(106, 60, 255, 0.3), rgba(106, 60, 255, 0.5))' }}></div>
                 </div>
               )}
             </div>
             
-            {/* Username & Rank with red/white styling */}
-            <h2 className="text-2xl font-black text-white mb-2 text-center drop-shadow-[0_2px_15px_rgba(239,68,68,0.6)]">
+            {/* Username & Rank with purple/white styling */}
+            <h2 className="text-2xl font-black text-white mb-2 text-center" style={{ textShadow: '0 2px 15px rgba(106, 60, 255, 0.6)' }}>
               {farcasterUser?.username}
             </h2>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600/20 border border-red-600/40 mb-6">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
-              <span className="text-sm text-red-400 font-bold">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6" style={{ backgroundColor: 'rgba(106, 60, 255, 0.2)', border: '1px solid rgba(106, 60, 255, 0.4)' }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#6a3cff' }}></div>
+              <span className="text-sm font-bold" style={{ color: '#a78bff' }}>
                 Rank #{playerStats?.rank || '-'}
               </span>
             </div>
             
-            {/* Stats Cards - Black/Red theme */}
+            {/* Stats Cards - Black/Purple theme */}
             <div className="grid grid-cols-2 gap-4 w-full mb-6">
               {/* Points Card */}
-              <div className="bg-black border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
+              <div className="bg-black border-2 rounded-[20px] p-4 text-center" style={{ borderColor: 'rgba(106, 60, 255, 0.4)', boxShadow: '0 0 25px rgba(106, 60, 255, 0.4)' }}>
                 <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
                   Points
                 </div>
-                <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
+                <div className="text-3xl font-black text-white" style={{ textShadow: '0 2px 10px rgba(106, 60, 255, 0.5)' }}>
                   {formatScore(playerStats?.points || 0)}
                 </div>
               </div>
               
               {/* Wins Card */}
-              <div className="bg-black border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
+              <div className="bg-black border-2 rounded-[20px] p-4 text-center" style={{ borderColor: 'rgba(106, 60, 255, 0.4)', boxShadow: '0 0 25px rgba(106, 60, 255, 0.4)' }}>
                 <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
                   Wins
                 </div>
-                <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
+                <div className="text-3xl font-black text-white" style={{ textShadow: '0 2px 10px rgba(106, 60, 255, 0.5)' }}>
                   {playerStats?.wins || 0}
                 </div>
               </div>
             </div>
           </div>
         
-          {/* Action Buttons - Black/Red theme */}
+          {/* Action Buttons - Black/Purple theme */}
           <div className="space-y-3">
             {/* Primary Action - Find Match */}
             <button
               onClick={findMatch}
               className="group relative w-full transform transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
-              <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-[20px] px-6 py-4 border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)] hover:shadow-[0_0_40px_rgba(239,68,68,0.7)] transition-all">
+              <div className="rounded-[20px] px-6 py-4 border-2 transition-all" style={{ 
+                background: 'linear-gradient(90deg, #6a3cff, #7a4cff)', 
+                borderColor: '#6a3cff',
+                boxShadow: '0 0 30px rgba(106, 60, 255, 0.5)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 40px rgba(106, 60, 255, 0.7)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 0 30px rgba(106, 60, 255, 0.5)'}
+              >
                 <span className="text-lg font-bold text-white drop-shadow-lg">
                   Find Match
                 </span>
