@@ -2092,108 +2092,137 @@ export default function Home() {
 
   // Render Add Question Modal
   const renderAddQuestionModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-teal-900/30 border-2 border-gray-700/50 rounded-[32px] p-8 shadow-2xl max-w-2xl w-full animate-scale-in my-8">
-        {/* Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500/50 flex items-center justify-center shadow-lg">
-            <span className="text-5xl">📝</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-teal-900/30 border-2 border-gray-700/50 rounded-[24px] p-4 shadow-2xl max-w-lg w-full animate-scale-in max-h-[95vh] overflow-hidden flex flex-col">
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 mb-3">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500/50 flex items-center justify-center">
+              <span className="text-xl">📝</span>
+            </div>
+            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+              Add Question
+            </h2>
           </div>
         </div>
 
-        {/* Title */}
-        <h2 className="text-3xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 drop-shadow-lg">
-          Add Your Question
-        </h2>
-        <p className="text-gray-400 text-center mb-6 text-sm">Your question will be reviewed before being added to the game</p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2.5"  style={{scrollbarWidth: 'thin'}}>
 
-        {/* Subject Selection */}
-        <div className="mb-4">
-          <label className="text-white font-bold text-sm mb-2 block">Subject</label>
-          <select
-            value={newQuestion.subject}
-            onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
-            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all"
-          >
-            <option value="">Select a subject</option>
-            <option value="Movies">🎬 Movies</option>
-            <option value="TV Shows">📺 TV Shows</option>
-            <option value="Literature">📚 Literature</option>
-            <option value="Music">🎵 Music</option>
-            <option value="History">�️ History</option>
-            <option value="English">📖 English</option>
-            <option value="Technology">💻 Technology</option>
-            <option value="Science">🔬 Science</option>
-            <option value="Geography">🌍 Geography</option>
-            <option value="Culture">� Culture</option>
-            <option value="Games">🎮 Games</option>
-            <option value="General Information">🧠 General Information</option>
-            <option value="Sports">⚽ Sports</option>
-            <option value="Nature">🌿 Nature</option>
-            <option value="Math">🔢 Math</option>
-            <option value="Religion">🕉️ Religion</option>
-            <option value="Food & Drinks">🍕 Food & Drinks</option>
-            <option value="Crypto">₿ Crypto</option>
-          </select>
-        </div>
+          {/* Subject Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+              <span className="text-sm">📚</span>
+              Subject
+            </label>
+            <select
+              value={newQuestion.subject}
+              onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
+              className="w-full px-3 py-2 bg-gray-900/60 border-2 border-gray-700/70 rounded-xl text-sm text-white focus:border-emerald-500/70 focus:outline-none transition-all font-medium"
+              required
+            >
+              <option value="">Select a subject...</option>
+              <option value="Movies">🎬 Movies</option>
+              <option value="TV Shows">📺 TV Shows</option>
+              <option value="Literature">📚 Literature</option>
+              <option value="Music">🎵 Music</option>
+              <option value="History">🏛️ History</option>
+              <option value="English">� English</option>
+              <option value="Technology">💻 Technology</option>
+              <option value="Science">🔬 Science</option>
+              <option value="Geography">🌍 Geography</option>
+              <option value="Culture">🎭 Culture</option>
+              <option value="Games">🎮 Games</option>
+              <option value="General Information">📖 General Information</option>
+              <option value="Sports">⚽ Sports</option>
+              <option value="Nature">🌿 Nature</option>
+              <option value="Math">🔢 Math</option>
+              <option value="Religion">☪️ Religion</option>
+              <option value="Food & Drinks">🍕 Food & Drinks</option>
+              <option value="Crypto">₿ Crypto</option>
+            </select>
+          </div>
 
-        {/* Question Input */}
-        <div className="mb-4">
-          <label className="text-white font-bold text-sm mb-2 block">Question</label>
-          <textarea
-            value={newQuestion.question}
-            onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
-            placeholder="Enter your question..."
-            rows={3}
-            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all resize-none"
-          />
-        </div>
+          {/* Question Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+              <span className="text-sm">❓</span>
+              Question
+            </label>
+            <textarea
+              value={newQuestion.question}
+              onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+              placeholder="Enter your question..."
+              rows={2}
+              className="w-full px-3 py-2 bg-gray-900/60 border-2 border-gray-700/70 rounded-xl text-sm text-white focus:border-emerald-500/70 focus:outline-none transition-all font-medium resize-none"
+              required
+            />
+          </div>
 
-        {/* Answers Input */}
-        <div className="mb-4">
-          <label className="text-white font-bold text-sm mb-2 block">Answers (Select the correct one)</label>
-          <div className="space-y-2">
-            {newQuestion.answers.map((answer, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="correctAnswer"
-                  checked={newQuestion.correctAnswer === index}
-                  onChange={() => setNewQuestion({ ...newQuestion, correctAnswer: index })}
-                  className="w-5 h-5 accent-emerald-500"
-                />
+          {/* Answers Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5 mb-1">
+              <span className="text-sm">✍️</span>
+              Answers
+            </label>
+            <div className="space-y-1.5">
+              {/* Correct Answer - Green */}
+              <div className="flex items-center gap-1.5">
+                <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                  <span className="text-green-400 text-xs font-bold">✓</span>
+                </div>
                 <input
                   type="text"
-                  value={answer}
+                  value={newQuestion.answers[newQuestion.correctAnswer]}
                   onChange={(e) => {
                     const newAnswers = [...newQuestion.answers];
-                    newAnswers[index] = e.target.value;
+                    newAnswers[newQuestion.correctAnswer] = e.target.value;
                     setNewQuestion({ ...newQuestion, answers: newAnswers });
                   }}
-                  placeholder={`Answer ${index + 1}`}
-                  className="flex-1 px-4 py-2 rounded-[12px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all"
+                  placeholder="Correct answer"
+                  className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
                 />
               </div>
-            ))}
+
+              {/* Wrong Answers - Red */}
+              {newQuestion.answers.map((answer, index) => {
+                if (index === newQuestion.correctAnswer) return null;
+                return (
+                  <div key={index} className="flex items-center gap-1.5">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+                      <span className="text-red-400 text-xs font-bold">✕</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={answer}
+                      onChange={(e) => {
+                        const newAnswers = [...newQuestion.answers];
+                        newAnswers[index] = e.target.value;
+                        setNewQuestion({ ...newQuestion, answers: newAnswers });
+                      }}
+                      placeholder="Wrong answer"
+                      className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          {/* Cancel Button */}
+        {/* Footer - Fixed */}
+        <div className="flex-shrink-0 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-700/50">
           <button
             onClick={() => setShowAddQuestion(false)}
-            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-3 px-6 rounded-[20px] font-bold shadow-lg transition-all duration-300 hover:scale-105"
+            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105"
           >
             Cancel
           </button>
-
-          {/* Submit Button */}
           <button
             onClick={handleSubmitQuestion}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-6 rounded-[20px] font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-emerald-400/30"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-emerald-400/30"
           >
-            Submit Question
+            Submit
           </button>
         </div>
       </div>

@@ -236,6 +236,27 @@ export function getSubjects(): string[] {
   return Array.from(subjects);
 }
 
+// Helper: Shuffle answers for a question and update correctAnswer index
+function shuffleAnswers(question: Question): Question {
+  const shuffled = [...question.options];
+  const correctOption = question.options[question.correctAnswer];
+  
+  // Fisher-Yates shuffle algorithm
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  
+  // Find the new index of the correct answer
+  const newCorrectIndex = shuffled.indexOf(correctOption);
+  
+  return {
+    ...question,
+    options: shuffled,
+    correctAnswer: newCorrectIndex
+  };
+}
+
 // Helper: Get random questions for a subject (1 easy, 1 moderate, 1 hard)
 function getRandomQuestions(subject: string): Question[] {
   const subjectQuestions = (questions as Question[]).filter(q => q.subject === subject);
@@ -250,17 +271,17 @@ function getRandomQuestions(subject: string): Question[] {
   // Pick one random question from each difficulty
   if (easyQuestions.length > 0) {
     const randomEasy = easyQuestions[Math.floor(Math.random() * easyQuestions.length)];
-    selectedQuestions.push(randomEasy);
+    selectedQuestions.push(shuffleAnswers(randomEasy)); // Shuffle answers
   }
   
   if (moderateQuestions.length > 0) {
     const randomModerate = moderateQuestions[Math.floor(Math.random() * moderateQuestions.length)];
-    selectedQuestions.push(randomModerate);
+    selectedQuestions.push(shuffleAnswers(randomModerate)); // Shuffle answers
   }
   
   if (hardQuestions.length > 0) {
     const randomHard = hardQuestions[Math.floor(Math.random() * hardQuestions.length)];
-    selectedQuestions.push(randomHard);
+    selectedQuestions.push(shuffleAnswers(randomHard)); // Shuffle answers
   }
   
   // Shuffle the 3 questions so they're not always in easy->moderate->hard order
