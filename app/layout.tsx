@@ -12,9 +12,9 @@ const miniAppEmbed = {
       url: "https://quiz-alpha-flame.vercel.app",
       name: "Farcaster Quiz",
       splashImageUrl: "https://quiz-alpha-flame.vercel.app/icon.png",
-      splashBackgroundColor: "#1a1a2e"
-    }
-  }
+      splashBackgroundColor: "#000000",
+    },
+  },
 };
 
 // For backward compatibility
@@ -24,39 +24,41 @@ const frameEmbed = {
     ...miniAppEmbed.button,
     action: {
       ...miniAppEmbed.button.action,
-      type: "launch_frame"
-    }
-  }
+      type: "launch_frame",
+    },
+  },
 };
 
 export const metadata: Metadata = {
   title: "Farcaster Quiz",
   description: "Real-time multiplayer quiz game for Farcaster",
   manifest: "/manifest.json",
-  metadataBase: new URL('https://quiz-alpha-flame.vercel.app'),
+  metadataBase: new URL("https://quiz-alpha-flame.vercel.app"),
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
   openGraph: {
     title: "Farcaster Quiz",
     description: "Real-time multiplayer quiz game",
-    images: [{
-      url: '/og-image.png',
-      width: 1200,
-      height: 630,
-      alt: 'Farcaster Quiz',
-    }],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Farcaster Quiz",
+      },
+    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
     title: "Farcaster Quiz",
     description: "Real-time multiplayer quiz game",
-    images: ['/og-image.png'],
+    images: ["/og-image.png"],
   },
   other: {
-    'fc:miniapp': JSON.stringify(miniAppEmbed),
-    'fc:frame': JSON.stringify(frameEmbed),
+    "fc:miniapp": JSON.stringify(miniAppEmbed),
+    "fc:frame": JSON.stringify(frameEmbed),
   },
 };
 
@@ -78,7 +80,10 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#8a4fff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
       </head>
       <body>{children}</body>
     </html>
