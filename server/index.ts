@@ -15,8 +15,13 @@ async function loadQuestions(): Promise<Question[]> {
   try {
     const dbQuestions = await getApprovedQuestions();
     
+    console.log(`[Server] Loaded ${dbQuestions.length} questions from database`);
+    if (dbQuestions.length > 0) {
+      console.log('[Server] Sample question submittedBy:', dbQuestions[0].submittedBy);
+    }
+    
     // Convert DB format to Question format
-    return dbQuestions.map((q, index) => ({
+    const questions = dbQuestions.map((q, index) => ({
       id: q._id?.toString() || `q${index}`,
       subject: q.subject,
       difficulty: q.difficulty || 'moderate',
@@ -25,6 +30,10 @@ async function loadQuestions(): Promise<Question[]> {
       correctAnswer: q.correctAnswer,
       submittedBy: q.submittedBy,
     }));
+    
+    console.log('[Server] Sample converted question:', questions[0]);
+    
+    return questions;
   } catch (error) {
     console.error('Error loading questions from database:', error);
     return [];
@@ -167,6 +176,11 @@ function startQuestion(room: GameRoom) {
   room.answers.clear();
   
   const question = room.questions[room.currentQuestionIndex];
+  
+  console.log('[Server] Sending question to clients:', {
+    question: question.question,
+    submittedBy: question.submittedBy
+  });
   
   room.players.forEach(player => {
     io.to(player.socketId).emit('question', {

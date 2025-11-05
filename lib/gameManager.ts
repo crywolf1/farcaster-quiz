@@ -1,7 +1,7 @@
 // Game state manager with Redis persistence
-import questions from '@/data/questions.json';
 import { Player, GameRoom, Question } from './types';
 import * as storage from './storage';
+import { getApprovedQuestions } from './mongodb';
 
 // Timers can't be stored in Redis - keep in memory
 const playerTimerIds = new Map<string, NodeJS.Timeout>();
@@ -258,8 +258,22 @@ function shuffleAnswers(question: Question): Question {
 }
 
 // Helper: Get random questions for a subject (1 easy, 1 moderate, 1 hard)
-function getRandomQuestions(subject: string): Question[] {
-  const subjectQuestions = (questions as Question[]).filter(q => q.subject === subject);
+async function getRandomQuestions(subject: string): Promise<Question[]> {
+  // Load questions from database
+  const dbQuestions = await getApprovedQuestions();
+  
+  // Convert to Question format and filter by subject
+  const allQuestions: Question[] = dbQuestions.map((q, index) => ({
+    id: q._id?.toString() || `q${index}`,
+    subject: q.subject,
+    difficulty: q.difficulty || 'moderate',
+    question: q.question,
+    options: q.answers,
+    correctAnswer: q.correctAnswer,
+    submittedBy: q.submittedBy,
+  }));
+  
+  const subjectQuestions = allQuestions.filter(q => q.subject === subject);
   
   // Get one question from each difficulty level
   const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
@@ -322,7 +336,7 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
   
   // Pick random subject from available subjects for this round
   const randomSubject = room.availableSubjectsForRound[Math.floor(Math.random() * room.availableSubjectsForRound.length)];
-  const selectedQuestions = getRandomQuestions(randomSubject);
+  const selectedQuestions = await getRandomQuestions(randomSubject);
   
   // Mark subject as used
   room.usedSubjects.add(randomSubject);
@@ -526,7 +540,7 @@ export async function selectSubject(playerId: string, subject: string): Promise<
   }
 
   // Get questions (1 easy, 1 moderate, 1 hard)
-  const selectedQuestions = getRandomQuestions(subject);
+  const selectedQuestions = await getRandomQuestions(subject);
   
   // Mark subject as used
   room.usedSubjects.add(subject);
