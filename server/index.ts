@@ -8,7 +8,20 @@ import type {
   Question,
   MatchmakingQueue 
 } from '../lib/types';
-import questions from '../data/questions.json';
+import fs from 'fs';
+import path from 'path';
+
+// Function to dynamically load questions (so new questions are picked up without restart)
+function loadQuestions(): Question[] {
+  try {
+    const questionsPath = path.join(__dirname, '../data/questions.json');
+    const questionsData = fs.readFileSync(questionsPath, 'utf-8');
+    return JSON.parse(questionsData) as Question[];
+  } catch (error) {
+    console.error('Error loading questions:', error);
+    return [];
+  }
+}
 
 const httpServer = createServer();
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -32,13 +45,15 @@ function generateRoomId(): string {
 }
 
 function getAvailableSubjects(): string[] {
-  const subjectsSet = new Set((questions as Question[]).map(q => q.subject));
+  const questions = loadQuestions();
+  const subjectsSet = new Set(questions.map(q => q.subject));
   const subjects = Array.from(subjectsSet);
   return subjects;
 }
 
 function getQuestionsBySubject(subject: string): Question[] {
-  const subjectQuestions = (questions as Question[]).filter(q => q.subject === subject);
+  const questions = loadQuestions();
+  const subjectQuestions = questions.filter(q => q.subject === subject);
   
   // Get one question from each difficulty level
   const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
