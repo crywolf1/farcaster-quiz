@@ -1677,12 +1677,9 @@ export default function Home() {
               return (
                 <button
                   key={index}
-                  onClick={(e) => {
+                  onClick={() => {
                     if (!hasAnswered) {
                       submitAnswer(index);
-                      // Remove focus and prevent hover
-                      e.currentTarget.blur();
-                      e.currentTarget.style.pointerEvents = 'none';
                     }
                   }}
                   disabled={hasAnswered}
