@@ -2123,8 +2123,7 @@ export default function Home() {
       console.log('[SubmitQuestion] Response:', data);
 
       if (data.success) {
-        // Success! Close modal and reset
-        setShowAddQuestion(false);
+        // Success! Show message FIRST, then close modal
         alert('🎉 Thank you for adding a question! 1,000 points will be added to your account once your question is confirmed.');
         
         // Reset form
@@ -2139,6 +2138,9 @@ export default function Home() {
           question: '',
           answers: ['', '', '', '']
         });
+        
+        // Close modal after user sees message
+        setShowAddQuestion(false);
       } else {
         alert('❌ Error: ' + data.error);
       }
