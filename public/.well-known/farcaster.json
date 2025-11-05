@@ -12,6 +12,6 @@
     "imageUrl": "https://quiz-alpha-flame.vercel.app/icon.png",
     "buttonTitle": "Play Quiz",
     "splashImageUrl": "https://quiz-alpha-flame.vercel.app/icon.png",
-    "splashBackgroundColor": "#1a1a2e"
+    "splashBackgroundColor": "#000000"
   }
 }
