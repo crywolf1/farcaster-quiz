@@ -9,7 +9,7 @@
     "name": "Farcaster Quiz",
     "iconUrl": "https://quiz-alpha-flame.vercel.app/icon.png",
     "homeUrl": "https://quiz-alpha-flame.vercel.app",
-    "imageUrl": "https://quiz-alpha-flame.vercel.app/og-image.png",
+    "imageUrl": "https://quiz-alpha-flame.vercel.app/icon.png",
     "buttonTitle": "Play Quiz",
     "splashImageUrl": "https://quiz-alpha-flame.vercel.app/og-image.png",
     "splashBackgroundColor": "#1a1a2e"
