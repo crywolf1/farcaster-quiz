@@ -1284,45 +1284,44 @@ export default function Home() {
 
   // Unified Header Component
   const renderGameHeader = (showSubject = false) => (
-    <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-5 mb-6 shadow-2xl max-w-5xl w-full mx-auto">
-      <div className="grid grid-cols-3 gap-4 items-center">
+    <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[24px] p-4 mb-4 shadow-2xl max-w-5xl w-full mx-auto">
+      <div className="flex items-center justify-between gap-4">
         {/* Left: Your Profile */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           {farcasterUser?.pfpUrl ? (
-            <img src={farcasterUser.pfpUrl} alt="You" className="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
+            <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
           ) : (
-            <div className="w-14 h-14 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
-              <span className="text-lg">👤</span>
+            <div className="w-10 h-10 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-sm">👤</span>
             </div>
           )}
           <div className="min-w-0">
             <p className="text-white font-bold text-sm truncate">{farcasterUser?.username}</p>
-            <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {myScore}</p>
+            <p className="text-purple-400 text-xs font-bold">{myScore}</p>
           </div>
         </div>
         
-        {/* Center: Round Info */}
-        <div className="text-center">
-          <p className="text-gray-400 text-xs font-semibold mb-1">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
-          <p className="text-white font-bold text-lg">{showSubject ? `Q ${myProgress + 1}/5` : `Round ${gameRoom?.currentRound}`}</p>
+        {/* Center: Round & Subject Info */}
+        <div className="text-center flex-shrink-0">
+          <p className="text-white font-bold text-sm">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           {showSubject && gameRoom?.currentSubject && (
-            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg mt-2">
+            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-0.5 rounded-full text-xs font-bold shadow-lg mt-1">
               {gameRoom.currentSubject}
             </span>
           )}
         </div>
         
         {/* Right: Opponent Profile */}
-        <div className="flex items-center gap-3 justify-end">
+        <div className="flex items-center gap-2 justify-end flex-1 min-w-0">
           <div className="text-right min-w-0">
             <p className="text-white font-bold text-sm truncate">{opponent?.username}</p>
-            <p className="text-gray-400 text-xs font-semibold whitespace-nowrap">Score: {opponentScore}</p>
+            <p className="text-pink-400 text-xs font-bold">{opponentScore}</p>
           </div>
           {opponent?.pfpUrl ? (
-            <img src={opponent.pfpUrl} alt="Opponent" className="w-14 h-14 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
+            <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
           ) : (
-            <div className="w-14 h-14 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
-              <span className="text-lg">👤</span>
+            <div className="w-10 h-10 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+              <span className="text-sm">👤</span>
             </div>
           )}
         </div>
