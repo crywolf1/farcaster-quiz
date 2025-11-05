@@ -1630,9 +1630,15 @@ export default function Home() {
               <h3 className="text-white text-lg font-bold text-center leading-snug">
                 {currentQuestion.question}
               </h3>
-              {currentQuestion.submittedBy && (
+              {currentQuestion.submittedBy?.username && (
                 <p className="text-gray-500 text-[10px] text-center mt-1.5 opacity-70">
                   by @{currentQuestion.submittedBy.username}
+                </p>
+              )}
+              {/* Debug: Show if submittedBy exists */}
+              {!currentQuestion.submittedBy?.username && (
+                <p className="text-gray-500 text-[10px] text-center mt-1.5 opacity-70">
+                  Community Question
                 </p>
               )}
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
