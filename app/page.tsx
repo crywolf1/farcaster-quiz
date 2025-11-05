@@ -712,14 +712,18 @@ export default function Home() {
 
   // Auto-return to home after game ends or opponent leaves
   useEffect(() => {
-    console.log('[AutoReturn] Effect running - gameState:', gameState, 'opponentLeft:', opponentLeft);
-    console.log('[AutoReturn] - countdownStartedRef.current:', countdownStartedRef.current);
-    console.log('[AutoReturn] - Condition check: gameState === game-over?', gameState === 'game-over', '|| opponentLeft?', opponentLeft);
-    console.log('[AutoReturn] - Will start countdown?', (gameState === 'game-over' || opponentLeft));
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+    console.log(`[AutoReturn ${timestamp}] Effect running - gameState:`, gameState, 'opponentLeft:', opponentLeft);
+    console.log(`[AutoReturn ${timestamp}] - countdownStartedRef.current:`, countdownStartedRef.current);
+    console.log(`[AutoReturn ${timestamp}] - countdownIntervalRef.current:`, countdownIntervalRef.current);
+    console.log(`[AutoReturn ${timestamp}] - Condition check: gameState === game-over?`, gameState === 'game-over', '|| opponentLeft?', opponentLeft);
+    console.log(`[AutoReturn ${timestamp}] - Will start countdown?`, (gameState === 'game-over' || opponentLeft));
     
     // Start timer when game ends or opponent leaves (but only if not already started)
     if ((gameState === 'game-over' || opponentLeft) && !countdownStartedRef.current) {
-      console.log('[AutoReturn] ✓ Starting 6 second countdown (first time)');
+      const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+      console.log(`[AutoReturn ${timestamp}] ✓ Starting 6 second countdown (FIRST TIME)`);
+      console.log(`[AutoReturn ${timestamp}] Setting countdownStartedRef.current = true`);
       countdownStartedRef.current = true; // Mark countdown as started
       
       // Set initial countdown
