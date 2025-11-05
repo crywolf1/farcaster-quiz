@@ -90,6 +90,7 @@ export default function Home() {
     correctAnswer: 0,
   });
   const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false); // Track submission state
+  const [showQuestionSuccess, setShowQuestionSuccess] = useState(false); // Show success message after question submission
   const [fieldErrors, setFieldErrors] = useState({
     subject: '',
     question: '',
@@ -2123,9 +2124,6 @@ export default function Home() {
       console.log('[SubmitQuestion] Response:', data);
 
       if (data.success) {
-        // Success! Show message FIRST, then close modal
-        alert('🎉 Thank you for adding a question! 1,000 points will be added to your account once your question is confirmed.');
-        
         // Reset form
         setNewQuestion({
           subject: '',
@@ -2139,8 +2137,14 @@ export default function Home() {
           answers: ['', '', '', '']
         });
         
-        // Close modal after user sees message
+        // Close modal and show success message
         setShowAddQuestion(false);
+        setShowQuestionSuccess(true);
+        
+        // After 2 seconds, hide success message
+        setTimeout(() => {
+          setShowQuestionSuccess(false);
+        }, 2000);
       } else {
         alert('❌ Error: ' + data.error);
       }
@@ -2450,6 +2454,31 @@ export default function Home() {
     <>
       {mainContent}
       {showLeaderboard && renderLeaderboard()}
+      
+      {/* Question Submission Success Message */}
+      {showQuestionSuccess && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 border-4 border-emerald-300/50 rounded-[32px] p-8 shadow-[0_0_60px_rgba(16,185,129,0.6)] max-w-md w-full animate-scale-in">
+            {/* Success Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-24 h-24 rounded-full bg-white/20 border-4 border-white/50 flex items-center justify-center shadow-2xl animate-bounce">
+                <span className="text-6xl">✅</span>
+              </div>
+            </div>
+            
+            {/* Success Message */}
+            <h2 className="text-3xl font-black text-white text-center mb-4 drop-shadow-2xl">
+              Thank You!
+            </h2>
+            <p className="text-white text-lg text-center font-semibold drop-shadow-lg leading-relaxed">
+              Your question has been submitted successfully!
+            </p>
+            <p className="text-emerald-100 text-base text-center font-bold mt-4 drop-shadow">
+              🎁 1,000 points will be added once confirmed
+            </p>
+          </div>
+        </div>
+      )}
     </>
   );
 }
