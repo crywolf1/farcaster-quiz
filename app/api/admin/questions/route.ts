@@ -136,20 +136,12 @@ export async function POST(request: Request) {
         message: 'Question approved and added to the game! 1,000 points awarded to submitter.',
       });
     } else {
-      // Reject the question
-      await collection.updateOne(
-        { _id: new ObjectId(questionId) },
-        {
-          $set: {
-            status: 'rejected',
-            reviewedAt: new Date(),
-          },
-        }
-      );
+      // Reject the question - delete it from the database
+      await collection.deleteOne({ _id: new ObjectId(questionId) });
 
       return NextResponse.json({
         success: true,
-        message: 'Question rejected',
+        message: 'Question rejected and removed',
       });
     }
   } catch (error) {
