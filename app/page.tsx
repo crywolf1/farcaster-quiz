@@ -717,10 +717,13 @@ export default function Home() {
 
     // Start timer when game ends or opponent leaves
     if (gameState === 'game-over' || opponentLeft) {
-      console.log('[AutoReturn] Starting 6 second countdown to return home...');
+      console.log('[AutoReturn] ✓✓✓ STARTING COUNTDOWN ✓✓✓');
+      console.log('[AutoReturn] - gameState:', gameState);
+      console.log('[AutoReturn] - opponentLeft:', opponentLeft);
       
       // Reset countdown
       setAutoReturnCountdown(6);
+      console.log('[AutoReturn] - Set countdown to 6');
       
       // Start countdown display (updates every second)
       let count = 6;
@@ -2138,9 +2141,12 @@ export default function Home() {
             )}
           </div>
           
-          <p className="text-lg text-gray-300 mb-6">
-            Returning to home in <span className="text-2xl font-bold" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> seconds...
-          </p>
+          <div className="mb-6">
+            <p className="text-lg text-gray-300">
+              Returning to home in <span className="text-3xl font-black" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> {autoReturnCountdown === 1 ? 'second' : 'seconds'}...
+            </p>
+            <p className="text-xs text-gray-500 mt-2">(Countdown: {autoReturnCountdown})</p>
+          </div>
 
           <button
             onClick={async () => {
@@ -2745,12 +2751,15 @@ export default function Home() {
             <h2 className="text-4xl font-black text-white mb-4">
               Player Left
             </h2>
-            <p className="text-xl text-gray-300 mb-6">
+            <p className="text-2xl font-bold text-white mb-6">
               {disconnectMessage}
             </p>
-            <p className="text-lg text-gray-300 mb-4">
-              Returning to home in <span className="text-2xl font-bold" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> seconds...
-            </p>
+            <div className="mb-4">
+              <p className="text-xl text-gray-200">
+                Returning to home in <span className="text-4xl font-black" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> {autoReturnCountdown === 1 ? 'second' : 'seconds'}...
+              </p>
+              <p className="text-xs text-gray-400 mt-2">(Debug: {autoReturnCountdown})</p>
+            </div>
             <div className="mt-6 w-full bg-gray-700 rounded-full h-3 overflow-hidden">
               <div 
                 className="h-full transition-all duration-1000 ease-linear"
