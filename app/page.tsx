@@ -172,6 +172,12 @@ export default function Home() {
             console.log('[Polling] - currentPlayerId:', currentPlayerId);
             console.log('[Polling] - room.players:', room.players.map(p => ({ id: p.id, username: p.username })));
             
+            // Only find opponent if we have a valid currentPlayerId
+            if (!currentPlayerId) {
+              console.log('[Polling] ⚠️ Cannot determine opponent - currentPlayerId is empty');
+              return;
+            }
+            
             const opp = room.players.find(p => p.id !== currentPlayerId);
             console.log('[Polling] - opponent found:', opp ? { id: opp.id, username: opp.username } : 'NULL');
             console.log('[Polling] - current opponent state:', opponent ? { id: opponent.id, username: opponent.username } : 'NULL');
