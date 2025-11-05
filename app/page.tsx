@@ -2040,18 +2040,37 @@ export default function Home() {
   // Submit Question Handler
   const handleSubmitQuestion = async () => {
     // Validation
-    if (!newQuestion.subject || !newQuestion.question.trim()) {
-      alert('Please fill in subject and question');
+    if (!newQuestion.subject) {
+      alert('❌ Please select a subject');
       return;
     }
     
-    if (newQuestion.answers.some(a => !a.trim())) {
-      alert('Please fill in all 4 answers');
+    if (!newQuestion.question.trim()) {
+      alert('❌ Please enter a question');
+      return;
+    }
+    
+    if (newQuestion.question.trim().length > 150) {
+      alert('❌ Question is too long! Maximum 150 characters.\nCurrent: ' + newQuestion.question.trim().length);
+      return;
+    }
+    
+    // Check all answers are filled
+    const emptyAnswers = newQuestion.answers.filter(a => !a.trim());
+    if (emptyAnswers.length > 0) {
+      alert('❌ Please fill in all 4 answers');
+      return;
+    }
+    
+    // Check answer lengths
+    const longAnswers = newQuestion.answers.filter(a => a.trim().length > 60);
+    if (longAnswers.length > 0) {
+      alert('❌ One or more answers are too long! Maximum 60 characters per answer.');
       return;
     }
 
     if (!farcasterUser) {
-      alert('User information not available');
+      alert('❌ User information not available');
       return;
     }
 
@@ -2145,15 +2164,21 @@ export default function Home() {
 
           {/* Question Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
-              <span className="text-sm">❓</span>
-              Question
+            <label className="text-xs font-bold text-gray-300 flex items-center justify-between gap-1.5">
+              <span className="flex items-center gap-1.5">
+                <span className="text-sm">❓</span>
+                Question
+              </span>
+              <span className={`text-xs ${newQuestion.question.length > 150 ? 'text-red-400' : 'text-gray-500'}`}>
+                {newQuestion.question.length}/150
+              </span>
             </label>
             <textarea
               value={newQuestion.question}
               onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
               placeholder="Enter your question..."
               rows={2}
+              maxLength={150}
               className="w-full px-3 py-2 bg-gray-900/60 border-2 border-gray-700/70 rounded-xl text-sm text-white focus:border-emerald-500/70 focus:outline-none transition-all font-medium resize-none"
               required
             />
@@ -2164,6 +2189,7 @@ export default function Home() {
             <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5 mb-1">
               <span className="text-sm">✍️</span>
               Answers
+              <span className="text-xs text-gray-500 ml-auto">(max 60 chars each)</span>
             </label>
             <div className="space-y-1.5">
               {/* Correct Answer - Green */}
@@ -2180,7 +2206,9 @@ export default function Home() {
                     setNewQuestion({ ...newQuestion, answers: newAnswers });
                   }}
                   placeholder="Correct answer"
+                  maxLength={60}
                   className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
+                  required
                 />
               </div>
 
@@ -2201,7 +2229,9 @@ export default function Home() {
                         setNewQuestion({ ...newQuestion, answers: newAnswers });
                       }}
                       placeholder="Wrong answer"
+                      maxLength={60}
                       className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
+                      required
                     />
                   </div>
                 );
