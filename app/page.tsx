@@ -791,20 +791,26 @@ export default function Home() {
       }, 1000);
       
       console.log('[AutoReturn] ✓ setInterval created, ID:', countdownIntervalRef.current);
+      console.log('[AutoReturn] Waiting 1000ms for first tick...');
     } else {
       // Reset countdown when not in end state
+      console.log('[AutoReturn] Condition not met, resetting countdown to 6');
       setAutoReturnCountdown(6);
     }
 
     return () => {
+      console.log('[AutoReturn] 🧹 Cleanup function running - clearing intervals');
       if (autoReturnTimerRef.current) {
+        console.log('[AutoReturn] Clearing autoReturnTimerRef');
         clearTimeout(autoReturnTimerRef.current);
       }
       if (countdownIntervalRef.current) {
+        console.log('[AutoReturn] Clearing countdownIntervalRef:', countdownIntervalRef.current);
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [gameState, opponentLeft, farcasterUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState, opponentLeft]); // farcasterUser intentionally excluded - we only read it, don't need to re-run when it changes
 
   // Cleanup polling and feedback timeout on unmount
   useEffect(() => {
