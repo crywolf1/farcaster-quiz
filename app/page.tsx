@@ -1373,15 +1373,15 @@ export default function Home() {
         {/* Left: Your Profile */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {farcasterUser?.pfpUrl ? (
-            <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 border-purple-500 shadow-lg flex-shrink-0" />
+            <img src={farcasterUser.pfpUrl} alt="You" className="w-10 h-10 rounded-full border-2 shadow-lg flex-shrink-0" style={{ borderColor: '#6a3cff' }} />
           ) : (
-            <div className="w-10 h-10 rounded-full border-2 border-purple-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="w-10 h-10 rounded-full border-2 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0" style={{ borderColor: '#6a3cff' }}>
               <span className="text-sm">👤</span>
             </div>
           )}
           <div className="min-w-0">
             <p className="text-white font-bold text-sm truncate">{farcasterUser?.username}</p>
-            <p className="text-purple-400 text-xs font-bold">{myScore}</p>
+            <p className="text-xs font-bold" style={{ color: '#a78bff' }}>{myScore}</p>
           </div>
         </div>
         
@@ -1389,7 +1389,7 @@ export default function Home() {
         <div className="text-center flex-shrink-0">
           <p className="text-white font-bold text-sm">Round {gameRoom?.currentRound}/{gameRoom?.maxRounds}</p>
           {showSubject && gameRoom?.currentSubject && (
-            <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-0.5 rounded-full text-xs font-bold shadow-lg mt-1">
+            <span className="inline-block text-white px-3 py-0.5 rounded-full text-xs font-bold shadow-lg mt-1" style={{ background: 'linear-gradient(90deg, #6a3cff, #7a4cff)' }}>
               {gameRoom.currentSubject}
             </span>
           )}
@@ -1399,12 +1399,12 @@ export default function Home() {
         <div className="flex items-center gap-2 justify-end flex-1 min-w-0">
           <div className="text-right min-w-0">
             <p className="text-white font-bold text-sm truncate">{opponent?.username}</p>
-            <p className="text-pink-400 text-xs font-bold">{opponentScore}</p>
+            <p className="text-xs font-bold" style={{ color: '#a78bff' }}>{opponentScore}</p>
           </div>
           {opponent?.pfpUrl ? (
-            <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 border-pink-500 shadow-lg flex-shrink-0" />
+            <img src={opponent.pfpUrl} alt="Opponent" className="w-10 h-10 rounded-full border-2 shadow-lg flex-shrink-0" style={{ borderColor: '#6a3cff' }} />
           ) : (
-            <div className="w-10 h-10 rounded-full border-2 border-pink-500 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="w-10 h-10 rounded-full border-2 bg-gray-800 flex items-center justify-center shadow-lg flex-shrink-0" style={{ borderColor: '#6a3cff' }}>
               <span className="text-sm">👤</span>
             </div>
           )}
@@ -1890,9 +1890,18 @@ export default function Home() {
                 disabled={iAmReady}
                 className={`relative px-12 py-5 rounded-[32px] text-xl font-black shadow-2xl transition-all mb-6 border-2 overflow-hidden group ${
                   iAmReady 
-                    ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 text-black cursor-not-allowed border-yellow-300 shadow-[0_0_30px_rgba(234,179,8,0.5)]' 
-                    : 'bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)]'
+                    ? 'text-white cursor-not-allowed' 
+                    : 'text-white hover:scale-[1.05] active:scale-95'
                 }`}
+                style={iAmReady ? {
+                  background: 'linear-gradient(90deg, #6a3cff, #7a4cff)',
+                  borderColor: '#6a3cff',
+                  boxShadow: '0 0 30px rgba(106, 60, 255, 0.5)'
+                } : {
+                  background: 'linear-gradient(135deg, #6a3cff, #7a4cff)',
+                  borderColor: '#6a3cff',
+                  boxShadow: '0 0 40px rgba(106, 60, 255, 0.6)'
+                }}
               >
                 {!iAmReady && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
