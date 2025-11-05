@@ -1185,24 +1185,24 @@ export default function Home() {
   );
 
   const renderIdle = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
       <div className="relative max-w-md w-full">
-        {/* Animated glow effect matching game sections */}
-        <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 rounded-[48px] blur-2xl animate-pulse"></div>
+        {/* Animated glow effect - subtle purple only */}
+        <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/10 via-purple-600/10 to-purple-500/10 rounded-[48px] blur-2xl animate-pulse"></div>
         
         {/* Main card with game-like styling */}
         <div className="relative bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800 border-2 border-gray-700/50 rounded-[40px] shadow-2xl p-6 backdrop-blur-xl">
-          {/* Decorative elements */}
+          {/* Decorative elements - purple only */}
           <div className="absolute top-4 right-4 w-16 h-16 bg-purple-500/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-8 left-6 w-20 h-20 bg-pink-500/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-8 left-6 w-20 h-20 bg-purple-600/10 rounded-full blur-2xl"></div>
           
           {/* Profile Section - Vertical Layout */}
           <div className="flex flex-col items-center mb-6 relative">
             {/* Profile Avatar */}
             <div className="relative mb-4">
-              {/* Rotating border effect with multiple layers */}
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-spin-slow blur-md opacity-75" style={{ animationDuration: '3s' }}></div>
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 animate-spin-slow blur-sm" style={{ animationDuration: '4s', animationDirection: 'reverse' }}></div>
+              {/* Rotating border effect - purple only */}
+              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-500 animate-spin-slow blur-md opacity-75" style={{ animationDuration: '3s' }}></div>
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-purple-600 animate-spin-slow blur-sm" style={{ animationDuration: '4s', animationDirection: 'reverse' }}></div>
               
               {farcasterUser?.pfpUrl ? (
                 <img 
@@ -1221,23 +1221,23 @@ export default function Home() {
             <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-white mb-2 text-center drop-shadow-[0_2px_10px_rgba(168,85,247,0.5)]">
               {farcasterUser?.username}
             </h2>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-500/30 mb-6">
               <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></div>
               <span className="text-sm text-purple-300 font-bold">
                 Rank #{playerStats?.rank || '-'}
               </span>
             </div>
             
-            {/* Stats Cards - Horizontal with vibrant colors */}
+            {/* Stats Cards - Horizontal with purple theme */}
             <div className="grid grid-cols-2 gap-4 w-full mb-6">
               {/* Points Card */}
               <div className="relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-purple-600/20 rounded-[20px] blur-xl group-hover:blur-2xl transition-all"></div>
+                <div className="absolute inset-0 bg-purple-600/20 rounded-[20px] blur-xl group-hover:blur-2xl transition-all"></div>
                 <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-2 border-purple-500/30 rounded-[20px] p-4 shadow-[0_0_20px_rgba(168,85,247,0.3)] text-center backdrop-blur-sm">
                   <div className="text-xs text-purple-300 uppercase tracking-wider font-bold mb-2">
                     Points
                   </div>
-                  <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 drop-shadow-[0_2px_10px_rgba(168,85,247,0.5)]">
+                  <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-300 drop-shadow-[0_2px_10px_rgba(168,85,247,0.5)]">
                     {formatScore(playerStats?.points || 0)}
                   </div>
                 </div>
@@ -1245,12 +1245,12 @@ export default function Home() {
               
               {/* Wins Card */}
               <div className="relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-purple-600/20 to-pink-600/20 rounded-[20px] blur-xl group-hover:blur-2xl transition-all"></div>
-                <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-2 border-pink-500/30 rounded-[20px] p-4 shadow-[0_0_20px_rgba(236,72,153,0.3)] text-center backdrop-blur-sm">
-                  <div className="text-xs text-pink-300 uppercase tracking-wider font-bold mb-2">
+                <div className="absolute inset-0 bg-purple-600/20 rounded-[20px] blur-xl group-hover:blur-2xl transition-all"></div>
+                <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-2 border-purple-500/30 rounded-[20px] p-4 shadow-[0_0_20px_rgba(168,85,247,0.3)] text-center backdrop-blur-sm">
+                  <div className="text-xs text-purple-300 uppercase tracking-wider font-bold mb-2">
                     Wins
                   </div>
-                  <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-pink-400 drop-shadow-[0_2px_10px_rgba(236,72,153,0.5)]">
+                  <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-300 drop-shadow-[0_2px_10px_rgba(168,85,247,0.5)]">
                     {playerStats?.wins || 0}
                   </div>
                 </div>
@@ -1259,24 +1259,20 @@ export default function Home() {
           </div>
         
           {/* Action Buttons - Vertical Stack */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Primary Action - Find Match */}
             <button
               onClick={findMatch}
-              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
-              {/* Animated glowing background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-[24px] opacity-100 group-hover:opacity-90"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 rounded-[24px] blur-xl opacity-50 group-hover:opacity-70 transition-opacity"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-white/30 to-purple-500/0 -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
-              
-              {/* Sparkle effects */}
-              <div className="absolute top-4 right-6 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-              <div className="absolute bottom-5 left-8 w-1.5 h-1.5 bg-pink-200 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
+              {/* Animated glowing background - purple only */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-600 rounded-[20px]"></div>
+              <div className="absolute inset-0 bg-purple-500 rounded-[20px] blur-lg opacity-40 group-hover:opacity-50 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-white/20 to-purple-500/0 -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
               
               {/* Button content */}
-              <div className="relative px-8 py-6 rounded-[24px] border-2 border-white/20 shadow-[0_0_40px_rgba(168,85,247,0.5)] group-hover:shadow-[0_0_60px_rgba(168,85,247,0.8)] transition-all">
-                <span className="text-2xl font-black text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] tracking-wide">
+              <div className="relative px-6 py-4 rounded-[20px] border border-white/20 shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all">
+                <span className="text-lg font-bold text-white drop-shadow-lg">
                   Find Match
                 </span>
               </div>
@@ -1285,18 +1281,15 @@ export default function Home() {
             {/* Add Question */}
             <button
               onClick={() => setShowAddQuestion(true)}
-              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
               {/* Vibrant emerald gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-[24px]"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-[24px] blur-xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-[20px]"></div>
+              <div className="absolute inset-0 bg-emerald-500 rounded-[20px] blur-lg opacity-30 group-hover:opacity-40 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
               
-              {/* Sparkle */}
-              <div className="absolute top-5 right-8 w-1.5 h-1.5 bg-cyan-200 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse"></div>
-              
-              <div className="relative px-6 py-5 rounded-[24px] border-2 border-white/20 shadow-[0_0_30px_rgba(16,185,129,0.4)] group-hover:shadow-[0_0_50px_rgba(16,185,129,0.6)] transition-all">
-                <span className="text-lg font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] tracking-wide">
+              <div className="relative px-6 py-3.5 rounded-[20px] border border-white/20 shadow-[0_0_20px_rgba(16,185,129,0.3)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all">
+                <span className="text-base font-bold text-white drop-shadow-lg">
                   Add Question
                 </span>
               </div>
@@ -1305,18 +1298,15 @@ export default function Home() {
             {/* Leaderboard */}
             <button
               onClick={() => setShowLeaderboard(true)}
-              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative w-full overflow-hidden transform transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
               {/* Golden amber gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 rounded-[24px]"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400 rounded-[24px] blur-xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-600 to-orange-600 rounded-[20px]"></div>
+              <div className="absolute inset-0 bg-amber-500 rounded-[20px] blur-lg opacity-30 group-hover:opacity-40 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
               
-              {/* Sparkle */}
-              <div className="absolute bottom-5 left-6 w-1.5 h-1.5 bg-yellow-200 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
-              
-              <div className="relative px-6 py-5 rounded-[24px] border-2 border-white/20 shadow-[0_0_30px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_50px_rgba(245,158,11,0.6)] transition-all">
-                <span className="text-lg font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] tracking-wide">
+              <div className="relative px-6 py-3.5 rounded-[20px] border border-white/20 shadow-[0_0_20px_rgba(245,158,11,0.3)] group-hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] transition-all">
+                <span className="text-base font-bold text-white drop-shadow-lg">
                   Leaderboard
                 </span>
               </div>
