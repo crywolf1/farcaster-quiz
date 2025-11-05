@@ -1569,15 +1569,15 @@ export default function Home() {
     const bothAnswered = showingResults && lastResult !== null;
 
     return (
-      <div className="min-h-screen flex flex-col p-4">
+      <div className="min-h-screen flex flex-col p-4 overflow-hidden">
         {renderGameHeader(true)}
 
-        {/* Question */}
-        <div className="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto">
+        {/* Question - Compact Layout */}
+        <div className="flex-1 flex flex-col justify-center max-w-4xl w-full mx-auto py-2">
           {/* Progress Bar Timer */}
           {timerActiveQuestion && (
-            <div className="mb-6">
-              <div className="w-full bg-gray-800 rounded-full h-4 overflow-hidden shadow-2xl border-2 border-gray-700">
+            <div className="mb-3">
+              <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-2xl border-2 border-gray-700">
                 <div 
                   className={`h-full transition-all duration-100 ${
                     timeRemainingQuestion <= 5 ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' : 
@@ -1587,7 +1587,7 @@ export default function Home() {
                   style={{ width: `${(timeRemainingQuestion / 18) * 100}%` }}
                 ></div>
               </div>
-              <p className="text-center text-sm mt-2 font-semibold">
+              <p className="text-center text-xs mt-1 font-semibold">
                 <span className={`${
                   timeRemainingQuestion <= 5 ? 'text-red-400' : 
                   timeRemainingQuestion <= 10 ? 'text-yellow-400' : 
@@ -1599,26 +1599,26 @@ export default function Home() {
             </div>
           )}
           
-          {/* Question Card with 3D effect */}
-          <div className="relative mb-8 animate-[slideIn_0.5s_ease-out]">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-xl rounded-[40px]"></div>
-            <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[40px] p-8 shadow-2xl backdrop-blur-xl">
+          {/* Question Card - Compact */}
+          <div className="relative mb-4 animate-[slideIn_0.5s_ease-out]">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-xl rounded-[24px]"></div>
+            <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[24px] p-4 shadow-2xl backdrop-blur-xl">
               <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
-              <h3 className="text-white text-2xl font-bold text-center leading-relaxed">
+              <h3 className="text-white text-lg font-bold text-center leading-snug">
                 {currentQuestion.question}
               </h3>
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
             </div>
           </div>
 
-          {/* Answer Options with 3D styling */}
-          <div className="space-y-4">
+          {/* Answer Options - 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-3">
             {currentQuestion.options?.map((option, index) => {
               const isCorrect = index === currentQuestion.correctAnswer;
               const isMyAnswer = selectedAnswer === index;
               const showInstantFeedback = hasAnswered && answerFeedback && isMyAnswer;
               
-              let buttonClass = "group relative w-full py-5 px-6 rounded-[28px] font-bold text-left transition-all duration-500 shadow-xl overflow-hidden";
+              let buttonClass = "group relative w-full py-4 px-4 rounded-[20px] font-bold text-center transition-all duration-500 shadow-xl overflow-hidden h-24 flex items-center justify-center";
               
               if (bothAnswered && lastResult) {
                 // Show final results (both players answered)
@@ -1644,7 +1644,7 @@ export default function Home() {
                 buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-600 pointer-events-none backdrop-blur-sm";
               } else {
                 // Not answered yet, hoverable
-                buttonClass += " bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-gray-700 text-white hover:border-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-95 cursor-pointer";
+                buttonClass += " bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-gray-700 text-white hover:border-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:scale-[1.05] active:scale-95 cursor-pointer";
               }
 
               return (
@@ -1668,11 +1668,11 @@ export default function Home() {
                   )}
                   
                   {/* Content */}
-                  <span className="relative z-10 flex items-center justify-between">
-                    <span>{option}</span>
-                    {showInstantFeedback && answerFeedback === 'correct' && <span className="text-2xl">✓</span>}
-                    {showInstantFeedback && answerFeedback === 'incorrect' && <span className="text-2xl">✗</span>}
-                    {bothAnswered && isCorrect && <span className="text-2xl">✓</span>}
+                  <span className="relative z-10 flex items-center justify-center gap-2 text-sm leading-tight">
+                    <span className="line-clamp-3">{option}</span>
+                    {showInstantFeedback && answerFeedback === 'correct' && <span className="text-xl flex-shrink-0">✓</span>}
+                    {showInstantFeedback && answerFeedback === 'incorrect' && <span className="text-xl flex-shrink-0">✗</span>}
+                    {bothAnswered && isCorrect && <span className="text-xl flex-shrink-0">✓</span>}
                   </span>
                 </button>
               );
@@ -1680,13 +1680,13 @@ export default function Home() {
           </div>
 
           {bothAnswered && lastResult && (
-            <div className="mt-4 backdrop-blur-lg bg-gray-800 border border-gray-800 rounded-[28px] p-4 shadow-lg">
+            <div className="mt-3 backdrop-blur-lg bg-gray-800 border border-gray-800 rounded-[20px] p-3 shadow-lg">
               <div className="flex justify-between">
                 {lastResult.map((result: any) => (
                   <div key={result.playerId} className="text-center">
-                    <p className="text-white font-semibold">{result.username}</p>
-                    <p className="text-2xl">{result.correct ? '✓' : '✗'}</p>
-                    <p className="text-gray-300 text-sm">Score: {result.score}</p>
+                    <p className="text-white font-semibold text-sm">{result.username}</p>
+                    <p className="text-xl">{result.correct ? '✓' : '✗'}</p>
+                    <p className="text-gray-300 text-xs">Score: {result.score}</p>
                   </div>
                 ))}
               </div>
