@@ -8,17 +8,25 @@ import type {
   Question,
   MatchmakingQueue 
 } from '../lib/types';
-import fs from 'fs';
-import path from 'path';
+import { getApprovedQuestions } from '../lib/mongodb';
 
-// Function to dynamically load questions (so new questions are picked up without restart)
-function loadQuestions(): Question[] {
+// Function to dynamically load questions from MongoDB
+async function loadQuestions(): Promise<Question[]> {
   try {
-    const questionsPath = path.join(__dirname, '../data/questions.json');
-    const questionsData = fs.readFileSync(questionsPath, 'utf-8');
-    return JSON.parse(questionsData) as Question[];
+    const dbQuestions = await getApprovedQuestions();
+    
+    // Convert DB format to Question format
+    return dbQuestions.map((q, index) => ({
+      id: q._id?.toString() || `q${index}`,
+      subject: q.subject,
+      difficulty: q.difficulty || 'moderate',
+      question: q.question,
+      options: q.answers,
+      correctAnswer: q.correctAnswer,
+      submittedBy: q.submittedBy,
+    }));
   } catch (error) {
-    console.error('Error loading questions:', error);
+    console.error('Error loading questions from database:', error);
     return [];
   }
 }
@@ -44,15 +52,15 @@ function generateRoomId(): string {
   return `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function getAvailableSubjects(): string[] {
-  const questions = loadQuestions();
+async function getAvailableSubjects(): Promise<string[]> {
+  const questions = await loadQuestions();
   const subjectsSet = new Set(questions.map(q => q.subject));
   const subjects = Array.from(subjectsSet);
   return subjects;
 }
 
-function getQuestionsBySubject(subject: string): Question[] {
-  const questions = loadQuestions();
+async function getQuestionsBySubject(subject: string): Promise<Question[]> {
+  const questions = await loadQuestions();
   const subjectQuestions = questions.filter(q => q.subject === subject);
   
   // Get one question from each difficulty level
@@ -82,7 +90,7 @@ function getQuestionsBySubject(subject: string): Question[] {
   return selectedQuestions.sort(() => Math.random() - 0.5);
 }
 
-function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): GameRoom {
+async function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): Promise<GameRoom> {
   const roomId = generateRoomId();
   
   const players: [Player, Player] = [
@@ -106,7 +114,7 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
     }
   ];
 
-  const allSubjects = getAvailableSubjects();
+  const allSubjects = await getAvailableSubjects();
   const availableSubjects = allSubjects.sort(() => Math.random() - 0.5).slice(0, 3);
   
   const room: GameRoom = {
@@ -141,10 +149,10 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
   return room;
 }
 
-function startSubjectSelection(room: GameRoom) {
+async function startSubjectSelection(room: GameRoom) {
   room.state = 'subject-selection';
   const roundOwner = room.players[room.roundOwnerIndex];
-  const subjects = getAvailableSubjects();
+  const subjects = await getAvailableSubjects();
   
   io.to(roundOwner.socketId).emit('subject-selection-required', { subjects });
 }
@@ -235,14 +243,14 @@ function endRound(room: GameRoom) {
     setTimeout(() => endGame(room), 3000);
   } else {
     // Reset for next round
-    setTimeout(() => {
+    setTimeout(async () => {
       room.currentRound++;
       room.currentQuestionIndex = 0;
       room.questions = [];
       room.players.forEach(p => p.points = 0);
       
       // Get 3 new random subjects for this round (excluding used ones)
-      const allSubjects = getAvailableSubjects();
+      const allSubjects = await getAvailableSubjects();
       const usedSubjectsArray = Array.from(room.usedSubjects);
       const availableSubjects = allSubjects
         .filter(s => !usedSubjectsArray.includes(s))
@@ -250,7 +258,7 @@ function endRound(room: GameRoom) {
         .slice(0, 3);
       room.availableSubjectsForRound = availableSubjects.length > 0 ? availableSubjects : allSubjects.slice(0, 3);
       
-      startSubjectSelection(room);
+      await startSubjectSelection(room);
     }, 5000);
   }
 }
@@ -320,29 +328,31 @@ io.on('connection', (socket) => {
       const player1 = matchmakingQueue.shift()!;
       const player2 = matchmakingQueue.shift()!;
 
-      const room = createGameRoom(player1, player2);
-      
-      // Notify both players
-      io.to(player1.socketId).emit('match-found', {
-        roomId: room.id,
-        opponent: { id: player2.playerId, username: player2.username, pfpUrl: player2.pfpUrl, fid: player2.fid },
-        yourTurn: room.roundOwnerIndex === 0
-      });
+      createGameRoom(player1, player2).then(room => {
+        // Notify both players
+        io.to(player1.socketId).emit('match-found', {
+          roomId: room.id,
+          opponent: { id: player2.playerId, username: player2.username, pfpUrl: player2.pfpUrl, fid: player2.fid },
+          yourTurn: room.roundOwnerIndex === 0
+        });
 
-      io.to(player2.socketId).emit('match-found', {
-        roomId: room.id,
-        opponent: { id: player1.playerId, username: player1.username, pfpUrl: player1.pfpUrl, fid: player1.fid },
-        yourTurn: room.roundOwnerIndex === 1
-      });
+        io.to(player2.socketId).emit('match-found', {
+          roomId: room.id,
+          opponent: { id: player1.playerId, username: player1.username, pfpUrl: player1.pfpUrl, fid: player1.fid },
+          yourTurn: room.roundOwnerIndex === 1
+        });
 
-      console.log(`Match created: ${room.id}`);
-      
-      // Start subject selection
-      setTimeout(() => startSubjectSelection(room), 2000);
+        console.log(`Match created: ${room.id}`);
+        
+        // Start subject selection
+        setTimeout(() => startSubjectSelection(room), 2000);
+      }).catch(error => {
+        console.error('Error creating game room:', error);
+      });
     }
   });
 
-  socket.on('select-subject', ({ roomId, subject }) => {
+  socket.on('select-subject', async ({ roomId, subject }) => {
     const room = gameRooms.get(roomId);
     if (!room) {
       socket.emit('error', { message: 'Room not found' });
@@ -362,7 +372,7 @@ io.on('connection', (socket) => {
     }
 
     room.currentSubject = subject;
-    room.questions = getQuestionsBySubject(subject);
+    room.questions = await getQuestionsBySubject(subject);
     room.currentQuestionIndex = 0;
     room.usedSubjects.add(subject);
 

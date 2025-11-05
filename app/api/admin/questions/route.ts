@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPendingQuestionsCollection, updatePlayerScore } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
-import fs from 'fs/promises';
-import path from 'path';
 
 // ADMIN FID - Replace this with your actual Farcaster ID
 const ADMIN_FID = 344203;
@@ -81,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     if (action === 'approve') {
-      // Update status to approved
+      // Update status to approved in database
       await collection.updateOne(
         { _id: new ObjectId(questionId) },
         {
@@ -91,36 +89,6 @@ export async function POST(request: Request) {
           },
         }
       );
-
-      // Add to questions.json
-      const questionsPath = path.join(process.cwd(), 'data', 'questions.json');
-      const questionsData = await fs.readFile(questionsPath, 'utf-8');
-      const questionsArray = JSON.parse(questionsData);
-
-      // Generate a new ID
-      const existingIds = questionsArray.map((q: any) => q.id);
-      const maxId = existingIds.reduce((max: number, id: string) => {
-        const num = parseInt(id.substring(1));
-        return num > max ? num : max;
-      }, 0);
-      const newId = `q${maxId + 1}`;
-
-      // Add the question to the array
-      questionsArray.push({
-        id: newId,
-        subject: question.subject,
-        difficulty: 'moderate', // User-submitted questions default to moderate
-        question: question.question,
-        options: question.answers,
-        correctAnswer: question.correctAnswer,
-        submittedBy: {
-          username: question.submittedBy.username,
-          fid: question.submittedBy.fid,
-        },
-      });
-
-      // Write back to file
-      await fs.writeFile(questionsPath, JSON.stringify(questionsArray, null, 2));
 
       // Award 1000 points to the question submitter
       await updatePlayerScore(

@@ -17,6 +17,7 @@ export interface LeaderboardEntry {
 export interface PendingQuestion {
   _id?: any;
   subject: string;
+  difficulty?: 'easy' | 'moderate' | 'hard';
   question: string;
   answers: string[];
   correctAnswer: number;
@@ -57,6 +58,12 @@ export async function getLeaderboardCollection(): Promise<Collection<Leaderboard
 export async function getPendingQuestionsCollection(): Promise<Collection<PendingQuestion>> {
   const { db } = await connectToDatabase();
   return db.collection<PendingQuestion>('pendingQuestions');
+}
+
+// Get all approved questions from database
+export async function getApprovedQuestions(): Promise<PendingQuestion[]> {
+  const collection = await getPendingQuestionsCollection();
+  return await collection.find({ status: 'approved' }).toArray();
 }
 
 export async function updatePlayerScore(
