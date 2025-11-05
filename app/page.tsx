@@ -2408,35 +2408,46 @@ export default function Home() {
     return renderLeaveConfirmation();
   }
 
-  // Show leaderboard modal
-  if (showLeaderboard) {
-    return renderLeaderboard();
-  }
-
   // Show subject result animation if flag is set (overrides other states)
   if (showSubjectResult && gameRoom?.currentSubject) {
     return renderSubjectResult();
   }
 
   // Main game render
+  let mainContent;
   switch (gameState) {
     case 'idle':
-      return renderIdle();
+      mainContent = renderIdle();
+      break;
     case 'searching':
-      return renderSearching();
+      mainContent = renderSearching();
+      break;
     case 'matched':
-      return renderMatched();
+      mainContent = renderMatched();
+      break;
     case 'subject-selection':
-      return renderSubjectSelection();
+      mainContent = renderSubjectSelection();
+      break;
     case 'waiting-subject':
-      return renderWaitingSubject();
+      mainContent = renderWaitingSubject();
+      break;
     case 'playing':
-      return renderPlaying();
+      mainContent = renderPlaying();
+      break;
     case 'round-result':
-      return renderRoundResult();
+      mainContent = renderRoundResult();
+      break;
     case 'game-over':
-      return renderGameOver();
+      mainContent = renderGameOver();
+      break;
     default:
-      return renderIdle();
+      mainContent = renderIdle();
   }
+
+  return (
+    <>
+      {mainContent}
+      {showLeaderboard && renderLeaderboard()}
+    </>
+  );
 }
