@@ -89,6 +89,8 @@ export default function Home() {
     answers: ['', '', '', ''],
     correctAnswer: 0,
   });
+  const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false); // Track submission state
+  const [questionFormError, setQuestionFormError] = useState<string>(''); // Show validation errors
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -2039,40 +2041,53 @@ export default function Home() {
 
   // Submit Question Handler
   const handleSubmitQuestion = async () => {
+    // Prevent double submission
+    if (isSubmittingQuestion) {
+      console.log('[SubmitQuestion] Already submitting, ignoring duplicate click');
+      return;
+    }
+
+    // Clear previous errors
+    setQuestionFormError('');
+
     // Validation
     if (!newQuestion.subject) {
-      alert('❌ Please select a subject');
+      setQuestionFormError('❌ Please select a subject');
       return;
     }
     
     if (!newQuestion.question.trim()) {
-      alert('❌ Please enter a question');
+      setQuestionFormError('❌ Please enter a question');
       return;
     }
     
     if (newQuestion.question.trim().length > 150) {
-      alert('❌ Question is too long! Maximum 150 characters.\nCurrent: ' + newQuestion.question.trim().length);
+      setQuestionFormError(`❌ Question is too long! Maximum 150 characters. Current: ${newQuestion.question.trim().length}`);
       return;
     }
     
     // Check all answers are filled
     const emptyAnswers = newQuestion.answers.filter(a => !a.trim());
     if (emptyAnswers.length > 0) {
-      alert('❌ Please fill in all 4 answers');
+      setQuestionFormError('❌ Please fill in all 4 answers');
       return;
     }
     
     // Check answer lengths
     const longAnswers = newQuestion.answers.filter(a => a.trim().length > 60);
     if (longAnswers.length > 0) {
-      alert('❌ One or more answers are too long! Maximum 60 characters per answer.');
+      setQuestionFormError('❌ One or more answers are too long! Maximum 60 characters per answer.');
       return;
     }
 
     if (!farcasterUser) {
-      alert('❌ User information not available');
+      setQuestionFormError('❌ User information not available');
       return;
     }
+
+    // Set submitting state
+    setIsSubmittingQuestion(true);
+    console.log('[SubmitQuestion] Starting submission...');
 
     try {
       const response = await fetch('/api/submit-question', {
@@ -2090,9 +2105,13 @@ export default function Home() {
 
       const data = await response.json();
       
+      console.log('[SubmitQuestion] Response:', data);
+
       if (data.success) {
-        alert(data.message);
+        // Success! Close modal and reset
         setShowAddQuestion(false);
+        alert('✅ ' + data.message);
+        
         // Reset form
         setNewQuestion({
           subject: '',
@@ -2100,12 +2119,17 @@ export default function Home() {
           answers: ['', '', '', ''],
           correctAnswer: 0,
         });
+        setQuestionFormError('');
       } else {
-        alert('Error: ' + data.error);
+        setQuestionFormError('❌ Error: ' + data.error);
       }
     } catch (error) {
-      console.error('Error submitting question:', error);
-      alert('Failed to submit question');
+      console.error('[SubmitQuestion] Error:', error);
+      setQuestionFormError('❌ Failed to submit question. Please try again.');
+    } finally {
+      // Always reset submitting state
+      setIsSubmittingQuestion(false);
+      console.log('[SubmitQuestion] Submission complete');
     }
   };
 
@@ -2240,19 +2264,39 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {questionFormError && (
+          <div className="flex-shrink-0 mt-3 p-3 bg-red-500/20 border-2 border-red-500/50 rounded-xl animate-shake">
+            <p className="text-red-400 text-sm font-semibold text-center">{questionFormError}</p>
+          </div>
+        )}
+
         {/* Footer - Fixed */}
         <div className="flex-shrink-0 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-700/50">
           <button
-            onClick={() => setShowAddQuestion(false)}
-            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105"
+            onClick={() => {
+              setShowAddQuestion(false);
+              setQuestionFormError('');
+              setIsSubmittingQuestion(false);
+            }}
+            disabled={isSubmittingQuestion}
+            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmitQuestion}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-emerald-400/30"
+            disabled={isSubmittingQuestion}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            Submit
+            {isSubmittingQuestion ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                Submitting...
+              </span>
+            ) : (
+              'Submit'
+            )}
           </button>
         </div>
       </div>
