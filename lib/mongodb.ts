@@ -14,6 +14,22 @@ export interface LeaderboardEntry {
   lastPlayed: Date;
 }
 
+export interface PendingQuestion {
+  _id?: any;
+  subject: string;
+  question: string;
+  answers: string[];
+  correctAnswer: number;
+  submittedBy: {
+    fid: string;
+    username: string;
+    pfpUrl: string;
+  };
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: Date;
+  reviewedAt?: Date;
+}
+
 async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
@@ -36,6 +52,11 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
 export async function getLeaderboardCollection(): Promise<Collection<LeaderboardEntry>> {
   const { db } = await connectToDatabase();
   return db.collection<LeaderboardEntry>('leaderboard');
+}
+
+export async function getPendingQuestionsCollection(): Promise<Collection<PendingQuestion>> {
+  const { db } = await connectToDatabase();
+  return db.collection<PendingQuestion>('pendingQuestions');
 }
 
 export async function updatePlayerScore(

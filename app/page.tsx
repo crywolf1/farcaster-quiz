@@ -82,6 +82,13 @@ export default function Home() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [playerStats, setPlayerStats] = useState<{ score: number; rank: number; wins: number; losses: number } | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Show leave game confirmation modal
+  const [showAddQuestion, setShowAddQuestion] = useState(false); // Show add question modal
+  const [newQuestion, setNewQuestion] = useState({
+    subject: '',
+    question: '',
+    answers: ['', '', '', ''],
+    correctAnswer: 0,
+  });
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -1200,6 +1207,14 @@ export default function Home() {
           </div>
         </div>
         
+        {/* Add Question Button */}
+        <button
+          onClick={() => setShowAddQuestion(true)}
+          className="w-full px-6 py-3 rounded-[20px] text-sm font-bold shadow-lg transition-all mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 border-2 border-emerald-500/50 hover:shadow-[0_10px_40px_rgba(16,185,129,0.4)]"
+        >
+          ➕ Add Your Question
+        </button>
+        
         {/* Find Match Button - Professional Style */}
         <button
           onClick={findMatch}
@@ -2022,6 +2037,158 @@ export default function Home() {
     </div>
   );
 
+  // Submit Question Handler
+  const handleSubmitQuestion = async () => {
+    // Validation
+    if (!newQuestion.subject || !newQuestion.question.trim()) {
+      alert('Please fill in subject and question');
+      return;
+    }
+    
+    if (newQuestion.answers.some(a => !a.trim())) {
+      alert('Please fill in all 4 answers');
+      return;
+    }
+
+    if (!farcasterUser) {
+      alert('User information not available');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/submit-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newQuestion,
+          submittedBy: {
+            fid: farcasterUser.fid.toString(),
+            username: farcasterUser.username,
+            pfpUrl: farcasterUser.pfpUrl,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(data.message);
+        setShowAddQuestion(false);
+        // Reset form
+        setNewQuestion({
+          subject: '',
+          question: '',
+          answers: ['', '', '', ''],
+          correctAnswer: 0,
+        });
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error submitting question:', error);
+      alert('Failed to submit question');
+    }
+  };
+
+  // Render Add Question Modal
+  const renderAddQuestionModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-teal-900/30 border-2 border-gray-700/50 rounded-[32px] p-8 shadow-2xl max-w-2xl w-full animate-scale-in my-8">
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500/50 flex items-center justify-center shadow-lg">
+            <span className="text-5xl">📝</span>
+          </div>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-3xl font-black text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 drop-shadow-lg">
+          Add Your Question
+        </h2>
+        <p className="text-gray-400 text-center mb-6 text-sm">Your question will be reviewed before being added to the game</p>
+
+        {/* Subject Selection */}
+        <div className="mb-4">
+          <label className="text-white font-bold text-sm mb-2 block">Subject</label>
+          <select
+            value={newQuestion.subject}
+            onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
+            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all"
+          >
+            <option value="">Select a subject</option>
+            <option value="Science">🔬 Science</option>
+            <option value="History">📚 History</option>
+            <option value="Geography">🌍 Geography</option>
+            <option value="Sports">⚽ Sports</option>
+            <option value="Technology">💻 Technology</option>
+            <option value="Entertainment">🎬 Entertainment</option>
+            <option value="General Knowledge">🧠 General Knowledge</option>
+          </select>
+        </div>
+
+        {/* Question Input */}
+        <div className="mb-4">
+          <label className="text-white font-bold text-sm mb-2 block">Question</label>
+          <textarea
+            value={newQuestion.question}
+            onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
+            placeholder="Enter your question..."
+            rows={3}
+            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all resize-none"
+          />
+        </div>
+
+        {/* Answers Input */}
+        <div className="mb-4">
+          <label className="text-white font-bold text-sm mb-2 block">Answers (Select the correct one)</label>
+          <div className="space-y-2">
+            {newQuestion.answers.map((answer, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="correctAnswer"
+                  checked={newQuestion.correctAnswer === index}
+                  onChange={() => setNewQuestion({ ...newQuestion, correctAnswer: index })}
+                  className="w-5 h-5 accent-emerald-500"
+                />
+                <input
+                  type="text"
+                  value={answer}
+                  onChange={(e) => {
+                    const newAnswers = [...newQuestion.answers];
+                    newAnswers[index] = e.target.value;
+                    setNewQuestion({ ...newQuestion, answers: newAnswers });
+                  }}
+                  placeholder={`Answer ${index + 1}`}
+                  className="flex-1 px-4 py-2 rounded-[12px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          {/* Cancel Button */}
+          <button
+            onClick={() => setShowAddQuestion(false)}
+            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-3 px-6 rounded-[20px] font-bold shadow-lg transition-all duration-300 hover:scale-105"
+          >
+            Cancel
+          </button>
+
+          {/* Submit Button */}
+          <button
+            onClick={handleSubmitQuestion}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3 px-6 rounded-[20px] font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-emerald-400/30"
+          >
+            Submit Question
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // Render Leave Confirmation Modal
   const renderLeaveConfirmation = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -2071,6 +2238,11 @@ export default function Home() {
   // Main render - show loading until ready
   if (!isReady) {
     return renderLoading();
+  }
+
+  // Show add question modal
+  if (showAddQuestion) {
+    return renderAddQuestionModal();
   }
 
   // Show leave confirmation modal
