@@ -1186,65 +1186,64 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="relative max-w-2xl w-full">
+      <div className="relative max-w-md w-full">
         {/* Animated glow effect matching game sections */}
         <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 rounded-[48px] blur-2xl animate-pulse"></div>
         
         {/* Main card with game-like styling */}
-        <div className="relative bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8 backdrop-blur-xl">
-          {/* Profile Section */}
-          <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-gray-800">
-            {/* Points Card - Left */}
-            <div className="flex-1 text-center">
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-[24px] p-4 shadow-lg">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">
+        <div className="relative bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-6 backdrop-blur-xl">
+          {/* Profile Section - Vertical Layout */}
+          <div className="flex flex-col items-center mb-6">
+            {/* Profile Avatar */}
+            <div className="relative mb-4">
+              {/* Rotating border effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-spin-slow blur-sm" style={{ animationDuration: '3s' }}></div>
+              
+              {farcasterUser?.pfpUrl ? (
+                <img 
+                  src={farcasterUser.pfpUrl} 
+                  alt="Profile" 
+                  className="relative w-28 h-28 rounded-full border-4 border-gray-900 shadow-2xl ring-4 ring-gray-800" 
+                />
+              ) : (
+                <div className="relative w-28 h-28 rounded-full border-4 border-gray-900 shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ring-4 ring-gray-800">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Username & Rank */}
+            <h2 className="text-2xl font-black text-white mb-1 text-center drop-shadow-lg">{farcasterUser?.username}</h2>
+            <div className="text-sm text-gray-400 font-semibold mb-6">
+              Rank #{playerStats?.rank || '-'}
+            </div>
+            
+            {/* Stats Cards - Horizontal */}
+            <div className="grid grid-cols-2 gap-3 w-full mb-6">
+              {/* Points Card */}
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-[20px] p-4 shadow-lg text-center">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
                   Points
                 </div>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-lg">
+                <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-lg">
                   {formatScore(playerStats?.points || 0)}
                 </div>
               </div>
-            </div>
-            
-            {/* Profile - Center */}
-            <div className="flex flex-col items-center px-6">
-              <div className="relative mb-3">
-                {/* Rotating border effect */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 animate-spin-slow blur-sm" style={{ animationDuration: '3s' }}></div>
-                
-                {farcasterUser?.pfpUrl ? (
-                  <img 
-                    src={farcasterUser.pfpUrl} 
-                    alt="Profile" 
-                    className="relative w-24 h-24 rounded-full border-4 border-gray-900 shadow-2xl ring-4 ring-gray-800" 
-                  />
-                ) : (
-                  <div className="relative w-24 h-24 rounded-full border-4 border-gray-900 shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ring-4 ring-gray-800">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20"></div>
-                  </div>
-                )}
-              </div>
-              <h2 className="text-xl font-bold text-white mb-1 text-center drop-shadow-lg">{farcasterUser?.username}</h2>
-              <div className="text-sm text-gray-400 font-semibold">
-                Rank #{playerStats?.rank || '-'}
-              </div>
-            </div>
-            
-            {/* Wins Card - Right */}
-            <div className="flex-1 text-center">
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-[24px] p-4 shadow-lg">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">
+              
+              {/* Wins Card */}
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-gray-700 rounded-[20px] p-4 shadow-lg text-center">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
                   Wins
                 </div>
-                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-lg">
+                <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-lg">
                   {playerStats?.wins || 0}
                 </div>
               </div>
             </div>
           </div>
         
-          {/* Action Buttons */}
-          <div className="space-y-3">
+          {/* Action Buttons - Vertical Stack */}
+          <div className="space-y-4">
             {/* Primary Action - Find Match */}
             <button
               onClick={findMatch}
@@ -1262,38 +1261,35 @@ export default function Home() {
               </div>
             </button>
             
-            {/* Secondary Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Add Question */}
-              <button
-                onClick={() => setShowAddQuestion(true)}
-                className="group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[20px]"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
-                
-                <div className="relative px-6 py-4 rounded-[20px] border-2 border-gray-700 shadow-lg group-hover:border-gray-600 transition-all">
-                  <span className="text-sm font-bold text-white drop-shadow">
-                    Add Question
-                  </span>
-                </div>
-              </button>
+            {/* Add Question */}
+            <button
+              onClick={() => setShowAddQuestion(true)}
+              className="group relative w-full overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[24px]"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
               
-              {/* Leaderboard */}
-              <button
-                onClick={() => setShowLeaderboard(true)}
-                className="group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[20px]"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
-                
-                <div className="relative px-6 py-4 rounded-[20px] border-2 border-gray-700 shadow-lg group-hover:border-gray-600 transition-all">
-                  <span className="text-sm font-bold text-white drop-shadow">
-                    Leaderboard
-                  </span>
-                </div>
-              </button>
-            </div>
+              <div className="relative px-6 py-5 rounded-[24px] border-2 border-gray-700 shadow-lg group-hover:border-gray-600 transition-all">
+                <span className="text-lg font-bold text-white drop-shadow">
+                  Add Question
+                </span>
+              </div>
+            </button>
+            
+            {/* Leaderboard */}
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="group relative w-full overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-[24px]"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] transition-opacity"></div>
+              
+              <div className="relative px-6 py-5 rounded-[24px] border-2 border-gray-700 shadow-lg group-hover:border-gray-600 transition-all">
+                <span className="text-lg font-bold text-white drop-shadow">
+                  Leaderboard
+                </span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
