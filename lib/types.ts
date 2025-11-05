@@ -7,6 +7,10 @@ export interface Question {
   question: string;
   options: string[];
   correctAnswer: number; // Index of correct option (0-3)
+  submittedBy?: {
+    username: string;
+    fid: string;
+  };
 }
 
 export interface Player {

@@ -1629,6 +1629,11 @@ export default function Home() {
               <h3 className="text-white text-lg font-bold text-center leading-snug">
                 {currentQuestion.question}
               </h3>
+              {currentQuestion.submittedBy && (
+                <p className="text-gray-400 text-xs text-center mt-2 italic">
+                  Question by @{currentQuestion.submittedBy.username}
+                </p>
+              )}
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
             </div>
           </div>

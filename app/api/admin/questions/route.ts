@@ -108,11 +108,15 @@ export async function POST(request: Request) {
         questionsJson.subjects.push(subjectData);
       }
 
-      // Add the question
+      // Add the question with submitter info
       subjectData.questions.push({
         question: question.question,
         answers: question.answers,
         correctAnswer: question.correctAnswer,
+        submittedBy: {
+          username: question.submittedBy.username,
+          fid: question.submittedBy.fid,
+        },
       });
 
       // Write back to file
