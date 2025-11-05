@@ -95,23 +95,23 @@ export async function POST(request: Request) {
       // Add to questions.json
       const questionsPath = path.join(process.cwd(), 'data', 'questions.json');
       const questionsData = await fs.readFile(questionsPath, 'utf-8');
-      const questionsJson = JSON.parse(questionsData);
+      const questionsArray = JSON.parse(questionsData);
 
-      // Find or create the subject
-      let subjectData = questionsJson.subjects.find((s: any) => s.name === question.subject);
-      
-      if (!subjectData) {
-        subjectData = {
-          name: question.subject,
-          questions: [],
-        };
-        questionsJson.subjects.push(subjectData);
-      }
+      // Generate a new ID
+      const existingIds = questionsArray.map((q: any) => q.id);
+      const maxId = existingIds.reduce((max: number, id: string) => {
+        const num = parseInt(id.substring(1));
+        return num > max ? num : max;
+      }, 0);
+      const newId = `q${maxId + 1}`;
 
-      // Add the question with submitter info
-      subjectData.questions.push({
+      // Add the question to the array
+      questionsArray.push({
+        id: newId,
+        subject: question.subject,
+        difficulty: 'moderate', // User-submitted questions default to moderate
         question: question.question,
-        answers: question.answers,
+        options: question.answers,
         correctAnswer: question.correctAnswer,
         submittedBy: {
           username: question.submittedBy.username,
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       });
 
       // Write back to file
-      await fs.writeFile(questionsPath, JSON.stringify(questionsJson, null, 2));
+      await fs.writeFile(questionsPath, JSON.stringify(questionsArray, null, 2));
 
       // Award 1000 points to the question submitter
       await updatePlayerScore(
