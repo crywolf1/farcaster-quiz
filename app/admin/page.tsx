@@ -5,7 +5,7 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import type { PendingQuestion } from '@/lib/mongodb';
 
 // ADMIN FID - Replace this with your actual Farcaster ID
-const ADMIN_FID = 123456; // TODO: Replace with your FID
+const ADMIN_FID = 344203;
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState<PendingQuestion[]>([]);
@@ -15,6 +15,8 @@ export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [userFid, setUserFid] = useState<number | null>(null);
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
 
   // Check authentication on mount
   useEffect(() => {
@@ -23,7 +25,16 @@ export default function AdminDashboard() {
 
   const checkAuth = async () => {
     try {
-      // Initialize SDK
+      // Check if there's a saved admin session
+      const savedFid = localStorage.getItem('admin_fid');
+      if (savedFid && parseInt(savedFid) === ADMIN_FID) {
+        setUserFid(ADMIN_FID);
+        setIsAuthenticated(true);
+        setIsChecking(false);
+        return;
+      }
+
+      // Try to use Farcaster SDK
       const context = await sdk.context;
       const user = context.user;
       
@@ -32,14 +43,29 @@ export default function AdminDashboard() {
       // Check if user's FID matches admin FID
       if (user.fid === ADMIN_FID) {
         setIsAuthenticated(true);
+        localStorage.setItem('admin_fid', user.fid.toString());
       } else {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('Auth check failed (SDK not available):', error);
+      // SDK not available (browser access), show password input
+      setShowPasswordInput(true);
       setIsAuthenticated(false);
     }
     setIsChecking(false);
+  };
+
+  const handlePasswordSubmit = () => {
+    // Simple password check - use your FID as password
+    if (passwordInput === ADMIN_FID.toString()) {
+      setUserFid(ADMIN_FID);
+      setIsAuthenticated(true);
+      setShowPasswordInput(false);
+      localStorage.setItem('admin_fid', ADMIN_FID.toString());
+    } else {
+      alert('Invalid admin code');
+    }
   };
 
   useEffect(() => {
@@ -112,6 +138,59 @@ export default function AdminDashboard() {
             <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-300 text-lg">Verifying access...</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show password input if accessing from browser
+  if (showPasswordInput) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center p-6">
+        <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-teal-900/30 border-2 border-gray-700/50 rounded-[32px] p-12 shadow-2xl max-w-md w-full text-center">
+          {/* Key Icon */}
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500/50 flex items-center justify-center shadow-lg">
+              <span className="text-6xl">🔑</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-4">
+            Admin Access
+          </h2>
+
+          {/* Message */}
+          <p className="text-gray-300 text-base mb-6">
+            Enter your admin code to continue
+          </p>
+
+          {/* Password Input */}
+          <input
+            type="password"
+            value={passwordInput}
+            onChange={(e) => setPasswordInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+            placeholder="Enter admin code"
+            className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all mb-4 text-center"
+            autoFocus
+          />
+
+          {/* Submit Button */}
+          <button
+            onClick={handlePasswordSubmit}
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-8 py-3 rounded-[20px] font-bold shadow-lg transition-all hover:scale-105 mb-3"
+          >
+            Access Dashboard
+          </button>
+
+          {/* Back Button */}
+          <button
+            onClick={() => window.location.href = '/'}
+            className="w-full backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white px-8 py-3 rounded-[20px] font-bold shadow-lg transition-all hover:scale-105"
+          >
+            Go Back Home
+          </button>
         </div>
       </div>
     );

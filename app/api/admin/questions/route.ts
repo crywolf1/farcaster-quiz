@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 // ADMIN FID - Replace this with your actual Farcaster ID
-const ADMIN_FID = 123456; // TODO: Replace with your FID
+const ADMIN_FID = 344203;
 
 // Helper function to verify admin access
 function verifyAdmin(request: Request): boolean {
