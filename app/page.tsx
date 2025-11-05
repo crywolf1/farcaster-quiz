@@ -346,6 +346,23 @@ export default function Home() {
           
           console.log('✓ sdk.actions.ready() called successfully!');
 
+          // Prompt user to add the Mini App
+          try {
+            console.log('📱 Prompting user to add Mini App...');
+            await sdk.actions.addMiniApp();
+            console.log('✓ addMiniApp() called successfully!');
+          } catch (addError: any) {
+            // Handle specific errors
+            if (addError?.code === 'RejectedByUser') {
+              console.log('ℹ️ User declined to add the Mini App');
+            } else if (addError?.code === 'InvalidDomainManifestJson') {
+              console.error('⚠️ Domain/manifest mismatch or invalid farcaster.json');
+            } else {
+              console.error('⚠️ Error prompting to add Mini App:', addError);
+            }
+            // Continue anyway - this is not critical for app functionality
+          }
+
           setIsReady(true);
           const user = (context as any).user;
           setFarcasterUser(user as FarcasterUser);
