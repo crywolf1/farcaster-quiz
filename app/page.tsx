@@ -1852,8 +1852,15 @@ export default function Home() {
                   </div>
                 )}
                 {iAmReady && (
-                  <div className="absolute top-0 right-0 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-yellow-400 shadow-lg">
-                    <span className="text-black text-lg font-bold">✓</span>
+                  <div 
+                    className="absolute top-0 right-0 rounded-full w-8 h-8 flex items-center justify-center border-2 shadow-lg"
+                    style={{
+                      backgroundColor: '#6a3cff',
+                      borderColor: '#7a4cff',
+                      boxShadow: '0 4px 6px rgba(106, 60, 255, 0.5)'
+                    }}
+                  >
+                    <span className="text-white text-lg font-bold">✓</span>
                   </div>
                 )}
                 <p className="text-white font-bold drop-shadow-lg">{farcasterUser?.username}</p>
@@ -1869,8 +1876,15 @@ export default function Home() {
                   </div>
                 )}
                 {opponentReady && (
-                  <div className="absolute top-0 right-0 bg-yellow-500 rounded-full w-8 h-8 flex items-center justify-center border-2 border-yellow-400 shadow-lg">
-                    <span className="text-black text-lg font-bold">✓</span>
+                  <div 
+                    className="absolute top-0 right-0 rounded-full w-8 h-8 flex items-center justify-center border-2 shadow-lg"
+                    style={{
+                      backgroundColor: '#6a3cff',
+                      borderColor: '#7a4cff',
+                      boxShadow: '0 4px 6px rgba(106, 60, 255, 0.5)'
+                    }}
+                  >
+                    <span className="text-white text-lg font-bold">✓</span>
                   </div>
                 )}
                 <p className="text-white font-bold drop-shadow-lg">{opponent?.username}</p>
