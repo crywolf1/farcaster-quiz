@@ -4,9 +4,30 @@ import { ObjectId } from 'mongodb';
 import fs from 'fs/promises';
 import path from 'path';
 
+// ADMIN FID - Replace this with your actual Farcaster ID
+const ADMIN_FID = 123456; // TODO: Replace with your FID
+
+// Helper function to verify admin access
+function verifyAdmin(request: Request): boolean {
+  // Check for admin FID in headers (sent from client)
+  const adminFid = request.headers.get('x-admin-fid');
+  if (!adminFid || parseInt(adminFid) !== ADMIN_FID) {
+    return false;
+  }
+  return true;
+}
+
 // GET: Fetch all pending questions
 export async function GET(request: Request) {
   try {
+    // Verify admin access
+    if (!verifyAdmin(request)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'pending';
 
@@ -29,6 +50,14 @@ export async function GET(request: Request) {
 // POST: Approve or reject a question
 export async function POST(request: Request) {
   try {
+    // Verify admin access
+    if (!verifyAdmin(request)) {
+      return NextResponse.json(
+        { error: 'Unauthorized access' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { questionId, action } = body; // action: 'approve' or 'reject'
 

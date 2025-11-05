@@ -1,23 +1,68 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { sdk } from '@farcaster/miniapp-sdk';
 import type { PendingQuestion } from '@/lib/mongodb';
+
+// ADMIN FID - Replace this with your actual Farcaster ID
+const ADMIN_FID = 123456; // TODO: Replace with your FID
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState<PendingQuestion[]>([]);
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [userFid, setUserFid] = useState<number | null>(null);
+
+  // Check authentication on mount
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      // Initialize SDK
+      const context = await sdk.context;
+      const user = context.user;
+      
+      setUserFid(user.fid);
+      
+      // Check if user's FID matches admin FID
+      if (user.fid === ADMIN_FID) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      setIsAuthenticated(false);
+    }
+    setIsChecking(false);
+  };
 
   useEffect(() => {
-    fetchQuestions();
-  }, [filter]);
+    if (isAuthenticated) {
+      fetchQuestions();
+    }
+  }, [filter, isAuthenticated]);
 
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/admin/questions?status=${filter}`);
+      const response = await fetch(`/api/admin/questions?status=${filter}`, {
+        headers: {
+          'x-admin-fid': userFid?.toString() || '',
+        },
+      });
       const data = await response.json();
+      
+      if (response.status === 403) {
+        setIsAuthenticated(false);
+        return;
+      }
+      
       setQuestions(data.questions || []);
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -30,11 +75,20 @@ export default function AdminDashboard() {
     try {
       const response = await fetch('/api/admin/questions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-admin-fid': userFid?.toString() || '',
+        },
         body: JSON.stringify({ questionId, action }),
       });
 
       const data = await response.json();
+      
+      if (response.status === 403) {
+        alert('Unauthorized access');
+        setIsAuthenticated(false);
+        return;
+      }
       
       if (data.success) {
         alert(data.message);
@@ -48,6 +102,62 @@ export default function AdminDashboard() {
     }
     setProcessingId(null);
   };
+
+  // Show loading while checking auth
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center">
+        <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[32px] p-12 shadow-2xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-300 text-lg">Verifying access...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 flex items-center justify-center p-6">
+        <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-red-900/30 to-pink-900/30 border-2 border-red-700/50 rounded-[32px] p-12 shadow-2xl max-w-md w-full text-center">
+          {/* Lock Icon */}
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 border-2 border-red-500/50 flex items-center justify-center shadow-lg">
+              <span className="text-6xl">🔒</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-pink-400 mb-4">
+            Access Denied
+          </h2>
+
+          {/* Message */}
+          <p className="text-gray-300 text-lg mb-6">
+            You don&apos;t have permission to access the admin dashboard.
+          </p>
+
+          {/* User Info */}
+          {userFid && (
+            <div className="bg-gray-800/50 border border-gray-700 rounded-[16px] p-4 mb-6">
+              <p className="text-gray-400 text-sm">Your Farcaster ID</p>
+              <p className="text-white font-bold text-xl">{userFid}</p>
+            </div>
+          )}
+
+          {/* Back Button */}
+          <button
+            onClick={() => window.location.href = '/'}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-[20px] font-bold shadow-lg transition-all hover:scale-105"
+          >
+            Go Back Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 p-6">
