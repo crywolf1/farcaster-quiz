@@ -160,3 +160,14 @@ input, select, textarea {
   background: linear-gradient(180deg, rgba(168, 85, 247, 1), rgba(236, 72, 153, 1));
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
 }
+
+/* Auto-return countdown animation */
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+

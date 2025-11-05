@@ -97,6 +97,9 @@ export default function Home() {
     question: '',
     answers: ['', '', '', '']
   }); // Show validation errors per field
+  const [opponentLeft, setOpponentLeft] = useState(false); // Track if opponent left
+  const [disconnectMessage, setDisconnectMessage] = useState(''); // Message to show when opponent leaves
+  const autoReturnTimerRef = useRef<NodeJS.Timeout | null>(null); // Timer for auto-return to home
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -128,6 +131,20 @@ export default function Home() {
       try {
         const response = await fetch(`/api/game?playerId=${currentPlayerId}`);
         const data = await response.json();
+        
+        // Check if game/room was deleted (opponent disconnected)
+        if (!data.gameState && gameRoom && !opponentLeft) {
+          console.log('[Polling] Game room no longer exists - opponent disconnected');
+          setOpponentLeft(true);
+          setDisconnectMessage(`${opponent?.username || 'Opponent'} left the game`);
+          
+          // Stop polling
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          return;
+        }
         
         if (data.gameState) {
           const room: GameRoom = data.gameState;
@@ -675,6 +692,55 @@ export default function Home() {
     }
   };
 
+  // Auto-return to home after game ends or opponent leaves
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoReturnTimerRef.current) {
+      clearTimeout(autoReturnTimerRef.current);
+      autoReturnTimerRef.current = null;
+    }
+
+    // Start timer when game ends or opponent leaves
+    if (gameState === 'game-over' || opponentLeft) {
+      console.log('[AutoReturn] Starting 6 second timer to return home...');
+      
+      autoReturnTimerRef.current = setTimeout(() => {
+        console.log('[AutoReturn] Returning to home page');
+        
+        // Clear game state
+        setGameState('idle');
+        setGameRoom(null);
+        setOpponent(null);
+        setRoomId('');
+        setSelectedAnswer(null);
+        setLastResult(null);
+        setShowingResults(false);
+        setOpponentLeft(false);
+        setDisconnectMessage('');
+        
+        // Clear localStorage
+        if (farcasterUser) {
+          localStorage.removeItem(`playerId_${farcasterUser.fid}`);
+        }
+        
+        // Stop polling
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+        
+        // Refresh player stats
+        fetchPlayerStats();
+      }, 6000); // 6 seconds
+    }
+
+    return () => {
+      if (autoReturnTimerRef.current) {
+        clearTimeout(autoReturnTimerRef.current);
+      }
+    };
+  }, [gameState, opponentLeft, farcasterUser]);
+
   // Cleanup polling and feedback timeout on unmount
   useEffect(() => {
     return () => {
@@ -683,6 +749,9 @@ export default function Home() {
       }
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
+      }
+      if (autoReturnTimerRef.current) {
+        clearTimeout(autoReturnTimerRef.current);
       }
     };
   }, []);
@@ -2020,8 +2089,18 @@ export default function Home() {
             )}
           </div>
           
+          <p className="text-sm text-gray-400 mb-6 animate-pulse">
+            Returning to home in a few seconds...
+          </p>
+
           <button
             onClick={async () => {
+              // Cancel auto-return
+              if (autoReturnTimerRef.current) {
+                clearTimeout(autoReturnTimerRef.current);
+                autoReturnTimerRef.current = null;
+              }
+              
               await leaveGame();
               // Immediately start finding a new match
               findMatch();
@@ -2607,6 +2686,35 @@ export default function Home() {
     <>
       {mainContent}
       {showLeaderboard && renderLeaderboard()}
+      
+      {/* Opponent Disconnected Overlay */}
+      {opponentLeft && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 rounded-[48px] shadow-2xl p-12 max-w-md text-center"
+            style={{ borderColor: '#6a3cff', boxShadow: '0 0 60px rgba(106, 60, 255, 0.4)' }}>
+            <div className="text-6xl mb-6">😔</div>
+            <h2 className="text-4xl font-black text-white mb-4">
+              Player Left
+            </h2>
+            <p className="text-xl text-gray-300 mb-6">
+              {disconnectMessage}
+            </p>
+            <p className="text-sm text-gray-400">
+              Returning to home in a few seconds...
+            </p>
+            <div className="mt-6 w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full animate-pulse"
+                style={{ 
+                  width: '100%', 
+                  background: 'linear-gradient(90deg, #6a3cff, #7a4cff)',
+                  animation: 'shrink 6s linear forwards'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Question Submission Success Message */}
       {showQuestionSuccess && (
