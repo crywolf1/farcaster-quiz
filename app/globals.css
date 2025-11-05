@@ -114,6 +114,20 @@ input, select, textarea {
   perspective: 1000px;
 }
 
+/* Slow spin animation for profile border */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
 /* Custom scrollbar for leaderboard */
 .leaderboard-scroll {
   scrollbar-width: thin;
