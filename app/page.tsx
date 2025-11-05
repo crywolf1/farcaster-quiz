@@ -2141,10 +2141,10 @@ export default function Home() {
         setShowAddQuestion(false);
         setShowQuestionSuccess(true);
         
-        // After 2 seconds, hide success message
+        // After 5 seconds, hide success message
         setTimeout(() => {
           setShowQuestionSuccess(false);
-        }, 2000);
+        }, 5000);
       } else {
         alert('❌ Error: ' + data.error);
       }
