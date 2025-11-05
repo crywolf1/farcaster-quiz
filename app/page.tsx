@@ -81,6 +81,7 @@ export default function Home() {
   const [showLeaderboard, setShowLeaderboard] = useState(false); // Show leaderboard modal
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [playerStats, setPlayerStats] = useState<{ score: number; rank: number; wins: number; losses: number } | null>(null);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Show leave game confirmation modal
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -1330,7 +1331,7 @@ export default function Home() {
       {/* Leave Game Button - Below */}
       <div className="mt-3 text-right">
         <button
-          onClick={leaveGame}
+          onClick={() => setShowLeaveConfirm(true)}
           className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
         >
           Leave Game
@@ -2021,9 +2022,60 @@ export default function Home() {
     </div>
   );
 
+  // Render Leave Confirmation Modal
+  const renderLeaveConfirmation = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/30 border-2 border-gray-700/50 rounded-[32px] p-8 shadow-2xl max-w-md w-full animate-scale-in">
+        {/* Warning Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 border-2 border-red-500/50 flex items-center justify-center shadow-lg">
+            <span className="text-5xl">⚠️</span>
+          </div>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-3xl font-black text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-pink-400 to-red-400 drop-shadow-lg">
+          Leave Game?
+        </h2>
+
+        {/* Message */}
+        <p className="text-gray-300 text-center mb-8 text-lg">
+          Are you sure you want to leave? Your opponent will win by default.
+        </p>
+
+        {/* Buttons */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Cancel Button */}
+          <button
+            onClick={() => setShowLeaveConfirm(false)}
+            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-4 px-6 rounded-[20px] text-lg font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:border-gray-500"
+          >
+            Cancel
+          </button>
+
+          {/* Confirm Leave Button */}
+          <button
+            onClick={() => {
+              setShowLeaveConfirm(false);
+              leaveGame();
+            }}
+            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-4 px-6 rounded-[20px] text-lg font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-red-400/30"
+          >
+            Yes, Leave
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // Main render - show loading until ready
   if (!isReady) {
     return renderLoading();
+  }
+
+  // Show leave confirmation modal
+  if (showLeaveConfirm) {
+    return renderLeaveConfirmation();
   }
 
   // Show leaderboard modal
