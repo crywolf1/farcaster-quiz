@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGameState, getRemainingTime } from '@/lib/gameManager';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // GET /api/timer - Get remaining time for current phase
 export async function GET(request: NextRequest) {
   try {
