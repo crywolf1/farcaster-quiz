@@ -755,7 +755,7 @@ export default function Home() {
           setOpponentLeft(false);
           setDisconnectMessage('');
           setAutoReturnCountdown(6);
-          countdownStartedRef.current = false; // Reset countdown flag for next game
+          // Note: countdownStartedRef will be reset in the else block when gameState becomes idle
           
           // Clear localStorage
           if (farcasterUser) {
@@ -797,8 +797,13 @@ export default function Home() {
       console.log('[AutoReturn] ⏭️ Countdown already running, skipping duplicate start');
     } else {
       // Reset countdown when not in end state
-      console.log('[AutoReturn] Condition not met, resetting countdown to 6');
+      console.log('[AutoReturn] Condition not met, resetting countdown to 6 and flag');
       setAutoReturnCountdown(6);
+      // Reset the flag when we're back in a non-game-over state (ready for next game)
+      if (countdownStartedRef.current && gameState === 'idle') {
+        console.log('[AutoReturn] ✓ Back in idle state, resetting countdownStartedRef');
+        countdownStartedRef.current = false;
+      }
     }
 
     return () => {
