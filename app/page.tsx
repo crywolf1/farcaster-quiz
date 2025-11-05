@@ -1231,26 +1231,22 @@ export default function Home() {
             {/* Stats Cards - Black/Red theme */}
             <div className="grid grid-cols-2 gap-4 w-full mb-6">
               {/* Points Card */}
-              <div className="relative overflow-hidden">
-                <div className="bg-gradient-to-br from-black to-gray-950 border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
-                    Points
-                  </div>
-                  <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
-                    {formatScore(playerStats?.points || 0)}
-                  </div>
+              <div className="bg-black border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
+                  Points
+                </div>
+                <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
+                  {formatScore(playerStats?.points || 0)}
                 </div>
               </div>
               
               {/* Wins Card */}
-              <div className="relative overflow-hidden">
-                <div className="bg-gradient-to-br from-black to-gray-950 border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
-                    Wins
-                  </div>
-                  <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
-                    {playerStats?.wins || 0}
-                  </div>
+              <div className="bg-black border-2 border-red-600/40 rounded-[20px] p-4 shadow-[0_0_25px_rgba(239,68,68,0.4)] text-center">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">
+                  Wins
+                </div>
+                <div className="text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(239,68,68,0.5)]">
+                  {playerStats?.wins || 0}
                 </div>
               </div>
             </div>
