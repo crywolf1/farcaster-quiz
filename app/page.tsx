@@ -2116,13 +2116,24 @@ export default function Home() {
             className="w-full px-4 py-3 rounded-[16px] bg-gray-800/80 border-2 border-gray-700 text-white font-semibold focus:border-emerald-500 focus:outline-none transition-all"
           >
             <option value="">Select a subject</option>
-            <option value="Science">🔬 Science</option>
-            <option value="History">📚 History</option>
-            <option value="Geography">🌍 Geography</option>
-            <option value="Sports">⚽ Sports</option>
+            <option value="Movies">🎬 Movies</option>
+            <option value="TV Shows">📺 TV Shows</option>
+            <option value="Literature">📚 Literature</option>
+            <option value="Music">🎵 Music</option>
+            <option value="History">�️ History</option>
+            <option value="English">📖 English</option>
             <option value="Technology">💻 Technology</option>
-            <option value="Entertainment">🎬 Entertainment</option>
-            <option value="General Knowledge">🧠 General Knowledge</option>
+            <option value="Science">🔬 Science</option>
+            <option value="Geography">🌍 Geography</option>
+            <option value="Culture">� Culture</option>
+            <option value="Games">🎮 Games</option>
+            <option value="General Information">🧠 General Information</option>
+            <option value="Sports">⚽ Sports</option>
+            <option value="Nature">🌿 Nature</option>
+            <option value="Math">🔢 Math</option>
+            <option value="Religion">🕉️ Religion</option>
+            <option value="Food & Drinks">🍕 Food & Drinks</option>
+            <option value="Crypto">₿ Crypto</option>
           </select>
         </div>
 
