@@ -8,21 +8,21 @@
   "theme_color": "#1a1a2e",
   "icons": [
     {
-      "src": "https://quiz-lac-nine.vercel.app/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "https://quiz-lac-nine.vercel.app/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "fc:frame": {
     "version": "next",
-    "imageUrl": "https://quiz-lac-nine.vercel.app/og-image.svg",
+    "imageUrl": "https://quiz-lac-nine.vercel.app/icon.png",
     "button": {
       "title": "Play Quiz",
       "action": {
         "type": "launch_frame",
         "name": "Farcaster Quiz",
         "url": "https://quiz-lac-nine.vercel.app",
-        "splashImageUrl": "https://quiz-lac-nine.vercel.app/og-image.svg",
+        "splashImageUrl": "https://quiz-lac-nine.vercel.app/icon.png",
         "splashBackgroundColor": "#1a1a2e"
       }
     }
