@@ -56,10 +56,118 @@ const matchmakingQueue: MatchmakingQueue[] = [];
 const gameRooms = new Map<string, GameRoom>();
 const playerToRoom = new Map<string, string>();
 
+// Matchmaking control
+let isMatchmaking = false; // Prevent concurrent matchmaking
+const QUEUE_TIMEOUT = 60000; // 60 seconds - remove players if no match found
+const MATCHMAKING_INTERVAL = 1000; // Check for matches every second
+
 // Helper functions
 function generateRoomId(): string {
   return `room-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
+
+// Process all available matches in the queue
+async function processMatchmakingQueue() {
+  // Prevent concurrent execution
+  if (isMatchmaking) {
+    return;
+  }
+  
+  isMatchmaking = true;
+  
+  try {
+    // Remove expired queue entries
+    const now = Date.now();
+    const validQueue = matchmakingQueue.filter(entry => {
+      if (now - entry.timestamp > QUEUE_TIMEOUT) {
+        console.log(`[Matchmaking] Removing expired player: ${entry.username}`);
+        io.to(entry.socketId).emit('error', { message: 'Matchmaking timeout. Please try again.' });
+        return false;
+      }
+      return true;
+    });
+    
+    // Clear and repopulate queue
+    matchmakingQueue.length = 0;
+    matchmakingQueue.push(...validQueue);
+    
+    console.log(`[Matchmaking] Queue size: ${matchmakingQueue.length}`);
+    
+    // Match all available pairs
+    const matches: Array<[MatchmakingQueue, MatchmakingQueue]> = [];
+    
+    while (matchmakingQueue.length >= 2) {
+      const player1 = matchmakingQueue.shift()!;
+      const player2 = matchmakingQueue.shift()!;
+      matches.push([player1, player2]);
+    }
+    
+    if (matches.length > 0) {
+      console.log(`[Matchmaking] Creating ${matches.length} matches...`);
+    }
+    
+    // Create all game rooms in parallel
+    const roomPromises = matches.map(async ([player1, player2]) => {
+      try {
+        const room = await createGameRoom(player1, player2);
+        
+        // Notify both players
+        io.to(player1.socketId).emit('match-found', {
+          roomId: room.id,
+          opponent: { 
+            id: player2.playerId, 
+            username: player2.username, 
+            pfpUrl: player2.pfpUrl, 
+            fid: player2.fid 
+          },
+          yourTurn: room.roundOwnerIndex === 0
+        });
+
+        io.to(player2.socketId).emit('match-found', {
+          roomId: room.id,
+          opponent: { 
+            id: player1.playerId, 
+            username: player1.username, 
+            pfpUrl: player1.pfpUrl, 
+            fid: player1.fid 
+          },
+          yourTurn: room.roundOwnerIndex === 1
+        });
+
+        console.log(`[Matchmaking] ✓ Match created: ${room.id} (${player1.username} vs ${player2.username})`);
+        
+        // Start subject selection after a brief delay
+        setTimeout(() => startSubjectSelection(room), 2000);
+        
+        return room;
+      } catch (error) {
+        console.error(`[Matchmaking] ✗ Error creating game room:`, error);
+        // Put players back in queue on error
+        matchmakingQueue.push(player1, player2);
+        io.to(player1.socketId).emit('error', { message: 'Failed to create game. Retrying...' });
+        io.to(player2.socketId).emit('error', { message: 'Failed to create game. Retrying...' });
+      }
+    });
+    
+    await Promise.all(roomPromises);
+    
+    if (matchmakingQueue.length > 0) {
+      console.log(`[Matchmaking] ${matchmakingQueue.length} player(s) still waiting...`);
+    }
+    
+  } catch (error) {
+    console.error('[Matchmaking] Error processing queue:', error);
+  } finally {
+    isMatchmaking = false;
+  }
+}
+
+// Start continuous matchmaking loop
+setInterval(() => {
+  if (matchmakingQueue.length >= 2) {
+    processMatchmakingQueue();
+  }
+}, MATCHMAKING_INTERVAL);
 
 async function getAvailableSubjects(): Promise<string[]> {
   const questions = await loadQuestions();
@@ -335,33 +443,13 @@ io.on('connection', (socket) => {
     };
     
     matchmakingQueue.push(queueEntry);
-    console.log(`Player ${username} joined matchmaking queue`);
+    console.log(`[Queue] Player ${username} joined (Queue size: ${matchmakingQueue.length})`);
 
-    // Try to match
+    // Immediately try to process matches if we have enough players
     if (matchmakingQueue.length >= 2) {
-      const player1 = matchmakingQueue.shift()!;
-      const player2 = matchmakingQueue.shift()!;
-
-      createGameRoom(player1, player2).then(room => {
-        // Notify both players
-        io.to(player1.socketId).emit('match-found', {
-          roomId: room.id,
-          opponent: { id: player2.playerId, username: player2.username, pfpUrl: player2.pfpUrl, fid: player2.fid },
-          yourTurn: room.roundOwnerIndex === 0
-        });
-
-        io.to(player2.socketId).emit('match-found', {
-          roomId: room.id,
-          opponent: { id: player1.playerId, username: player1.username, pfpUrl: player1.pfpUrl, fid: player1.fid },
-          yourTurn: room.roundOwnerIndex === 1
-        });
-
-        console.log(`Match created: ${room.id}`);
-        
-        // Start subject selection
-        setTimeout(() => startSubjectSelection(room), 2000);
-      }).catch(error => {
-        console.error('Error creating game room:', error);
+      // Don't await - let it run in background
+      processMatchmakingQueue().catch(error => {
+        console.error('[Queue] Error in immediate matching:', error);
       });
     }
   });
@@ -428,12 +516,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log(`Socket disconnected: ${socket.id}`);
+    console.log(`[Disconnect] Socket: ${socket.id}`);
     
     // Remove from matchmaking queue
     const queueIndex = matchmakingQueue.findIndex(p => p.socketId === socket.id);
     if (queueIndex !== -1) {
-      matchmakingQueue.splice(queueIndex, 1);
+      const removed = matchmakingQueue.splice(queueIndex, 1)[0];
+      console.log(`[Queue] Removed ${removed.username} from queue (Queue size: ${matchmakingQueue.length})`);
     }
 
     // Handle game disconnection
@@ -443,12 +532,14 @@ io.on('connection', (socket) => {
       if (room) {
         const opponent = room.players.find(p => p.socketId !== socket.id);
         if (opponent) {
+          console.log(`[Game] Notifying opponent of disconnect in room ${roomId}`);
           io.to(opponent.socketId).emit('opponent-disconnected');
         }
         
         // Cleanup
         room.players.forEach(p => playerToRoom.delete(p.id));
         gameRooms.delete(roomId);
+        console.log(`[Game] Cleaned up room ${roomId}`);
       }
     }
   });
@@ -458,4 +549,19 @@ const PORT = process.env.SOCKET_PORT || 3001;
 
 httpServer.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
+  console.log(`[Matchmaking] Batch matching enabled (interval: ${MATCHMAKING_INTERVAL}ms)`);
+  console.log(`[Matchmaking] Queue timeout: ${QUEUE_TIMEOUT / 1000}s`);
 });
+
+// Log server stats every 30 seconds
+setInterval(() => {
+  const stats = {
+    queueSize: matchmakingQueue.length,
+    activeGames: gameRooms.size,
+    connectedPlayers: io.sockets.sockets.size,
+  };
+  
+  if (stats.queueSize > 0 || stats.activeGames > 0) {
+    console.log(`[Stats] Queue: ${stats.queueSize} | Active Games: ${stats.activeGames} | Connected: ${stats.connectedPlayers}`);
+  }
+}, 30000);
