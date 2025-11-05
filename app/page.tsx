@@ -706,6 +706,8 @@ export default function Home() {
   // Auto-return to home after game ends or opponent leaves
   useEffect(() => {
     console.log('[AutoReturn] Effect running - gameState:', gameState, 'opponentLeft:', opponentLeft);
+    console.log('[AutoReturn] - Condition check: gameState === game-over?', gameState === 'game-over', '|| opponentLeft?', opponentLeft);
+    console.log('[AutoReturn] - Will start countdown?', (gameState === 'game-over' || opponentLeft));
     
     // Clear any existing timers
     if (autoReturnTimerRef.current) {
