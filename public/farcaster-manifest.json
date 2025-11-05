@@ -15,14 +15,14 @@
   ],
   "fc:frame": {
     "version": "next",
-    "imageUrl": "https://quiz-lac-nine.vercel.app/icon.png",
+    "imageUrl": "https://quiz-lac-nine.vercel.app/og-image.png",
     "button": {
       "title": "Play Quiz",
       "action": {
         "type": "launch_frame",
         "name": "Farcaster Quiz",
         "url": "https://quiz-lac-nine.vercel.app",
-        "splashImageUrl": "https://quiz-lac-nine.vercel.app/icon.png",
+        "splashImageUrl": "https://quiz-lac-nine.vercel.app/og-image.png",
         "splashBackgroundColor": "#1a1a2e"
       }
     }

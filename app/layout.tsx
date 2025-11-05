@@ -13,11 +13,23 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Farcaster Quiz",
     description: "Real-time multiplayer quiz game",
-    images: ['/icon.png'],
+    images: [{
+      url: '/og-image.png',
+      width: 1200,
+      height: 630,
+      alt: 'Farcaster Quiz',
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Farcaster Quiz",
+    description: "Real-time multiplayer quiz game",
+    images: ['/og-image.png'],
   },
   other: {
     'fc:frame': 'vNext',
-    'fc:frame:image': 'https://quiz-alpha-flame.vercel.app/icon.png',
+    'fc:frame:image': 'https://quiz-alpha-flame.vercel.app/og-image.png',
+    'fc:frame:image:aspect_ratio': '1.91:1',
     'fc:frame:button:1': 'Play Quiz',
     'fc:frame:button:1:action': 'link',
     'fc:frame:button:1:target': 'https://quiz-alpha-flame.vercel.app',

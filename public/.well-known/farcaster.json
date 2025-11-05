@@ -7,11 +7,11 @@
   "frame": {
     "version": "1",
     "name": "Farcaster Quiz",
-    "iconUrl": "https://quiz-alpha-flame.vercel.app/icon.svg",
+    "iconUrl": "https://quiz-alpha-flame.vercel.app/icon.png",
     "homeUrl": "https://quiz-alpha-flame.vercel.app",
-    "imageUrl": "https://quiz-alpha-flame.vercel.app/og-image.svg",
+    "imageUrl": "https://quiz-alpha-flame.vercel.app/og-image.png",
     "buttonTitle": "Play Quiz",
-    "splashImageUrl": "https://quiz-alpha-flame.vercel.app/og-image.svg",
+    "splashImageUrl": "https://quiz-alpha-flame.vercel.app/og-image.png",
     "splashBackgroundColor": "#1a1a2e"
   }
 }
