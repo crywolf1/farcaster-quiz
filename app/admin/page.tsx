@@ -6,7 +6,6 @@ import type { PendingQuestion } from '@/lib/mongodb';
 
 // ADMIN FID - Replace this with your actual Farcaster ID
 const ADMIN_FID = 344203;
-const ADMIN_PASSWORD = 'Maryam8935@';
 
 export default function AdminDashboard() {
   const [questions, setQuestions] = useState<PendingQuestion[]>([]);
@@ -57,15 +56,29 @@ export default function AdminDashboard() {
     setIsChecking(false);
   };
 
-  const handlePasswordSubmit = () => {
-    // Check password
-    if (passwordInput === ADMIN_PASSWORD) {
-      setUserFid(ADMIN_FID);
-      setIsAuthenticated(true);
-      setShowPasswordInput(false);
-      localStorage.setItem('admin_fid', ADMIN_FID.toString());
-    } else {
-      alert('Invalid password');
+  const handlePasswordSubmit = async () => {
+    try {
+      // Send password to server for verification
+      const response = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setUserFid(data.adminFid);
+        setIsAuthenticated(true);
+        setShowPasswordInput(false);
+        localStorage.setItem('admin_fid', data.adminFid.toString());
+      } else {
+        alert('Invalid password');
+        setPasswordInput('');
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      alert('Authentication failed');
       setPasswordInput('');
     }
   };
