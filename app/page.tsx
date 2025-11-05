@@ -705,6 +705,8 @@ export default function Home() {
 
   // Auto-return to home after game ends or opponent leaves
   useEffect(() => {
+    console.log('[AutoReturn] Effect running - gameState:', gameState, 'opponentLeft:', opponentLeft);
+    
     // Clear any existing timers
     if (autoReturnTimerRef.current) {
       clearTimeout(autoReturnTimerRef.current);
@@ -717,64 +719,72 @@ export default function Home() {
 
     // Start timer when game ends or opponent leaves
     if (gameState === 'game-over' || opponentLeft) {
-      console.log('[AutoReturn] ✓✓✓ STARTING COUNTDOWN ✓✓✓');
-      console.log('[AutoReturn] - gameState:', gameState);
-      console.log('[AutoReturn] - opponentLeft:', opponentLeft);
+      console.log('[AutoReturn] ✓ Starting 6 second countdown');
       
-      // Reset countdown
-      setAutoReturnCountdown(6);
-      console.log('[AutoReturn] - Set countdown to 6');
+      // Set initial countdown
+      let timeLeft = 6;
+      setAutoReturnCountdown(timeLeft);
       
-      // Start countdown display (updates every second)
-      let count = 6;
+      // Update countdown every second
       countdownIntervalRef.current = setInterval(() => {
-        count--;
-        setAutoReturnCountdown(count);
-        console.log('[AutoReturn] Countdown:', count);
+        timeLeft = timeLeft - 1;
+        console.log('[AutoReturn] Countdown tick:', timeLeft);
+        setAutoReturnCountdown(timeLeft);
         
-        if (count <= 0 && countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current);
-          countdownIntervalRef.current = null;
+        // When countdown reaches 0, return to home
+        if (timeLeft <= 0) {
+          console.log('[AutoReturn] ✓ Countdown finished! Returning to home');
+          
+          // Clear the interval
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
+          
+          // Clear game state and return to home
+          setGameState('idle');
+          setGameRoom(null);
+          setOpponent(null);
+          setRoomId('');
+          setSelectedAnswer(null);
+          setLastResult(null);
+          setShowingResults(false);
+          setOpponentLeft(false);
+          setDisconnectMessage('');
+          setAutoReturnCountdown(6);
+          
+          // Clear localStorage
+          if (farcasterUser) {
+            localStorage.removeItem(`playerId_${farcasterUser.fid}`);
+          }
+          
+          // Stop polling
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+          
+          console.log('[AutoReturn] ✓ Returned to home, fetching stats...');
+          // Refresh player stats (use setTimeout to avoid immediate call)
+          setTimeout(() => {
+            if (farcasterUser) {
+              fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=1`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success && data.playerRank) {
+                    setPlayerStats({
+                      points: data.playerRank.player?.points || 0,
+                      rank: data.playerRank.rank || 0,
+                      wins: data.playerRank.player?.wins || 0,
+                      losses: data.playerRank.player?.losses || 0,
+                    });
+                  }
+                })
+                .catch(err => console.error('[AutoReturn] Stats fetch error:', err));
+            }
+          }, 500);
         }
       }, 1000);
-      
-      // Actual return timer (6 seconds total)
-      autoReturnTimerRef.current = setTimeout(() => {
-        console.log('[AutoReturn] ✓ Returning to home page now');
-        
-        // Clear countdown interval
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current);
-          countdownIntervalRef.current = null;
-        }
-        
-        // Clear game state
-        setGameState('idle');
-        setGameRoom(null);
-        setOpponent(null);
-        setRoomId('');
-        setSelectedAnswer(null);
-        setLastResult(null);
-        setShowingResults(false);
-        setOpponentLeft(false);
-        setDisconnectMessage('');
-        setAutoReturnCountdown(6);
-        
-        // Clear localStorage
-        if (farcasterUser) {
-          localStorage.removeItem(`playerId_${farcasterUser.fid}`);
-        }
-        
-        // Stop polling
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current);
-          pollingIntervalRef.current = null;
-        }
-        
-        console.log('[AutoReturn] ✓ Game state cleared, fetching player stats...');
-        // Refresh player stats
-        fetchPlayerStats();
-      }, 6000); // 6 seconds
     } else {
       // Reset countdown when not in end state
       setAutoReturnCountdown(6);
@@ -2141,12 +2151,9 @@ export default function Home() {
             )}
           </div>
           
-          <div className="mb-6">
-            <p className="text-lg text-gray-300">
-              Returning to home in <span className="text-3xl font-black" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> {autoReturnCountdown === 1 ? 'second' : 'seconds'}...
-            </p>
-            <p className="text-xs text-gray-500 mt-2">(Countdown: {autoReturnCountdown})</p>
-          </div>
+          <p className="text-xl text-white mb-6">
+            Returning home in <span className="text-4xl font-black animate-pulse" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span>...
+          </p>
 
           <button
             onClick={async () => {
@@ -2751,16 +2758,13 @@ export default function Home() {
             <h2 className="text-4xl font-black text-white mb-4">
               Player Left
             </h2>
-            <p className="text-2xl font-bold text-white mb-6">
+            <p className="text-2xl font-bold text-white mb-8">
               {disconnectMessage}
             </p>
-            <div className="mb-4">
-              <p className="text-xl text-gray-200">
-                Returning to home in <span className="text-4xl font-black" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> {autoReturnCountdown === 1 ? 'second' : 'seconds'}...
-              </p>
-              <p className="text-xs text-gray-400 mt-2">(Debug: {autoReturnCountdown})</p>
-            </div>
-            <div className="mt-6 w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+            <p className="text-xl text-white mb-6">
+              Returning home in <span className="text-4xl font-black animate-pulse" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span>...
+            </p>
+            <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
               <div 
                 className="h-full transition-all duration-1000 ease-linear"
                 style={{ 
