@@ -99,7 +99,9 @@ export default function Home() {
   }); // Show validation errors per field
   const [opponentLeft, setOpponentLeft] = useState(false); // Track if opponent left
   const [disconnectMessage, setDisconnectMessage] = useState(''); // Message to show when opponent leaves
+  const [autoReturnCountdown, setAutoReturnCountdown] = useState(6); // Countdown seconds for auto-return
   const autoReturnTimerRef = useRef<NodeJS.Timeout | null>(null); // Timer for auto-return to home
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null); // Interval for countdown display
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -133,16 +135,25 @@ export default function Home() {
         const data = await response.json();
         
         // Check if game/room was deleted (opponent disconnected)
-        if (!data.gameState && gameRoom && !opponentLeft) {
-          console.log('[Polling] Game room no longer exists - opponent disconnected');
+        // Only trigger if we were in an active game (not idle/searching)
+        const wasInGame = gameState !== 'idle' && gameState !== 'loading' && gameState !== 'searching';
+        
+        if (!data.gameState && wasInGame && !opponentLeft) {
+          console.log('[Polling] ⚠️ Game room no longer exists - opponent disconnected');
+          console.log('[Polling] - Previous gameState:', gameState);
+          console.log('[Polling] - Opponent:', opponent);
+          
+          const opponentName = opponent?.username || 'Your opponent';
           setOpponentLeft(true);
-          setDisconnectMessage(`${opponent?.username || 'Opponent'} left the game`);
+          setDisconnectMessage(`${opponentName} left the game`);
           
           // Stop polling
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+          
+          console.log('[Polling] ✓ Disconnect overlay should now be visible');
           return;
         }
         
@@ -694,18 +705,45 @@ export default function Home() {
 
   // Auto-return to home after game ends or opponent leaves
   useEffect(() => {
-    // Clear any existing timer
+    // Clear any existing timers
     if (autoReturnTimerRef.current) {
       clearTimeout(autoReturnTimerRef.current);
       autoReturnTimerRef.current = null;
     }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
 
     // Start timer when game ends or opponent leaves
     if (gameState === 'game-over' || opponentLeft) {
-      console.log('[AutoReturn] Starting 6 second timer to return home...');
+      console.log('[AutoReturn] Starting 6 second countdown to return home...');
       
+      // Reset countdown
+      setAutoReturnCountdown(6);
+      
+      // Start countdown display (updates every second)
+      let count = 6;
+      countdownIntervalRef.current = setInterval(() => {
+        count--;
+        setAutoReturnCountdown(count);
+        console.log('[AutoReturn] Countdown:', count);
+        
+        if (count <= 0 && countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      }, 1000);
+      
+      // Actual return timer (6 seconds total)
       autoReturnTimerRef.current = setTimeout(() => {
-        console.log('[AutoReturn] Returning to home page');
+        console.log('[AutoReturn] ✓ Returning to home page now');
+        
+        // Clear countdown interval
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
         
         // Clear game state
         setGameState('idle');
@@ -717,6 +755,7 @@ export default function Home() {
         setShowingResults(false);
         setOpponentLeft(false);
         setDisconnectMessage('');
+        setAutoReturnCountdown(6);
         
         // Clear localStorage
         if (farcasterUser) {
@@ -729,14 +768,21 @@ export default function Home() {
           pollingIntervalRef.current = null;
         }
         
+        console.log('[AutoReturn] ✓ Game state cleared, fetching player stats...');
         // Refresh player stats
         fetchPlayerStats();
       }, 6000); // 6 seconds
+    } else {
+      // Reset countdown when not in end state
+      setAutoReturnCountdown(6);
     }
 
     return () => {
       if (autoReturnTimerRef.current) {
         clearTimeout(autoReturnTimerRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
   }, [gameState, opponentLeft, farcasterUser]);
@@ -752,6 +798,9 @@ export default function Home() {
       }
       if (autoReturnTimerRef.current) {
         clearTimeout(autoReturnTimerRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
   }, []);
@@ -2089,8 +2138,8 @@ export default function Home() {
             )}
           </div>
           
-          <p className="text-sm text-gray-400 mb-6 animate-pulse">
-            Returning to home in a few seconds...
+          <p className="text-lg text-gray-300 mb-6">
+            Returning to home in <span className="text-2xl font-bold" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> seconds...
           </p>
 
           <button
@@ -2699,16 +2748,15 @@ export default function Home() {
             <p className="text-xl text-gray-300 mb-6">
               {disconnectMessage}
             </p>
-            <p className="text-sm text-gray-400">
-              Returning to home in a few seconds...
+            <p className="text-lg text-gray-300 mb-4">
+              Returning to home in <span className="text-2xl font-bold" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span> seconds...
             </p>
-            <div className="mt-6 w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div className="mt-6 w-full bg-gray-700 rounded-full h-3 overflow-hidden">
               <div 
-                className="h-full animate-pulse"
+                className="h-full transition-all duration-1000 ease-linear"
                 style={{ 
-                  width: '100%', 
-                  background: 'linear-gradient(90deg, #6a3cff, #7a4cff)',
-                  animation: 'shrink 6s linear forwards'
+                  width: `${(autoReturnCountdown / 6) * 100}%`, 
+                  background: 'linear-gradient(90deg, #6a3cff, #7a4cff)'
                 }}
               />
             </div>
