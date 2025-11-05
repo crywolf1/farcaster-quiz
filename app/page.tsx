@@ -1185,60 +1185,133 @@ export default function Home() {
   );
 
   const renderIdle = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 rounded-[32px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5)] max-w-lg w-full">
-        {/* Profile Section - Horizontal Layout */}
-        <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-700">
-          {/* Points - Left */}
-          <div className="flex-1 text-center">
-            <div className="text-3xl font-black text-white mb-1">{formatScore(playerStats?.points || 0)}</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Points</div>
-          </div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Animated background with floating orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-[float_8s_ease-in-out_infinite]"></div>
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-[float_8s_ease-in-out_infinite_2s]"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-[float_8s_ease-in-out_infinite_4s]"></div>
+      </div>
+
+      <div className="relative max-w-lg w-full animate-[scaleIn_0.6s_ease-out]">
+        {/* Outer glow rings */}
+        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-blue-600/30 rounded-[48px] blur-2xl animate-[spin_20s_linear_infinite]"></div>
+        <div className="absolute -inset-2 bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-pink-600/30 rounded-[44px] blur-xl animate-[spin_15s_linear_infinite_reverse]"></div>
+        
+        {/* Main card with glassmorphism */}
+        <div className="relative bg-gradient-to-br from-gray-900/95 via-purple-950/80 to-gray-900/95 backdrop-blur-2xl border border-white/10 rounded-[40px] p-8 shadow-[0_8px_32px_0_rgba(168,85,247,0.4)]">
+          {/* Top ambient glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-purple-500/20 via-transparent to-transparent blur-2xl rounded-t-[40px]"></div>
           
-          {/* Profile - Center */}
-          <div className="flex flex-col items-center">
-            {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="Profile" className="w-20 h-20 rounded-full border-2 border-gray-600 shadow-xl mb-2" />
-            ) : (
-              <div className="w-20 h-20 rounded-full border-2 border-gray-600 shadow-xl bg-gray-800 flex items-center justify-center mb-2">
-                <span className="text-3xl">👤</span>
+          {/* Profile Section - Modern Design */}
+          <div className="relative flex items-center gap-6 mb-8 pb-8 border-b border-white/10 animate-[slideDown_0.8s_ease-out]">
+            {/* Points - Left */}
+            <div className="flex-1 text-center group">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-yellow-500/30 blur-lg rounded-lg group-hover:blur-xl transition-all"></div>
+                <div className="relative text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 mb-2 animate-[shimmer_3s_ease-in-out_infinite] bg-[length:200%_100%]">
+                  {formatScore(playerStats?.points || 0)}
+                </div>
               </div>
-            )}
-            <h2 className="text-lg font-bold text-white">{farcasterUser?.username}</h2>
-            <p className="text-xs text-gray-500">#{playerStats?.rank || '-'} Rank</p>
+              <div className="text-xs text-gray-400 uppercase tracking-wider font-bold flex items-center justify-center gap-1">
+                <span>⭐</span>
+                <span>Points</span>
+              </div>
+            </div>
+            
+            {/* Profile - Center with 3D effect */}
+            <div className="flex flex-col items-center group/avatar">
+              <div className="relative mb-3">
+                {/* Rotating gradient ring */}
+                <div className="absolute -inset-3 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full opacity-75 blur-md group-hover/avatar:blur-lg group-hover/avatar:animate-[spin_3s_linear_infinite] transition-all"></div>
+                
+                {farcasterUser?.pfpUrl ? (
+                  <img 
+                    src={farcasterUser.pfpUrl} 
+                    alt="Profile" 
+                    className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl transform group-hover/avatar:scale-110 transition-transform duration-300" 
+                  />
+                ) : (
+                  <div className="relative w-24 h-24 rounded-full border-4 border-white/20 shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center transform group-hover/avatar:scale-110 transition-transform duration-300">
+                    <span className="text-4xl">👤</span>
+                  </div>
+                )}
+                
+                {/* Crown badge */}
+                <div className="absolute -top-2 -right-2 text-2xl animate-[bounce_1s_ease-in-out_infinite] drop-shadow-lg">
+                  👑
+                </div>
+              </div>
+              <h2 className="text-xl font-black text-white mb-1 text-center drop-shadow-lg">{farcasterUser?.username}</h2>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 font-bold animate-[shimmer_2s_ease-in-out_infinite] bg-[length:200%_100%]">
+                  #{playerStats?.rank || '-'} Rank
+                </span>
+              </div>
+            </div>
+            
+            {/* Wins - Right */}
+            <div className="flex-1 text-center group">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-purple-500/30 blur-lg rounded-lg group-hover:blur-xl transition-all"></div>
+                <div className="relative text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 mb-2 animate-[shimmer_3s_ease-in-out_infinite_1s] bg-[length:200%_100%]">
+                  {playerStats?.wins || 0}
+                </div>
+              </div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider font-bold flex items-center justify-center gap-1">
+                <span>🏆</span>
+                <span>Wins</span>
+              </div>
+            </div>
           </div>
-          
-          {/* Wins - Right */}
-          <div className="flex-1 text-center">
-            <div className="text-3xl font-black text-purple-400 mb-1">{playerStats?.wins || 0}</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Wins</div>
+        
+          {/* Buttons Section with modern styling */}
+          <div className="relative space-y-3 animate-[slideDown_0.8s_ease-out_0.2s_both]">
+            {/* Add Question Button with hover effect */}
+            <button
+              onClick={() => setShowAddQuestion(true)}
+              className="relative group/btn w-full px-6 py-4 rounded-2xl text-base font-bold shadow-lg transition-all duration-300 overflow-hidden border-2 border-emerald-500/50 hover:border-emerald-400/70 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 bg-[length:200%_100%] group-hover/btn:animate-[gradientShift_2s_ease-in-out_infinite]"></div>
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-1000"></div>
+              <span className="relative z-10 text-white flex items-center justify-center gap-2">
+                <span className="text-xl">✨</span>
+                Add Your Question
+              </span>
+            </button>
+            
+            {/* Find Match Button with pulsing effect */}
+            <button
+              onClick={findMatch}
+              className="relative group/match w-full px-8 py-5 rounded-2xl text-xl font-black shadow-2xl transition-all duration-300 overflow-hidden border-2 border-purple-500/50 hover:border-purple-400/70 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {/* Pulsing glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-2xl blur-lg group-hover/match:blur-xl transition-all animate-pulse"></div>
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-[length:200%_100%] group-hover/match:animate-[gradientShift_3s_ease-in-out_infinite]"></div>
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-[-200%] group-hover/match:translate-x-[200%] transition-transform duration-700"></div>
+              <span className="relative z-10 text-white flex items-center justify-center gap-3">
+                <span className="text-2xl animate-[bounce_1s_ease-in-out_infinite]">🎮</span>
+                Find Match
+                <span className="text-2xl animate-[bounce_1s_ease-in-out_infinite_0.5s]">⚡</span>
+              </span>
+            </button>
+            
+            {/* Leaderboard Button with glassmorphism */}
+            <button
+              onClick={() => setShowLeaderboard(true)}
+              className="relative group/lead w-full px-6 py-3 rounded-2xl text-sm font-bold shadow-md transition-all duration-300 overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 hover:scale-[1.01] active:scale-[0.99]"
+            >
+              <span className="relative z-10 text-gray-300 group-hover/lead:text-white flex items-center justify-center gap-2 transition-colors">
+                <span>🏆</span>
+                View Leaderboard
+              </span>
+            </button>
           </div>
         </div>
-        
-        {/* Add Question Button */}
-        <button
-          onClick={() => setShowAddQuestion(true)}
-          className="w-full px-6 py-3 rounded-[20px] text-sm font-bold shadow-lg transition-all mb-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-500 hover:to-teal-500 border-2 border-emerald-500/50 hover:shadow-[0_10px_40px_rgba(16,185,129,0.4)]"
-        >
-          ➕ Add Your Question
-        </button>
-        
-        {/* Find Match Button - Professional Style */}
-        <button
-          onClick={findMatch}
-          className="relative group w-full px-8 py-4 rounded-[20px] text-lg font-bold shadow-lg transition-all mb-3 border-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-500 hover:to-pink-500 border-purple-500 hover:shadow-[0_10px_40px_rgba(168,85,247,0.4)] active:scale-98 overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
-          <span className="relative z-10">Find Match</span>
-        </button>
-        
-        {/* Leaderboard Button */}
-        <button
-          onClick={() => setShowLeaderboard(true)}
-          className="w-full px-6 py-3 rounded-[16px] text-sm font-semibold shadow-md transition-all bg-gray-800 text-gray-400 hover:text-gray-200 border border-gray-700 hover:border-gray-600 hover:bg-gray-750"
-        >
-          View Leaderboard
-        </button>
       </div>
     </div>
   );
