@@ -102,6 +102,7 @@ export default function Home() {
   const [autoReturnCountdown, setAutoReturnCountdown] = useState(6); // Countdown seconds for auto-return
   const autoReturnTimerRef = useRef<NodeJS.Timeout | null>(null); // Timer for auto-return to home
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null); // Interval for countdown display
+  const countdownStartedRef = useRef<boolean>(false); // Flag to prevent multiple countdowns
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -706,22 +707,14 @@ export default function Home() {
   // Auto-return to home after game ends or opponent leaves
   useEffect(() => {
     console.log('[AutoReturn] Effect running - gameState:', gameState, 'opponentLeft:', opponentLeft);
+    console.log('[AutoReturn] - countdownStartedRef.current:', countdownStartedRef.current);
     console.log('[AutoReturn] - Condition check: gameState === game-over?', gameState === 'game-over', '|| opponentLeft?', opponentLeft);
     console.log('[AutoReturn] - Will start countdown?', (gameState === 'game-over' || opponentLeft));
     
-    // Clear any existing timers
-    if (autoReturnTimerRef.current) {
-      clearTimeout(autoReturnTimerRef.current);
-      autoReturnTimerRef.current = null;
-    }
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-
-    // Start timer when game ends or opponent leaves
-    if (gameState === 'game-over' || opponentLeft) {
-      console.log('[AutoReturn] ✓ Starting 6 second countdown');
+    // Start timer when game ends or opponent leaves (but only if not already started)
+    if ((gameState === 'game-over' || opponentLeft) && !countdownStartedRef.current) {
+      console.log('[AutoReturn] ✓ Starting 6 second countdown (first time)');
+      countdownStartedRef.current = true; // Mark countdown as started
       
       // Set initial countdown
       let timeLeft = 6;
@@ -756,6 +749,7 @@ export default function Home() {
           setOpponentLeft(false);
           setDisconnectMessage('');
           setAutoReturnCountdown(6);
+          countdownStartedRef.current = false; // Reset countdown flag for next game
           
           // Clear localStorage
           if (farcasterUser) {
@@ -792,6 +786,9 @@ export default function Home() {
       
       console.log('[AutoReturn] ✓ setInterval created, ID:', countdownIntervalRef.current);
       console.log('[AutoReturn] Waiting 1000ms for first tick...');
+    } else if ((gameState === 'game-over' || opponentLeft) && countdownStartedRef.current) {
+      // Countdown already started, don't start another
+      console.log('[AutoReturn] ⏭️ Countdown already running, skipping duplicate start');
     } else {
       // Reset countdown when not in end state
       console.log('[AutoReturn] Condition not met, resetting countdown to 6');
