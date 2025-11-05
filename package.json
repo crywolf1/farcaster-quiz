@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "migrate:score-to-points": "tsx scripts/migrate-score-to-points.ts",
     "migrate:questions-to-db": "tsx scripts/migrate-questions-to-db.ts",
+    "update:question-submitters": "tsx scripts/update-question-submitters.ts",
     "reset:points": "tsx scripts/reset-points.ts",
     "clear:leaderboard": "tsx scripts/clear-leaderboard.ts"
   },
