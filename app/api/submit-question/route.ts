@@ -4,12 +4,19 @@ import { getPendingQuestionsCollection } from '@/lib/mongodb';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { subject, question, answers, correctAnswer, submittedBy } = body;
+    const { subject, difficulty, question, answers, correctAnswer, submittedBy } = body;
 
     // Validation
     if (!subject || !question || !answers || answers.length !== 4 || correctAnswer === undefined) {
       return NextResponse.json(
         { error: 'Invalid question data. Need subject, question, 4 answers, and correctAnswer.' },
+        { status: 400 }
+      );
+    }
+
+    if (difficulty && !['easy', 'moderate', 'hard'].includes(difficulty)) {
+      return NextResponse.json(
+        { error: 'Invalid difficulty. Must be easy, moderate, or hard.' },
         { status: 400 }
       );
     }
@@ -25,6 +32,7 @@ export async function POST(request: Request) {
 
     const newQuestion = {
       subject,
+      difficulty: difficulty || 'moderate',
       question,
       answers,
       correctAnswer,

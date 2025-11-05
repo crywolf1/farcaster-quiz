@@ -302,6 +302,15 @@ export default function AdminDashboard() {
                       <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-xs font-bold">
                         {q.subject}
                       </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        q.difficulty === 'easy' 
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                          : q.difficulty === 'hard'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                      }`}>
+                        {q.difficulty === 'easy' ? '😊 Easy' : q.difficulty === 'hard' ? '🔥 Hard' : '🤔 Moderate'}
+                      </span>
                       <span className="text-gray-500 text-sm">
                         {new Date(q.submittedAt).toLocaleDateString()}
                       </span>

@@ -85,6 +85,7 @@ export default function Home() {
   const [showAddQuestion, setShowAddQuestion] = useState(false); // Show add question modal
   const [newQuestion, setNewQuestion] = useState({
     subject: '',
+    difficulty: 'moderate' as 'easy' | 'moderate' | 'hard',
     question: '',
     answers: ['', '', '', ''],
     correctAnswer: 0,
@@ -2129,6 +2130,7 @@ export default function Home() {
         // Reset form
         setNewQuestion({
           subject: '',
+          difficulty: 'moderate',
           question: '',
           answers: ['', '', '', ''],
           correctAnswer: 0,
@@ -2217,6 +2219,49 @@ export default function Home() {
               <option value="Food & Drinks">🍕 Food & Drinks</option>
               <option value="Crypto">₿ Crypto</option>
             </select>
+          </div>
+
+          {/* Difficulty Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+              <span className="text-sm">⚡</span>
+              Difficulty
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setNewQuestion({ ...newQuestion, difficulty: 'easy' })}
+                className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  newQuestion.difficulty === 'easy'
+                    ? 'bg-gradient-to-br from-green-500 to-green-600 text-white border-2 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-green-500/50 hover:text-green-400'
+                }`}
+              >
+                😊 Easy
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewQuestion({ ...newQuestion, difficulty: 'moderate' })}
+                className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  newQuestion.difficulty === 'moderate'
+                    ? 'bg-gradient-to-br from-yellow-500 to-orange-500 text-white border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)]'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-yellow-500/50 hover:text-yellow-400'
+                }`}
+              >
+                🤔 Moderate
+              </button>
+              <button
+                type="button"
+                onClick={() => setNewQuestion({ ...newQuestion, difficulty: 'hard' })}
+                className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                  newQuestion.difficulty === 'hard'
+                    ? 'bg-gradient-to-br from-red-500 to-red-600 text-white border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-red-500/50 hover:text-red-400'
+                }`}
+              >
+                🔥 Hard
+              </button>
+            </div>
           </div>
 
           {/* Question Input */}
