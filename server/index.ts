@@ -77,7 +77,7 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
       username: player1.username,
       pfpUrl: player1.pfpUrl,
       fid: player1.fid,
-      score: 0,
+      points: 0,
       ready: false
     },
     {
@@ -86,7 +86,7 @@ function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQueue): G
       username: player2.username,
       pfpUrl: player2.pfpUrl,
       fid: player2.fid,
-      score: 0,
+      points: 0,
       ready: false
     }
   ];
@@ -156,21 +156,21 @@ function startQuestion(room: GameRoom) {
 
 function checkAnswers(room: GameRoom) {
   const question = room.questions[room.currentQuestionIndex];
-  const results: { id: string; username: string; correct: boolean; score: number }[] = [];
+  const results: { id: string; username: string; correct: boolean; points: number }[] = [];
 
   room.players.forEach(player => {
     const answer = room.answers.get(player.id);
     const correct = answer === question.correctAnswer;
     
     if (correct) {
-      player.score += 1;
+      player.points! += 1;
     }
     
     results.push({
       id: player.id,
       username: player.username,
       correct,
-      score: player.score
+      points: player.points || 0
     });
   });
 
@@ -195,12 +195,12 @@ function endRound(room: GameRoom) {
   const scores = room.players.map(p => ({
     playerId: p.id,
     username: p.username,
-    score: p.score
+    points: p.points || 0
   }));
 
-  const roundWinner = room.players[0].score > room.players[1].score 
+  const roundWinner = (room.players[0].points || 0) > (room.players[1].points || 0)
     ? room.players[0].username 
-    : room.players[0].score < room.players[1].score 
+    : (room.players[0].points || 0) < (room.players[1].points || 0)
       ? room.players[1].username 
       : null;
 
@@ -224,7 +224,7 @@ function endRound(room: GameRoom) {
       room.currentRound++;
       room.currentQuestionIndex = 0;
       room.questions = [];
-      room.players.forEach(p => p.score = 0);
+      room.players.forEach(p => p.points = 0);
       
       // Get 3 new random subjects for this round (excluding used ones)
       const allSubjects = getAvailableSubjects();
@@ -246,10 +246,10 @@ function endGame(room: GameRoom) {
   const finalScores = room.players.map(p => ({
     playerId: p.id,
     username: p.username,
-    score: p.score
+    points: p.points || 0
   }));
 
-  const winner = room.players[0].score > room.players[1].score 
+  const winner = (room.players[0].points || 0) > (room.players[1].points || 0)
     ? room.players[0].username 
     : room.players[1].username;
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPendingQuestionsCollection } from '@/lib/mongodb';
+import { getPendingQuestionsCollection, updatePlayerScore } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import fs from 'fs/promises';
 import path from 'path';
@@ -118,9 +118,18 @@ export async function POST(request: Request) {
       // Write back to file
       await fs.writeFile(questionsPath, JSON.stringify(questionsJson, null, 2));
 
+      // Award 1000 points to the question submitter
+      await updatePlayerScore(
+        question.submittedBy.fid,
+        question.submittedBy.username,
+        question.submittedBy.pfpUrl,
+        1000,
+        false // Not a win, just a points reward
+      );
+
       return NextResponse.json({
         success: true,
-        message: 'Question approved and added to the game!',
+        message: 'Question approved and added to the game! 1,000 points awarded to submitter.',
       });
     } else {
       // Reject the question

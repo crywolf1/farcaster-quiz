@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Score updated successfully',
+      message: 'Points updated successfully',
     });
   } catch (error) {
     console.error('[Update Score API] Error:', error);

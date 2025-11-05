@@ -80,7 +80,7 @@ export default function Home() {
   const [isRejoinAttempt, setIsRejoinAttempt] = useState(false); // Track if we're attempting to rejoin
   const [showLeaderboard, setShowLeaderboard] = useState(false); // Show leaderboard modal
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [playerStats, setPlayerStats] = useState<{ score: number; rank: number; wins: number; losses: number } | null>(null);
+  const [playerStats, setPlayerStats] = useState<{ points: number; rank: number; wins: number; losses: number } | null>(null);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false); // Show leave game confirmation modal
   const [showAddQuestion, setShowAddQuestion] = useState(false); // Show add question modal
   const [newQuestion, setNewQuestion] = useState({
@@ -90,7 +90,11 @@ export default function Home() {
     correctAnswer: 0,
   });
   const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false); // Track submission state
-  const [questionFormError, setQuestionFormError] = useState<string>(''); // Show validation errors
+  const [fieldErrors, setFieldErrors] = useState({
+    subject: '',
+    question: '',
+    answers: ['', '', '', '']
+  }); // Show validation errors per field
   
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // Per-timer refs (keep per-timer refs above; remove generic timer ref)
@@ -618,7 +622,7 @@ export default function Home() {
       
       if (data.success && data.playerRank) {
         setPlayerStats({
-          score: data.playerRank.player?.score || 0,
+          points: data.playerRank.player?.points || 0,
           rank: data.playerRank.rank || 0,
           wins: data.playerRank.player?.wins || 0,
           losses: data.playerRank.player?.losses || 0,
@@ -640,7 +644,7 @@ export default function Home() {
         setLeaderboardData(data.leaderboard);
         if (data.playerRank) {
           setPlayerStats({
-            score: data.playerRank.player?.score || 0,
+            points: data.playerRank.player?.points || 0,
             rank: data.playerRank.rank || 0,
             wins: data.playerRank.player?.wins || 0,
             losses: data.playerRank.player?.losses || 0,
@@ -1183,10 +1187,10 @@ export default function Home() {
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-700 rounded-[32px] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.5)] max-w-lg w-full">
         {/* Profile Section - Horizontal Layout */}
         <div className="flex items-center gap-6 mb-8 pb-6 border-b border-gray-700">
-          {/* Score - Left */}
+          {/* Points - Left */}
           <div className="flex-1 text-center">
-            <div className="text-3xl font-black text-white mb-1">{formatScore(playerStats?.score || 0)}</div>
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Score</div>
+            <div className="text-3xl font-black text-white mb-1">{formatScore(playerStats?.points || 0)}</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Points</div>
           </div>
           
           {/* Profile - Center */}
@@ -1548,7 +1552,7 @@ export default function Home() {
               </p>
               <div className="mb-6">
                 <p className="text-white text-5xl font-bold mb-2 drop-shadow-2xl">{myScore}</p>
-                <p className="text-gray-400 drop-shadow">Your Score</p>
+                <p className="text-gray-400 drop-shadow">Your Points</p>
               </div>
               <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
             </div>
@@ -1703,7 +1707,7 @@ export default function Home() {
                   <div key={result.playerId} className="text-center">
                     <p className="text-white font-semibold text-sm">{result.username}</p>
                     <p className="text-xl">{result.correct ? '✓' : '✗'}</p>
-                    <p className="text-gray-300 text-xs">Score: {result.score}</p>
+                    <p className="text-gray-300 text-xs">Points: {result.points}</p>
                   </div>
                 ))}
               </div>
@@ -1966,7 +1970,7 @@ export default function Home() {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">
-                      {formatScore(playerStats.score)}
+                      {formatScore(playerStats.points)}
                     </div>
                     <div className="text-sm font-bold text-green-400">{playerStats.wins}W - {playerStats.losses}L</div>
                   </div>
@@ -2024,10 +2028,10 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* Score */}
+                  {/* Points */}
                   <div className="text-right relative z-10">
                     <div className={`text-xl font-black ${isTopThree ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500' : 'text-white'}`}>
-                      {formatScore(entry.score)}
+                      {formatScore(entry.points)}
                     </div>
                   </div>
                 </div>
@@ -2048,40 +2052,51 @@ export default function Home() {
     }
 
     // Clear previous errors
-    setQuestionFormError('');
+    setFieldErrors({
+      subject: '',
+      question: '',
+      answers: ['', '', '', '']
+    });
+
+    let hasErrors = false;
+    const newErrors = {
+      subject: '',
+      question: '',
+      answers: ['', '', '', '']
+    };
 
     // Validation
     if (!newQuestion.subject) {
-      setQuestionFormError('❌ Please select a subject');
-      return;
+      newErrors.subject = 'Please select a subject';
+      hasErrors = true;
     }
     
     if (!newQuestion.question.trim()) {
-      setQuestionFormError('❌ Please enter a question');
-      return;
+      newErrors.question = 'Please enter a question';
+      hasErrors = true;
+    } else if (newQuestion.question.trim().length > 150) {
+      newErrors.question = `Question is too long! Maximum 150 characters (current: ${newQuestion.question.trim().length})`;
+      hasErrors = true;
     }
     
-    if (newQuestion.question.trim().length > 150) {
-      setQuestionFormError(`❌ Question is too long! Maximum 150 characters. Current: ${newQuestion.question.trim().length}`);
-      return;
-    }
-    
-    // Check all answers are filled
-    const emptyAnswers = newQuestion.answers.filter(a => !a.trim());
-    if (emptyAnswers.length > 0) {
-      setQuestionFormError('❌ Please fill in all 4 answers');
-      return;
-    }
-    
-    // Check answer lengths
-    const longAnswers = newQuestion.answers.filter(a => a.trim().length > 60);
-    if (longAnswers.length > 0) {
-      setQuestionFormError('❌ One or more answers are too long! Maximum 60 characters per answer.');
+    // Check all answers are filled and lengths
+    newQuestion.answers.forEach((answer, index) => {
+      if (!answer.trim()) {
+        newErrors.answers[index] = 'Required';
+        hasErrors = true;
+      } else if (answer.trim().length > 60) {
+        newErrors.answers[index] = `Too long (${answer.trim().length}/60)`;
+        hasErrors = true;
+      }
+    });
+
+    if (!farcasterUser) {
+      alert('❌ User information not available');
       return;
     }
 
-    if (!farcasterUser) {
-      setQuestionFormError('❌ User information not available');
+    if (hasErrors) {
+      setFieldErrors(newErrors);
       return;
     }
 
@@ -2110,7 +2125,7 @@ export default function Home() {
       if (data.success) {
         // Success! Close modal and reset
         setShowAddQuestion(false);
-        alert('✅ ' + data.message);
+        alert('🎉 Thank you for adding a question! 1,000 points will be added to your account once your question is confirmed.');
         
         // Reset form
         setNewQuestion({
@@ -2119,13 +2134,17 @@ export default function Home() {
           answers: ['', '', '', ''],
           correctAnswer: 0,
         });
-        setQuestionFormError('');
+        setFieldErrors({
+          subject: '',
+          question: '',
+          answers: ['', '', '', '']
+        });
       } else {
-        setQuestionFormError('❌ Error: ' + data.error);
+        alert('❌ Error: ' + data.error);
       }
     } catch (error) {
       console.error('[SubmitQuestion] Error:', error);
-      setQuestionFormError('❌ Failed to submit question. Please try again.');
+      alert('❌ Failed to submit question. Please try again.');
     } finally {
       // Always reset submitting state
       setIsSubmittingQuestion(false);
@@ -2158,6 +2177,12 @@ export default function Home() {
               <span className="text-sm">📚</span>
               Subject
             </label>
+            {fieldErrors.subject && (
+              <p className="text-red-400 text-xs mb-1 flex items-center gap-1">
+                <span>⚠️</span>
+                <span>{fieldErrors.subject}</span>
+              </p>
+            )}
             <select
               value={newQuestion.subject}
               onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
@@ -2197,6 +2222,12 @@ export default function Home() {
                 {newQuestion.question.length}/150
               </span>
             </label>
+            {fieldErrors.question && (
+              <p className="text-red-400 text-xs mb-1 flex items-center gap-1">
+                <span>⚠️</span>
+                <span>{fieldErrors.question}</span>
+              </p>
+            )}
             <textarea
               value={newQuestion.question}
               onChange={(e) => setNewQuestion({ ...newQuestion, question: e.target.value })}
@@ -2217,46 +2248,62 @@ export default function Home() {
             </label>
             <div className="space-y-1.5">
               {/* Correct Answer - Green */}
-              <div className="flex items-center gap-1.5">
-                <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
-                  <span className="text-green-400 text-xs font-bold">✓</span>
+              <div>
+                {fieldErrors.answers[newQuestion.correctAnswer] && (
+                  <p className="text-red-400 text-xs mb-1 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>{fieldErrors.answers[newQuestion.correctAnswer]}</span>
+                  </p>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                    <span className="text-green-400 text-xs font-bold">✓</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={newQuestion.answers[newQuestion.correctAnswer]}
+                    onChange={(e) => {
+                      const newAnswers = [...newQuestion.answers];
+                      newAnswers[newQuestion.correctAnswer] = e.target.value;
+                      setNewQuestion({ ...newQuestion, answers: newAnswers });
+                    }}
+                    placeholder="Correct answer"
+                    maxLength={60}
+                    className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
+                    required
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={newQuestion.answers[newQuestion.correctAnswer]}
-                  onChange={(e) => {
-                    const newAnswers = [...newQuestion.answers];
-                    newAnswers[newQuestion.correctAnswer] = e.target.value;
-                    setNewQuestion({ ...newQuestion, answers: newAnswers });
-                  }}
-                  placeholder="Correct answer"
-                  maxLength={60}
-                  className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
-                  required
-                />
               </div>
 
               {/* Wrong Answers - Red */}
               {newQuestion.answers.map((answer, index) => {
                 if (index === newQuestion.correctAnswer) return null;
                 return (
-                  <div key={index} className="flex items-center gap-1.5">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
-                      <span className="text-red-400 text-xs font-bold">✕</span>
+                  <div key={index}>
+                    {fieldErrors.answers[index] && (
+                      <p className="text-red-400 text-xs mb-1 flex items-center gap-1">
+                        <span>⚠️</span>
+                        <span>{fieldErrors.answers[index]}</span>
+                      </p>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
+                        <span className="text-red-400 text-xs font-bold">✕</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={answer}
+                        onChange={(e) => {
+                          const newAnswers = [...newQuestion.answers];
+                          newAnswers[index] = e.target.value;
+                          setNewQuestion({ ...newQuestion, answers: newAnswers });
+                        }}
+                        placeholder="Wrong answer"
+                        maxLength={60}
+                        className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
+                        required
+                      />
                     </div>
-                    <input
-                      type="text"
-                      value={answer}
-                      onChange={(e) => {
-                        const newAnswers = [...newQuestion.answers];
-                        newAnswers[index] = e.target.value;
-                        setNewQuestion({ ...newQuestion, answers: newAnswers });
-                      }}
-                      placeholder="Wrong answer"
-                      maxLength={60}
-                      className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
-                      required
-                    />
                   </div>
                 );
               })}
@@ -2264,19 +2311,16 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Error Message */}
-        {questionFormError && (
-          <div className="flex-shrink-0 mt-3 p-3 bg-red-500/20 border-2 border-red-500/50 rounded-xl animate-shake">
-            <p className="text-red-400 text-sm font-semibold text-center">{questionFormError}</p>
-          </div>
-        )}
-
         {/* Footer - Fixed */}
         <div className="flex-shrink-0 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-700/50">
           <button
             onClick={() => {
               setShowAddQuestion(false);
-              setQuestionFormError('');
+              setFieldErrors({
+                subject: '',
+                question: '',
+                answers: ['', '', '', '']
+              });
               setIsSubmittingQuestion(false);
             }}
             disabled={isSubmittingQuestion}

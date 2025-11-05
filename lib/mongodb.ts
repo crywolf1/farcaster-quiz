@@ -8,7 +8,7 @@ export interface LeaderboardEntry {
   fid: string;
   username: string;
   pfpUrl: string;
-  score: number;
+  points: number;
   wins: number;
   losses: number;
   lastPlayed: Date;
@@ -63,7 +63,7 @@ export async function updatePlayerScore(
   fid: string,
   username: string,
   pfpUrl: string,
-  scoreToAdd: number,
+  pointsToAdd: number,
   isWin: boolean
 ): Promise<void> {
   const collection = await getLeaderboardCollection();
@@ -77,7 +77,7 @@ export async function updatePlayerScore(
         lastPlayed: new Date(),
       },
       $inc: {
-        score: scoreToAdd,
+        points: pointsToAdd,
         wins: isWin ? 1 : 0,
         losses: isWin ? 0 : 1,
       },
@@ -91,7 +91,7 @@ export async function getTopPlayers(limit: number = 100): Promise<LeaderboardEnt
   
   return await collection
     .find({})
-    .sort({ score: -1 })
+    .sort({ points: -1 })
     .limit(limit)
     .toArray();
 }
@@ -104,7 +104,7 @@ export async function getPlayerRank(fid: string): Promise<{ rank: number; player
     return { rank: 0, player: null };
   }
   
-  const rank = await collection.countDocuments({ score: { $gt: player.score } }) + 1;
+  const rank = await collection.countDocuments({ points: { $gt: player.points } }) + 1;
   
   return { rank, player };
 }

@@ -15,7 +15,7 @@ export interface Player {
   username: string;
   pfpUrl?: string; // Farcaster profile picture
   fid?: number; // Farcaster ID
-  score?: number; // Player's score in the game
+  points?: number; // Player's points in the game
   ready?: boolean; // Player ready status for next round
 }
 
@@ -31,7 +31,7 @@ export interface GameRoom {
   questions: Question[];
   currentQuestionIndex: number;
   answers: Map<string, number>; // playerId_questionId -> answerIndex
-  scores: Map<string, number>; // playerId -> score
+  scores: Map<string, number>; // playerId -> points
   state: 'subject-selection' | 'playing' | 'round-over' | 'game-over' | 'question' | 'round-complete';
   timerStartedAt: number | null; // Timestamp when timer started
   timerDuration: number; // Duration in milliseconds (18000ms = 18sec)
@@ -62,9 +62,9 @@ export interface ServerToClientEvents {
   'subject-selected': (data: { subject: string }) => void;
   'question': (data: { question: Question; questionNumber: number; totalQuestions: number }) => void;
   'answer-submitted': (data: { playerId: string }) => void;
-  'question-result': (data: { correctAnswer: number; players: { id: string; username: string; correct: boolean; score: number }[] }) => void;
-  'round-complete': (data: { winner: string | null; scores: { playerId: string; username: string; score: number }[]; nextRoundOwner: string }) => void;
-  'game-over': (data: { winner: string; finalScores: { playerId: string; username: string; score: number }[] }) => void;
+  'question-result': (data: { correctAnswer: number; players: { id: string; username: string; correct: boolean; points: number }[] }) => void;
+  'round-complete': (data: { winner: string | null; scores: { playerId: string; username: string; points: number }[]; nextRoundOwner: string }) => void;
+  'game-over': (data: { winner: string; finalScores: { playerId: string; username: string; points: number }[] }) => void;
   'opponent-disconnected': () => void;
   'error': (data: { message: string }) => void;
 }
