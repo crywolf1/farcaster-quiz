@@ -1428,12 +1428,9 @@ export default function Home() {
             
             {/* Right: Points & Currency */}
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 bg-purple-600/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <span className="text-white text-sm font-bold">{formatScore(playerStats?.points || 0)}</span>
-              </div>
               <div className="flex items-center gap-1 bg-blue-500/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
                 <span className="text-white">💎</span>
-                <span className="text-white text-sm font-bold">{formatScore(playerStats?.points || 0)}</span>
+                <span className="text-white text-sm font-bold">250</span>
               </div>
             </div>
           </div>
@@ -1497,7 +1494,7 @@ export default function Home() {
 
           {/* Leaderboard Preview Section */}
           {leaderboardData && leaderboardData.length > 0 && (
-            <div className="mb-2">
+            <div className="px-4 mb-4">
               <div className="flex items-center justify-between mb-4">
                 <h5 className="text-white font-bold text-lg">Leaderboard</h5>
                 <button 
