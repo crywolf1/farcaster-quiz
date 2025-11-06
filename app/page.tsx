@@ -2993,27 +2993,28 @@ export default function Home() {
               value={newQuestion.subject}
               onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
               className="w-full px-3 py-2 backdrop-blur-sm bg-white/10 border-2 border-white/30 rounded-xl text-sm text-white focus:border-white/50 focus:outline-none transition-all font-medium"
+              style={{ color: 'white' }}
               required
             >
-              <option value="">Select a subject...</option>
-              <option value="Movies">🎬 Movies</option>
-              <option value="TV Shows">📺 TV Shows</option>
-              <option value="Literature">📚 Literature</option>
-              <option value="Music">🎵 Music</option>
-              <option value="History">🏛️ History</option>
-              <option value="English">� English</option>
-              <option value="Technology">💻 Technology</option>
-              <option value="Science">🔬 Science</option>
-              <option value="Geography">🌍 Geography</option>
-              <option value="Culture">🎭 Culture</option>
-              <option value="Games">🎮 Games</option>
-              <option value="General Information">📖 General Information</option>
-              <option value="Sports">⚽ Sports</option>
-              <option value="Nature">🌿 Nature</option>
-              <option value="Math">🔢 Math</option>
-              <option value="Religion">☪️ Religion</option>
-              <option value="Food & Drinks">🍕 Food & Drinks</option>
-              <option value="Crypto">₿ Crypto</option>
+              <option value="" style={{ color: 'black' }}>Select a subject...</option>
+              <option value="Movies" style={{ color: 'black' }}>🎬 Movies</option>
+              <option value="TV Shows" style={{ color: 'black' }}>📺 TV Shows</option>
+              <option value="Literature" style={{ color: 'black' }}>📚 Literature</option>
+              <option value="Music" style={{ color: 'black' }}>🎵 Music</option>
+              <option value="History" style={{ color: 'black' }}>🏛️ History</option>
+              <option value="English" style={{ color: 'black' }}>📖 English</option>
+              <option value="Technology" style={{ color: 'black' }}>💻 Technology</option>
+              <option value="Science" style={{ color: 'black' }}>🔬 Science</option>
+              <option value="Geography" style={{ color: 'black' }}>🌍 Geography</option>
+              <option value="Culture" style={{ color: 'black' }}>🎭 Culture</option>
+              <option value="Games" style={{ color: 'black' }}>🎮 Games</option>
+              <option value="General Information" style={{ color: 'black' }}>📖 General Information</option>
+              <option value="Sports" style={{ color: 'black' }}>⚽ Sports</option>
+              <option value="Nature" style={{ color: 'black' }}>🌿 Nature</option>
+              <option value="Math" style={{ color: 'black' }}>🔢 Math</option>
+              <option value="Religion" style={{ color: 'black' }}>☪️ Religion</option>
+              <option value="Food & Drinks" style={{ color: 'black' }}>🍕 Food & Drinks</option>
+              <option value="Crypto" style={{ color: 'black' }}>₿ Crypto</option>
             </select>
           </div>
 
