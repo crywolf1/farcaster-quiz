@@ -276,30 +276,66 @@ async function getRandomQuestions(subject: string): Promise<Question[]> {
   
   const subjectQuestions = allQuestions.filter(q => q.subject === subject);
   
+  console.log(`[GameManager] Found ${subjectQuestions.length} questions for subject: ${subject}`);
+  
+  // CRITICAL FIX: Ensure we have at least 3 questions
+  if (subjectQuestions.length < 3) {
+    console.error(`[GameManager] ⚠️ Not enough questions for ${subject}! Only ${subjectQuestions.length} available, need minimum 3`);
+    // Return whatever we have but log the issue
+    const available = subjectQuestions.slice(0, 3).map(q => shuffleAnswers(q));
+    console.log(`[GameManager] Returning ${available.length} questions (less than required 3)`);
+    return available.sort(() => Math.random() - 0.5);
+  }
+  
   // Get one question from each difficulty level
   const easyQuestions = subjectQuestions.filter(q => q.difficulty === 'easy');
   const moderateQuestions = subjectQuestions.filter(q => q.difficulty === 'moderate');
   const hardQuestions = subjectQuestions.filter(q => q.difficulty === 'hard');
+  
+  console.log(`[GameManager] Question distribution - Easy: ${easyQuestions.length}, Moderate: ${moderateQuestions.length}, Hard: ${hardQuestions.length}`);
   
   const selectedQuestions: Question[] = [];
   
   // Pick one random question from each difficulty
   if (easyQuestions.length > 0) {
     const randomEasy = easyQuestions[Math.floor(Math.random() * easyQuestions.length)];
-    selectedQuestions.push(shuffleAnswers(randomEasy)); // Shuffle answers
+    selectedQuestions.push(shuffleAnswers(randomEasy));
   }
   
   if (moderateQuestions.length > 0) {
     const randomModerate = moderateQuestions[Math.floor(Math.random() * moderateQuestions.length)];
-    selectedQuestions.push(shuffleAnswers(randomModerate)); // Shuffle answers
+    selectedQuestions.push(shuffleAnswers(randomModerate));
   }
   
   if (hardQuestions.length > 0) {
     const randomHard = hardQuestions[Math.floor(Math.random() * hardQuestions.length)];
-    selectedQuestions.push(shuffleAnswers(randomHard)); // Shuffle answers
+    selectedQuestions.push(shuffleAnswers(randomHard));
   }
   
-  // Shuffle the 3 questions so they're not always in easy->moderate->hard order
+  // CRITICAL FIX: If we don't have 3 questions yet, fill in with random questions from the subject
+  while (selectedQuestions.length < 3 && subjectQuestions.length > selectedQuestions.length) {
+    // Get questions we haven't selected yet
+    const selectedIds = selectedQuestions.map(q => q.id);
+    const remainingQuestions = subjectQuestions.filter(q => !selectedIds.includes(q.id));
+    
+    if (remainingQuestions.length > 0) {
+      const randomQuestion = remainingQuestions[Math.floor(Math.random() * remainingQuestions.length)];
+      selectedQuestions.push(shuffleAnswers(randomQuestion));
+      console.log(`[GameManager] Added filler question to reach 3 questions (now have ${selectedQuestions.length})`);
+    } else {
+      break;
+    }
+  }
+  
+  console.log(`[GameManager] Selected ${selectedQuestions.length} questions for ${subject}`);
+  
+  // CRITICAL FIX: Final safety check
+  if (selectedQuestions.length === 0) {
+    console.error(`[GameManager] ❌ CRITICAL: No questions available for ${subject}!`);
+    throw new Error(`No questions available for subject: ${subject}`);
+  }
+  
+  // Shuffle the questions so they're not always in easy->moderate->hard order
   return selectedQuestions.sort(() => Math.random() - 0.5);
 }
 
@@ -337,7 +373,24 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
   
   // Pick random subject from available subjects for this round
   const randomSubject = room.availableSubjectsForRound[Math.floor(Math.random() * room.availableSubjectsForRound.length)];
-  const selectedQuestions = await getRandomQuestions(randomSubject);
+  
+  // CRITICAL FIX: Validate questions before proceeding
+  let selectedQuestions: Question[] = [];
+  try {
+    selectedQuestions = await getRandomQuestions(randomSubject);
+    
+    if (selectedQuestions.length === 0) {
+      console.error(`[GameManager] ❌ No questions for auto-selected subject ${randomSubject}, ending game`);
+      room.state = 'game-over';
+      await storage.setGameRoom(roomId, room);
+      return;
+    }
+  } catch (error) {
+    console.error(`[GameManager] ❌ Error auto-selecting subject ${randomSubject}:`, error);
+    room.state = 'game-over';
+    await storage.setGameRoom(roomId, room);
+    return;
+  }
   
   // Mark subject as used
   room.usedSubjects.add(randomSubject);
@@ -541,7 +594,21 @@ export async function selectSubject(playerId: string, subject: string): Promise<
   }
 
   // Get questions (1 easy, 1 moderate, 1 hard)
-  const selectedQuestions = await getRandomQuestions(subject);
+  let selectedQuestions: Question[] = [];
+  try {
+    selectedQuestions = await getRandomQuestions(subject);
+    
+    // CRITICAL FIX: Validate we have enough questions
+    if (selectedQuestions.length === 0) {
+      console.error(`[GameManager] ❌ No questions returned for ${subject}`);
+      return { success: false, message: 'No questions available for this subject' };
+    }
+    
+    console.log(`[GameManager] Successfully fetched ${selectedQuestions.length} questions for ${subject}`);
+  } catch (error) {
+    console.error(`[GameManager] ❌ Error fetching questions for ${subject}:`, error);
+    return { success: false, message: 'Failed to load questions for this subject' };
+  }
   
   // Mark subject as used
   room.usedSubjects.add(subject);
@@ -609,13 +676,26 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
     return { success: false, message: 'Not in playing phase' };
   }
 
+  // Get player's current progress
+  const playerProgress = room.playerProgress.get(playerId) || 0;
+  
+  // CRITICAL FIX: Validate question exists before accessing
+  if (playerProgress >= room.questions.length) {
+    console.error(`[GameManager] ❌ Invalid progress: ${playerProgress} >= ${room.questions.length} questions`);
+    return { success: false, message: 'Question not found' };
+  }
+  
+  const currentQuestion = room.questions[playerProgress];
+  
+  // CRITICAL FIX: Additional validation
+  if (!currentQuestion) {
+    console.error(`[GameManager] ❌ Question at index ${playerProgress} is undefined!`);
+    return { success: false, message: 'Question not found' };
+  }
+
   // Store answer
   const answerKey = `${playerId}_${questionId}`;
   room.answers.set(answerKey, answerIndex);
-
-  // Get player's current progress
-  const playerProgress = room.playerProgress.get(playerId) || 0;
-  const currentQuestion = room.questions[playerProgress];
   
   // Calculate if answer is correct
   const correct = answerIndex === currentQuestion.correctAnswer;

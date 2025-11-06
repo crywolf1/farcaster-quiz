@@ -11,7 +11,16 @@ export async function POST(request: NextRequest) {
     if (!playerId || !subject) {
       console.log('[Subject API] Missing data - playerId:', playerId, 'subject:', subject);
       return NextResponse.json(
-        { error: 'Missing playerId or subject' },
+        { success: false, error: 'Missing playerId or subject', message: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate subject is a non-empty string
+    if (typeof subject !== 'string' || subject.trim().length === 0) {
+      console.log('[Subject API] Invalid subject:', subject);
+      return NextResponse.json(
+        { success: false, error: 'Invalid subject', message: 'Subject must be a non-empty string' },
         { status: 400 }
       );
     }
@@ -23,16 +32,22 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       console.log('[Subject API] Failed:', result.message);
       return NextResponse.json(
-        { error: result.message },
+        { success: false, error: result.message, message: result.message },
         { status: 400 }
       );
     }
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('[Subject API] Error:', error);
+    console.error('[Subject API] ❌ Error:', error);
+    console.error('[Subject API] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        success: false, 
+        error: 'Internal server error', 
+        message: 'An error occurred while selecting subject',
+        details: error instanceof Error ? error.message : String(error) 
+      },
       { status: 500 }
     );
   }
