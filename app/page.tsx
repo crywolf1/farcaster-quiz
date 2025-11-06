@@ -592,10 +592,11 @@ export default function Home() {
   };
 
   // Fetch player stats and leaderboard when farcasterUser is set
+  // Fetch leaderboard data on mount and when user changes
   useEffect(() => {
     if (farcasterUser) {
+      console.log('[Leaderboard] Fetching on user mount:', farcasterUser.username);
       fetchPlayerStats();
-      // Also fetch leaderboard for main page preview
       fetchLeaderboard();
     }
   }, [farcasterUser]);
@@ -603,9 +604,18 @@ export default function Home() {
   // Refresh leaderboard when modal opens (in case data changed)
   useEffect(() => {
     if (showLeaderboard && farcasterUser) {
+      console.log('[Leaderboard] Refreshing on modal open');
       fetchLeaderboard();
     }
   }, [showLeaderboard]);
+
+  // Also fetch leaderboard when returning to idle state (after game ends)
+  useEffect(() => {
+    if (gameState === 'idle' && farcasterUser && leaderboardData.length === 0) {
+      console.log('[Leaderboard] Fetching on idle state (empty data)');
+      fetchLeaderboard();
+    }
+  }, [gameState, farcasterUser, leaderboardData.length]);
 
   // Save score to MongoDB when game ends
   const hasScoreSaved = useRef(false);
@@ -703,7 +713,12 @@ export default function Home() {
   };
 
   const fetchLeaderboard = async () => {
-    if (!farcasterUser) return;
+    if (!farcasterUser) {
+      console.log('[FetchLeaderboard] No farcaster user, skipping');
+      return;
+    }
+    
+    console.log('[FetchLeaderboard] Starting fetch for user:', farcasterUser.username);
     
     try {
       const controller = new AbortController();
@@ -714,10 +729,20 @@ export default function Home() {
       });
       clearTimeout(timeoutId);
       
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
       
+      console.log('[FetchLeaderboard] Received data:', {
+        success: data.success,
+        leaderboardCount: data.leaderboard?.length || 0,
+        hasPlayerRank: !!data.playerRank
+      });
+      
       if (data.success) {
-        setLeaderboardData(data.leaderboard);
+        setLeaderboardData(data.leaderboard || []);
         if (data.playerRank) {
           setPlayerStats({
             points: data.playerRank.player?.points || 0,
@@ -726,11 +751,19 @@ export default function Home() {
             losses: data.playerRank.player?.losses || 0,
           });
         }
+        console.log('[FetchLeaderboard] ✅ Successfully updated leaderboard');
+      } else {
+        console.error('[FetchLeaderboard] ❌ API returned success: false');
+        setLeaderboardData([]);
       }
     } catch (error) {
-      console.error('[FetchLeaderboard] Error:', error);
-      // Set empty leaderboard on error to stop loading state
-      setLeaderboardData([]);
+      console.error('[FetchLeaderboard] ❌ Error:', error);
+      // Don't clear leaderboard on error - keep showing stale data if available
+      if (leaderboardData.length === 0) {
+        // Only retry if we have no data at all
+        console.log('[FetchLeaderboard] 🔄 Retrying in 2 seconds...');
+        setTimeout(() => fetchLeaderboard(), 2000);
+      }
     }
   };
 
