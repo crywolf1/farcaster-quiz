@@ -1358,16 +1358,47 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
-      {/* Starry Sky Background - Darker Blue with More Stars */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1628] via-[#0f1f3d] to-[#0a1628]">
-        {/* Wavy gradient layers */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
-        </div>
-        {/* Small White Dots/Stars - PACKED FULL */}
+      {/* Starry Sky Background - Chaotic wavy gradient with 12 wave layers */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1628] via-[#0f2847] to-[#0a1628]">
+        {/* 12 SVG Wave Layers - visible throughout entire page */}
+        <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1200 800">
+          <defs>
+            <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style={{ stopColor: 'rgba(26,77,122,0.5)', stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: 'rgba(42,123,181,0.4)', stopOpacity: 1 }} />
+            </linearGradient>
+            <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style={{ stopColor: 'rgba(42,123,181,0.45)', stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: 'rgba(30,90,143,0.5)', stopOpacity: 1 }} />
+            </linearGradient>
+            <linearGradient id="waveGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style={{ stopColor: 'rgba(15,40,70,0.55)', stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: 'rgba(30,90,143,0.45)', stopOpacity: 1 }} />
+            </linearGradient>
+          </defs>
+          <path d="M0,20 Q100,50 200,40 T400,60 Q500,45 600,55 T800,50 Q900,40 1000,50 T1200,45 L1200,0 L0,0 Z" fill="url(#waveGrad1)" opacity="0.5" />
+          <path d="M0,45 Q120,80 240,65 T480,95 Q600,75 720,90 T960,80 Q1080,70 1200,80 T1440,75 L1440,0 L0,0 Z" fill="url(#waveGrad2)" opacity="0.45" />
+          <path d="M0,75 Q110,115 220,100 T440,130 Q560,110 680,125 T920,115 Q1040,105 1160,115 T1400,110 L1400,0 L0,0 Z" fill="url(#waveGrad3)" opacity="0.42" />
+          <path d="M0,200 Q130,245 260,225 T520,260 Q660,240 800,255 T1040,245 Q1180,235 1320,245 T1600,240 L1600,150 L0,150 Z" fill="rgba(26,77,122,0.4)" opacity="0.5" />
+          <path d="M0,280 Q115,330 230,305 T460,345 Q590,325 720,340 T980,330 Q1110,320 1240,330 T1500,325 L1500,220 L0,220 Z" fill="rgba(30,90,143,0.45)" opacity="0.48" />
+          <path d="M0,350 Q125,405 250,380 T500,420 Q640,400 780,415 T1040,405 Q1180,395 1320,405 T1600,400 L1600,290 L0,290 Z" fill="rgba(15,40,70,0.48)" opacity="0.5" />
+          <path d="M0,420 Q140,480 280,450 T560,495 Q710,475 860,490 T1140,480 Q1290,470 1440,480 T1720,475 L1720,360 L0,360 Z" fill="rgba(26,77,122,0.42)" opacity="0.48" />
+          <path d="M0,520 Q135,585 270,550 T540,600 Q695,580 850,595 T1130,585 Q1285,575 1440,585 T1700,580 L1700,460 L0,460 Z" fill="rgba(42,123,181,0.45)" opacity="0.52" />
+          <path d="M0,600 Q150,675 300,635 T600,690 Q770,670 940,685 T1250,675 Q1420,665 1590,675 T1880,670 L1880,540 L0,540 Z" fill="rgba(30,90,143,0.48)" opacity="0.5" />
+          <path d="M0,680 Q145,760 290,715 T580,775 Q755,755 930,770 T1230,760 Q1405,750 1580,760 T1860,755 L1860,620 L0,620 Z" fill="rgba(15,40,70,0.5)" opacity="0.52" />
+          <path d="M0,750 Q160,835 320,785 T640,850 Q820,830 1000,845 T1320,835 Q1500,825 1680,835 T1960,830 L1960,690 L0,690 Z" fill="rgba(26,77,122,0.45)" opacity="0.5" />
+          <path d="M0,800 Q155,890 310,835 T620,905 Q805,885 990,900 T1310,890 Q1495,880 1680,890 T1960,885 L1960,750 L0,750 Z" fill="rgba(42,123,181,0.48)" opacity="0.52" />
+        </svg>
+        {/* Radial gradient overlays */}
         <div className="absolute inset-0">
-          {[...Array(800)].map((_, i) => (
+          <div className="absolute inset-0 opacity-45" style={{ background: 'radial-gradient(ellipse 900px 500px at 15% 25%, rgba(26,77,122,0.5) 0%, transparent 55%)' }}></div>
+          <div className="absolute inset-0 opacity-40" style={{ background: 'radial-gradient(ellipse 800px 600px at 85% 55%, rgba(42,123,181,0.4) 0%, transparent 55%)' }}></div>
+          <div className="absolute inset-0 opacity-35" style={{ background: 'radial-gradient(ellipse 700px 500px at 45% 80%, rgba(30,90,143,0.4) 0%, transparent 55%)' }}></div>
+          <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse 600px 400px at 70% 40%, rgba(15,40,70,0.45) 0%, transparent 50%)' }}></div>
+        </div>
+        {/* 1820 Stars - tiny white, medium white, yellow */}
+        <div className="absolute inset-0">
+          {[...Array(1500)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-white"
@@ -1382,8 +1413,8 @@ export default function Home() {
               }}
             />
           ))}
-          {/* Medium Stars */}
-          {[...Array(120)].map((_, i) => (
+          {/* Medium Stars - 200 total */}
+          {[...Array(200)].map((_, i) => (
             <div
               key={`medium-${i}`}
               className="absolute rounded-full bg-white animate-pulse"
@@ -1395,6 +1426,22 @@ export default function Home() {
                 animationDelay: `${Math.random() * 2}s`,
                 animationDuration: `${1.5 + Math.random() * 2}s`,
                 opacity: 0.3 + Math.random() * 0.7
+              }}
+            />
+          ))}
+          {/* Yellow/Golden Stars - 120 total */}
+          {[...Array(120)].map((_, i) => (
+            <div
+              key={`yellow-${i}`}
+              className="absolute rounded-full bg-yellow-300 animate-pulse"
+              style={{
+                width: Math.random() > 0.5 ? '2.5px' : '2px',
+                height: Math.random() > 0.5 ? '2.5px' : '2px',
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1 + Math.random() * 2}s`,
+                opacity: 0.4 + Math.random() * 0.6
               }}
             />
           ))}
@@ -2289,10 +2336,107 @@ export default function Home() {
     const restOfList = leaderboardData.slice(3);
     
     return (
-      <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
+      <div className="fixed inset-0 flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
+        {/* Same wavy background as idle screen */}
+        <div className="fixed inset-0 bg-gradient-to-b from-[#0a1628] via-[#0f2847] to-[#0a1628]">
+          <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1200 800">
+            <defs>
+              <linearGradient id="waveGradient1Leaderboard" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style={{ stopColor: 'rgba(26,77,122,0.5)', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: 'rgba(42,123,181,0.4)', stopOpacity: 1 }} />
+              </linearGradient>
+              <linearGradient id="waveGradient2Leaderboard" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style={{ stopColor: 'rgba(42,123,181,0.45)', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: 'rgba(30,90,143,0.5)', stopOpacity: 1 }} />
+              </linearGradient>
+              <linearGradient id="waveGradient3Leaderboard" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style={{ stopColor: 'rgba(15,40,70,0.55)', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: 'rgba(30,90,143,0.45)', stopOpacity: 1 }} />
+              </linearGradient>
+            </defs>
+            {/* Top section waves */}
+            <path d="M0,20 Q100,50 200,40 T400,60 Q500,45 600,55 T800,50 Q900,40 1000,50 T1200,45 L1200,0 L0,0 Z" fill="url(#waveGradient1Leaderboard)" opacity="0.5" />
+            <path d="M0,45 Q120,80 240,65 T480,95 Q600,75 720,90 T960,80 Q1080,70 1200,80 T1440,75 L1440,0 L0,0 Z" fill="url(#waveGradient2Leaderboard)" opacity="0.45" />
+            <path d="M0,75 Q110,115 220,100 T440,130 Q560,110 680,125 T920,115 Q1040,105 1160,115 T1400,110 L1400,0 L0,0 Z" fill="url(#waveGradient3Leaderboard)" opacity="0.42" />
+            
+            {/* Middle section waves */}
+            <path d="M0,200 Q130,245 260,225 T520,260 Q660,240 800,255 T1040,245 Q1180,235 1320,245 T1600,240 L1600,150 L0,150 Z" fill="rgba(26,77,122,0.4)" opacity="0.5" />
+            <path d="M0,280 Q115,330 230,305 T460,345 Q590,325 720,340 T980,330 Q1110,320 1240,330 T1500,325 L1500,220 L0,220 Z" fill="rgba(30,90,143,0.45)" opacity="0.48" />
+            <path d="M0,350 Q125,405 250,380 T500,420 Q640,400 780,415 T1040,405 Q1180,395 1320,405 T1600,400 L1600,290 L0,290 Z" fill="rgba(15,40,70,0.48)" opacity="0.5" />
+            <path d="M0,420 Q140,480 280,450 T560,495 Q710,475 860,490 T1140,480 Q1290,470 1440,480 T1720,475 L1720,360 L0,360 Z" fill="rgba(26,77,122,0.42)" opacity="0.48" />
+            
+            {/* Bottom section waves */}
+            <path d="M0,520 Q135,585 270,550 T540,600 Q695,580 850,595 T1130,585 Q1285,575 1440,585 T1700,580 L1700,460 L0,460 Z" fill="rgba(42,123,181,0.45)" opacity="0.52" />
+            <path d="M0,600 Q150,675 300,635 T600,690 Q770,670 940,685 T1250,675 Q1420,665 1590,675 T1880,670 L1880,540 L0,540 Z" fill="rgba(30,90,143,0.48)" opacity="0.5" />
+            <path d="M0,680 Q145,760 290,715 T580,775 Q755,755 930,770 T1230,760 Q1405,750 1580,760 T1860,755 L1860,620 L0,620 Z" fill="rgba(15,40,70,0.5)" opacity="0.52" />
+            <path d="M0,750 Q160,835 320,785 T640,850 Q820,830 1000,845 T1320,835 Q1500,825 1680,835 T1960,830 L1960,690 L0,690 Z" fill="rgba(26,77,122,0.45)" opacity="0.5" />
+            <path d="M0,800 Q155,890 310,835 T620,905 Q805,885 990,900 T1310,890 Q1495,880 1680,890 T1960,885 L1960,750 L0,750 Z" fill="rgba(42,123,181,0.48)" opacity="0.52" />
+          </svg>
+          {/* Additional chaotic radial overlays */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 opacity-45" style={{
+              background: 'radial-gradient(ellipse 900px 500px at 15% 25%, rgba(26,77,122,0.5) 0%, transparent 55%)'
+            }}></div>
+            <div className="absolute inset-0 opacity-40" style={{
+              background: 'radial-gradient(ellipse 800px 600px at 85% 55%, rgba(42,123,181,0.4) 0%, transparent 55%)'
+            }}></div>
+            <div className="absolute inset-0 opacity-50" style={{
+              background: 'radial-gradient(ellipse 1000px 700px at 45% 80%, rgba(30,90,143,0.45) 0%, transparent 65%)'
+            }}></div>
+            <div className="absolute inset-0 opacity-35" style={{
+              background: 'radial-gradient(ellipse 700px 500px at 70% 40%, rgba(15,40,70,0.35) 0%, transparent 55%)'
+            }}></div>
+          </div>
+          {/* Stars */}
+          <div className="absolute inset-0">
+            {[...Array(1500)].map((_, i) => (
+              <div
+                key={`star-${i}`}
+                className="absolute rounded-full bg-white"
+                style={{
+                  width: Math.random() > 0.8 ? '1.5px' : '0.8px',
+                  height: Math.random() > 0.8 ? '1.5px' : '0.8px',
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  opacity: Math.random() * 0.6 + 0.2,
+                  animation: `twinkle ${Math.random() * 3 + 2}s ease-in-out infinite ${Math.random() * 2}s`
+                }}
+              />
+            ))}
+            {[...Array(200)].map((_, i) => (
+              <div
+                key={`star-medium-${i}`}
+                className="absolute rounded-full bg-white"
+                style={{
+                  width: Math.random() * 0.5 + 1.5 + 'px',
+                  height: Math.random() * 0.5 + 1.5 + 'px',
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  opacity: Math.random() * 0.5 + 0.3,
+                  animation: `twinkle ${Math.random() * 4 + 3}s ease-in-out infinite ${Math.random() * 3}s`
+                }}
+              />
+            ))}
+            {[...Array(120)].map((_, i) => (
+              <div
+                key={`star-yellow-${i}`}
+                className="absolute rounded-full bg-yellow-200"
+                style={{
+                  width: Math.random() * 0.5 + 2 + 'px',
+                  height: Math.random() * 0.5 + 2 + 'px',
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  opacity: Math.random() * 0.4 + 0.4,
+                  animation: `twinkle ${Math.random() * 5 + 4}s ease-in-out infinite ${Math.random() * 4}s`
+                }}
+              />
+            ))}
+          </div>
+        </div>
+        
         <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col">
           {/* Main container */}
-          <div className="relative bg-black border-2 border-gray-800 rounded-3xl p-8 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+          <div className="relative bg-white/5 backdrop-blur-md border-2 border-white/20 rounded-3xl p-8 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-4xl font-black text-white">
@@ -2322,11 +2466,19 @@ export default function Home() {
                         2
                       </div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-gray-700 rounded-xl p-3 w-24 text-center">
-                      <div className="font-bold text-white text-xs truncate">{topThree[1].username}</div>
-                      <div className="text-lg font-black text-gray-400 mt-1">{formatScore(topThree[1].points)}</div>
-                      <div className="text-[10px] text-gray-500 mt-1">
-                        <span className="text-green-400">{topThree[1].wins}W</span> - <span className="text-red-400">{topThree[1].losses}L</span>
+                    <div className="relative bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-xl p-3 w-24 text-center overflow-hidden">
+                      {/* Decorative emojis */}
+                      <div className="absolute text-xs opacity-20">
+                        <span className="absolute" style={{ top: '2px', left: '3px' }}>⭐</span>
+                        <span className="absolute" style={{ top: '35px', right: '3px' }}>✨</span>
+                        <span className="absolute" style={{ bottom: '2px', left: '5px' }}>🌟</span>
+                      </div>
+                      <div className="relative z-10">
+                        <div className="font-bold text-white text-xs truncate">{topThree[1].username}</div>
+                        <div className="text-lg font-black text-gray-300 mt-1">{formatScore(topThree[1].points)}</div>
+                        <div className="text-[10px] text-gray-400 mt-1">
+                          <span className="text-green-400">{topThree[1].wins}W</span> - <span className="text-red-400">{topThree[1].losses}L</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2345,11 +2497,21 @@ export default function Home() {
                         👑
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-yellow-900 to-gray-900 border-2 border-yellow-500 rounded-xl p-3 w-28 text-center shadow-xl">
-                      <div className="font-black text-white text-xs truncate">{topThree[0].username}</div>
-                      <div className="text-xl font-black text-yellow-400 mt-1">{formatScore(topThree[0].points)}</div>
-                      <div className="text-[10px] text-gray-400 mt-1">
-                        <span className="text-green-400">{topThree[0].wins}W</span> - <span className="text-red-400">{topThree[0].losses}L</span>
+                    <div className="relative bg-white/10 backdrop-blur-sm border-2 border-yellow-500/40 rounded-xl p-3 w-28 text-center shadow-xl overflow-hidden">
+                      {/* Decorative emojis */}
+                      <div className="absolute text-xs opacity-25">
+                        <span className="absolute" style={{ top: '3px', left: '4px' }}>🏆</span>
+                        <span className="absolute" style={{ top: '3px', right: '4px' }}>👑</span>
+                        <span className="absolute" style={{ top: '45px', left: '3px' }}>⭐</span>
+                        <span className="absolute" style={{ top: '45px', right: '3px' }}>✨</span>
+                        <span className="absolute" style={{ bottom: '3px', left: '50%', transform: 'translateX(-50%)' }}>🌟</span>
+                      </div>
+                      <div className="relative z-10">
+                        <div className="font-black text-white text-xs truncate">{topThree[0].username}</div>
+                        <div className="text-xl font-black text-yellow-400 mt-1">{formatScore(topThree[0].points)}</div>
+                        <div className="text-[10px] text-gray-300 mt-1">
+                          <span className="text-green-400">{topThree[0].wins}W</span> - <span className="text-red-400">{topThree[0].losses}L</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2368,11 +2530,19 @@ export default function Home() {
                         3
                       </div>
                     </div>
-                    <div className="bg-gray-900 border-2 border-gray-700 rounded-xl p-3 w-24 text-center">
-                      <div className="font-bold text-white text-xs truncate">{topThree[2].username}</div>
-                      <div className="text-lg font-black text-orange-600 mt-1">{formatScore(topThree[2].points)}</div>
-                      <div className="text-[10px] text-gray-500 mt-1">
-                        <span className="text-green-400">{topThree[2].wins}W</span> - <span className="text-red-400">{topThree[2].losses}L</span>
+                    <div className="relative bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-xl p-3 w-24 text-center overflow-hidden">
+                      {/* Decorative emojis */}
+                      <div className="absolute text-xs opacity-20">
+                        <span className="absolute" style={{ top: '2px', right: '3px' }}>⭐</span>
+                        <span className="absolute" style={{ top: '35px', left: '3px' }}>✨</span>
+                        <span className="absolute" style={{ bottom: '2px', right: '5px' }}>🌟</span>
+                      </div>
+                      <div className="relative z-10">
+                        <div className="font-bold text-white text-xs truncate">{topThree[2].username}</div>
+                        <div className="text-lg font-black text-orange-400 mt-1">{formatScore(topThree[2].points)}</div>
+                        <div className="text-[10px] text-gray-400 mt-1">
+                          <span className="text-green-400">{topThree[2].wins}W</span> - <span className="text-red-400">{topThree[2].losses}L</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2386,18 +2556,28 @@ export default function Home() {
                 {restOfList.map((entry, index) => {
                   const actualRank = index + 4; // Starting from 4th place
                   const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
+                  const emojis = ['⭐', '✨', '🌟', '💫', '🎯', '🎮', '🔥', '💎'];
+                  const randomEmoji1 = emojis[Math.floor(Math.random() * emojis.length)];
+                  const randomEmoji2 = emojis[Math.floor(Math.random() * emojis.length)];
+                  
                   return (
                     <div
                       key={entry.fid}
                       style={{ animationDelay: `${(index + 3) * 0.05}s` }}
-                      className={`flex items-center gap-4 p-3 rounded-2xl transition-all animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
+                      className={`relative flex items-center gap-4 p-3 rounded-2xl transition-all animate-[slideIn_0.5s_ease-out_forwards] opacity-0 overflow-hidden ${
                         isCurrentUser
-                          ? 'bg-gray-800 border-2 border-gray-600'
-                          : 'bg-gray-900 border-2 border-gray-800 hover:border-gray-700'
+                          ? 'bg-white/10 backdrop-blur-sm border-2 border-white/30'
+                          : 'bg-white/5 backdrop-blur-sm border-2 border-white/20 hover:border-white/30'
                       }`}
                     >
+                      {/* Decorative emojis */}
+                      <div className="absolute text-xs opacity-15">
+                        <span className="absolute" style={{ top: '8px', left: '8px' }}>{randomEmoji1}</span>
+                        <span className="absolute" style={{ top: '8px', right: '8px' }}>{randomEmoji2}</span>
+                      </div>
+                      
                       {/* Rank Badge */}
-                      <div className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-xl flex items-center justify-center">
+                      <div className="relative z-10 w-10 h-10 bg-white/10 backdrop-blur-sm border border-white/30 rounded-xl flex items-center justify-center">
                         <span className="text-white font-bold text-sm">#{actualRank}</span>
                       </div>
                       
@@ -2405,19 +2585,19 @@ export default function Home() {
                       <img
                         src={entry.pfpUrl}
                         alt={entry.username}
-                        className="w-12 h-12 rounded-full border-2 border-gray-700"
+                        className="relative z-10 w-12 h-12 rounded-full border-2 border-white/40"
                       />
                       
                       {/* User info */}
-                      <div className="flex-1">
+                      <div className="relative z-10 flex-1">
                         <div className="font-bold text-white text-sm">{entry.username}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-300">
                           <span className="text-green-400">{entry.wins}W</span> - <span className="text-red-400">{entry.losses}L</span>
                         </div>
                       </div>
                       
                       {/* Points */}
-                      <div className="text-white font-bold text-lg">
+                      <div className="relative z-10 text-white font-bold text-lg">
                         {formatScore(entry.points)}
                       </div>
                     </div>
