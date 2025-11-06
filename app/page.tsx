@@ -2925,25 +2925,42 @@ export default function Home() {
   // Render Add Question Modal
   const renderAddQuestionModal = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-emerald-900/30 to-teal-900/30 border-2 border-gray-700/50 rounded-[24px] p-4 shadow-2xl max-w-lg w-full animate-scale-in max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="backdrop-blur-sm bg-white/10 border border-white/30 rounded-[24px] p-4 shadow-xl max-w-lg w-full animate-scale-in max-h-[95vh] overflow-hidden flex flex-col relative">
+        {/* Internal stars */}
+        {[...Array(30)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white animate-pulse pointer-events-none"
+            style={{
+              width: `${Math.random() * 0.5 + 1}px`,
+              height: `${Math.random() * 0.5 + 1}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.3 + 0.2,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${1 + Math.random() * 2}s`
+            }}
+          />
+        ))}
+        
         {/* Header - Fixed */}
-        <div className="flex-shrink-0 mb-3">
+        <div className="flex-shrink-0 mb-3 relative z-10">
           <div className="flex items-center justify-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-2 border-emerald-500/50 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full backdrop-blur-sm bg-white/20 border-2 border-white/40 flex items-center justify-center">
               <span className="text-xl">📝</span>
             </div>
-            <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
+            <h2 className="text-xl font-black text-white">
               Add Question
             </h2>
           </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2.5"  style={{scrollbarWidth: 'thin'}}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 space-y-2.5 relative z-10"  style={{scrollbarWidth: 'thin'}}>
 
           {/* Subject Selection */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+            <label className="text-xs font-bold text-white flex items-center gap-1.5">
               <span className="text-sm">📚</span>
               Subject
             </label>
@@ -2956,7 +2973,7 @@ export default function Home() {
             <select
               value={newQuestion.subject}
               onChange={(e) => setNewQuestion({ ...newQuestion, subject: e.target.value })}
-              className="w-full px-3 py-2 bg-gray-900/60 border-2 border-gray-700/70 rounded-xl text-sm text-white focus:border-emerald-500/70 focus:outline-none transition-all font-medium"
+              className="w-full px-3 py-2 backdrop-blur-sm bg-white/10 border-2 border-white/30 rounded-xl text-sm text-white focus:border-white/50 focus:outline-none transition-all font-medium"
               required
             >
               <option value="">Select a subject...</option>
@@ -2983,7 +3000,7 @@ export default function Home() {
 
           {/* Difficulty Selection */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+            <label className="text-xs font-bold text-white flex items-center gap-1.5">
               <span className="text-sm">⚡</span>
               Difficulty
             </label>
@@ -2994,7 +3011,7 @@ export default function Home() {
                 className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
                   newQuestion.difficulty === 'easy'
                     ? 'bg-gradient-to-br from-green-500 to-green-600 text-white border-2 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-green-500/50 hover:text-green-400'
+                    : 'backdrop-blur-sm bg-white/10 text-white border-2 border-white/20 hover:border-green-500/50 hover:bg-white/15'
                 }`}
               >
                 😊 Easy
@@ -3005,7 +3022,7 @@ export default function Home() {
                 className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
                   newQuestion.difficulty === 'moderate'
                     ? 'bg-gradient-to-br from-yellow-500 to-orange-500 text-white border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)]'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-yellow-500/50 hover:text-yellow-400'
+                    : 'backdrop-blur-sm bg-white/10 text-white border-2 border-white/20 hover:border-yellow-500/50 hover:bg-white/15'
                 }`}
               >
                 🤔 Moderate
@@ -3016,7 +3033,7 @@ export default function Home() {
                 className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
                   newQuestion.difficulty === 'hard'
                     ? 'bg-gradient-to-br from-red-500 to-red-600 text-white border-2 border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]'
-                    : 'bg-gray-900/60 text-gray-400 border-2 border-gray-700/70 hover:border-red-500/50 hover:text-red-400'
+                    : 'backdrop-blur-sm bg-white/10 text-white border-2 border-white/20 hover:border-red-500/50 hover:bg-white/15'
                 }`}
               >
                 🔥 Hard
@@ -3026,12 +3043,12 @@ export default function Home() {
 
           {/* Question Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 flex items-center justify-between gap-1.5">
+            <label className="text-xs font-bold text-white flex items-center justify-between gap-1.5">
               <span className="flex items-center gap-1.5">
                 <span className="text-sm">❓</span>
                 Question
               </span>
-              <span className={`text-xs ${newQuestion.question.length > 150 ? 'text-red-400' : 'text-gray-500'}`}>
+              <span className={`text-xs ${newQuestion.question.length > 150 ? 'text-red-400' : 'text-white/60'}`}>
                 {newQuestion.question.length}/150
               </span>
             </label>
@@ -3047,17 +3064,17 @@ export default function Home() {
               placeholder="Enter your question..."
               rows={2}
               maxLength={150}
-              className="w-full px-3 py-2 bg-gray-900/60 border-2 border-gray-700/70 rounded-xl text-sm text-white focus:border-emerald-500/70 focus:outline-none transition-all font-medium resize-none"
+              className="w-full px-3 py-2 backdrop-blur-sm bg-white/10 border-2 border-white/30 rounded-xl text-sm text-white focus:border-white/50 focus:outline-none transition-all font-medium resize-none placeholder:text-white/40"
               required
             />
           </div>
 
           {/* Answers Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300 flex items-center gap-1.5 mb-1">
+            <label className="text-xs font-bold text-white flex items-center gap-1.5 mb-1">
               <span className="text-sm">✍️</span>
               Answers
-              <span className="text-xs text-gray-500 ml-auto">(max 60 chars each)</span>
+              <span className="text-xs text-white/60 ml-auto">(max 60 chars each)</span>
             </label>
             <div className="space-y-1.5">
               {/* Correct Answer - Green */}
@@ -3082,7 +3099,7 @@ export default function Home() {
                     }}
                     placeholder="Correct answer"
                     maxLength={60}
-                    className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
+                    className="flex-1 px-3 py-2 rounded-xl backdrop-blur-sm bg-white/10 border-2 border-green-500/70 text-sm text-white focus:border-green-400 focus:outline-none transition-all font-medium placeholder:text-green-400/40"
                     required
                   />
                 </div>
@@ -3113,7 +3130,7 @@ export default function Home() {
                         }}
                         placeholder="Wrong answer"
                         maxLength={60}
-                        className="flex-1 px-3 py-2 rounded-xl bg-gray-900/60 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
+                        className="flex-1 px-3 py-2 rounded-xl backdrop-blur-sm bg-white/10 border-2 border-red-500/70 text-sm text-white focus:border-red-400 focus:outline-none transition-all font-medium placeholder:text-red-400/40"
                         required
                       />
                     </div>
@@ -3125,7 +3142,7 @@ export default function Home() {
         </div>
 
         {/* Footer - Fixed */}
-        <div className="flex-shrink-0 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-700/50">
+        <div className="flex-shrink-0 grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/20 relative z-10">
           <button
             onClick={() => {
               setShowAddQuestion(false);
@@ -3137,7 +3154,7 @@ export default function Home() {
               setIsSubmittingQuestion(false);
             }}
             disabled={isSubmittingQuestion}
-            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="backdrop-blur-sm bg-white/10 hover:bg-white/15 border-2 border-white/30 text-white py-2.5 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             Cancel
           </button>
