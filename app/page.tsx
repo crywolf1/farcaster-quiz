@@ -1358,42 +1358,58 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
-      {/* Starry Sky Background with Wavy Gradient */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#1a2942] via-[#2d4a6f] to-[#1a3650]">
+      {/* Starry Sky Background - Darker Blue with More Stars */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1628] via-[#0f1f3d] to-[#0a1628]">
         {/* Wavy gradient layers */}
-        <div className="absolute inset-0 opacity-60">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/30 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
         </div>
-        {/* Stars */}
+        {/* Small White Dots/Stars - Lots of them */}
         <div className="absolute inset-0">
-          {[...Array(80)].map((_, i) => (
+          {[...Array(200)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full bg-white animate-pulse"
+              className="absolute rounded-full bg-white"
               style={{
-                width: Math.random() > 0.8 ? '2px' : '1px',
-                height: Math.random() > 0.8 ? '2px' : '1px',
+                width: Math.random() > 0.7 ? '2px' : '1px',
+                height: Math.random() > 0.7 ? '2px' : '1px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-                opacity: 0.4 + Math.random() * 0.6
+                opacity: 0.3 + Math.random() * 0.7,
+                animation: Math.random() > 0.5 ? `pulse ${2 + Math.random() * 3}s ease-in-out infinite` : 'none',
+                animationDelay: `${Math.random() * 3}s`
+              }}
+            />
+          ))}
+          {/* Medium Stars */}
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={`medium-${i}`}
+              className="absolute rounded-full bg-white animate-pulse"
+              style={{
+                width: '2px',
+                height: '2px',
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1.5 + Math.random() * 2}s`,
+                opacity: 0.5 + Math.random() * 0.5
               }}
             />
           ))}
           {/* Yellow/Golden Stars */}
-          {[...Array(15)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <div
               key={`yellow-${i}`}
-              className="absolute rounded-full bg-yellow-400 animate-pulse"
+              className="absolute rounded-full bg-yellow-300 animate-pulse"
               style={{
-                width: '2.5px',
-                height: '2.5px',
+                width: '2px',
+                height: '2px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1.5 + Math.random() * 2.5}s`,
+                animationDuration: `${1 + Math.random() * 2}s`,
                 opacity: 0.6 + Math.random() * 0.4
               }}
             />
