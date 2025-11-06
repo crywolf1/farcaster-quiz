@@ -1,17 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+// Get the base URL - use environment variable or default
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL 
+  ? `https://${process.env.VERCEL_URL}` 
+  : 'https://quiz-alpha-flame.vercel.app';
+
 // Farcaster Mini App embed JSON
 const miniAppEmbed = {
   version: "1",
-  imageUrl: "https://quiz-alpha-flame.vercel.app/og-image.png",
+  imageUrl: `${baseUrl}/og-image.png`,
   button: {
     title: "Play Quiz",
     action: {
       type: "launch_miniapp",
-      url: "https://quiz-alpha-flame.vercel.app",
+      url: baseUrl,
       name: "Farcaster Quiz",
-      splashImageUrl: "https://quiz-alpha-flame.vercel.app/icon.png",
+      splashImageUrl: `${baseUrl}/icon.png`,
       splashBackgroundColor: "#000000",
     },
   },
@@ -33,7 +38,7 @@ export const metadata: Metadata = {
   title: "Farcaster Quiz",
   description: "Real-time multiplayer quiz game for Farcaster",
   manifest: "/manifest.json",
-  metadataBase: new URL("https://quiz-alpha-flame.vercel.app"),
+  metadataBase: new URL(baseUrl),
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",
@@ -41,24 +46,31 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Farcaster Quiz",
     description: "Real-time multiplayer quiz game",
+    url: baseUrl,
+    siteName: "Farcaster Quiz",
     images: [
       {
-        url: "/og-image.png",
+        url: `${baseUrl}/og-image.png`,
         width: 1200,
         height: 630,
         alt: "Farcaster Quiz",
+        type: "image/png",
       },
     ],
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Farcaster Quiz",
     description: "Real-time multiplayer quiz game",
-    images: ["/og-image.png"],
+    images: [`${baseUrl}/og-image.png`],
   },
   other: {
     "fc:miniapp": JSON.stringify(miniAppEmbed),
     "fc:frame": JSON.stringify(frameEmbed),
+    // Additional Farcaster-specific tags
+    "fc:frame:image": `${baseUrl}/og-image.png`,
+    "fc:frame:image:aspect_ratio": "1.91:1",
   },
 };
 
