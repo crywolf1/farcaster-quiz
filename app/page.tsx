@@ -414,31 +414,17 @@ export default function Home() {
             client: context.client,
           });
         } else {
-          // Not in a frame context
-          console.log('⚠️ No context - running outside Farcaster frame');
+          // Not in a frame context - BLOCK ACCESS
+          console.log('⚠️ No context - running outside Farcaster frame - BLOCKING ACCESS');
           setIsReady(true);
-          const fallbackUser = {
-            username: `Player${Math.floor(Math.random() * 1000)}`,
-            pfpUrl: '',
-            fid: Math.floor(Math.random() * 10000)
-          };
-          setFarcasterUser(fallbackUser);
-          
-          // Try to rejoin for fallback user
-          await attemptRejoin(`${fallbackUser.fid}`);
+          setIsFrameContext(false);
+          // Don't set farcasterUser - this will trigger the blocked screen
         }
       } catch (err) {
         console.error('✗ Farcaster Frame SDK error:', err);
-        setIsReady(true); // Still allow the app to work
-        const fallbackUser = {
-          username: `Player${Math.floor(Math.random() * 1000)}`,
-          pfpUrl: '',
-          fid: Math.floor(Math.random() * 10000)
-        };
-        setFarcasterUser(fallbackUser);
-        
-        // Try to rejoin for fallback user
-        await attemptRejoin(`${fallbackUser.fid}`);
+        setIsReady(true);
+        setIsFrameContext(false);
+        // Don't set farcasterUser - this will trigger the blocked screen
       }
     };
 
@@ -3331,6 +3317,78 @@ export default function Home() {
   // Main render - show loading until ready
   if (!isReady) {
     return renderLoading();
+  }
+
+  // Block access if not in Farcaster Mini App
+  if (!farcasterUser) {
+    return (
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        {/* Starry Sky Background */}
+        <div className="fixed inset-0 bg-gradient-to-b from-[#050d1a] via-[#0a1830] to-[#050d1a]">
+          {/* Lightweight starfield background */}
+          <div 
+            className="absolute inset-0" 
+            style={{
+              background: `
+                radial-gradient(1px 1px at 20% 30%, white, transparent),
+                radial-gradient(1px 1px at 60% 70%, white, transparent),
+                radial-gradient(2px 2px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(1px 1px at 33% 80%, white, transparent),
+                radial-gradient(1px 1px at 70% 20%, white, transparent)
+              `,
+              backgroundSize: '200px 200px',
+              opacity: 0.6
+            }}
+          />
+        </div>
+
+        {/* Blocked Access Card */}
+        <div className="relative z-10 max-w-lg mx-auto p-6">
+          <div className="relative backdrop-blur-xl bg-white/5 border-2 border-white/20 rounded-[32px] p-8 shadow-2xl">
+            {/* Glow effect */}
+            <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-cyan-500/20 blur-xl"></div>
+            
+            {/* Content */}
+            <div className="relative z-10 text-center">
+              {/* Icon */}
+              <div className="mb-6">
+                <svg className="w-20 h-20 mx-auto text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+
+              {/* Title */}
+              <h1 className="text-3xl font-bold text-white mb-4">
+                Farcaster Mini App Only
+              </h1>
+
+              {/* Description */}
+              <p className="text-white/70 text-lg mb-6 leading-relaxed">
+                This quiz game only works inside the Farcaster app as a Mini App.
+              </p>
+
+              {/* Instructions */}
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 text-left">
+                <p className="text-white/80 text-sm mb-3">
+                  <strong className="text-white">To play:</strong>
+                </p>
+                <ol className="text-white/70 text-sm space-y-2 list-decimal list-inside">
+                  <li>Open the Farcaster mobile app</li>
+                  <li>Navigate to this Mini App</li>
+                  <li>Start playing!</li>
+                </ol>
+              </div>
+
+              {/* Note */}
+              <p className="text-white/50 text-xs">
+                Direct browser access is not supported
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Show add question modal
