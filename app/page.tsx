@@ -1359,7 +1359,7 @@ export default function Home() {
   const renderIdle = () => (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
       {/* Starry Sky Background - Chaotic wavy gradient with 12 wave layers */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1628] via-[#0f2847] to-[#0a1628]">
+      <div className="fixed inset-0 bg-gradient-to-b from-[#050d1a] via-[#0a1830] to-[#050d1a]">
         {/* 12 SVG Wave Layers - visible throughout entire page */}
         <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 1200 800">
           <defs>
