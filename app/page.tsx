@@ -1285,6 +1285,40 @@ export default function Home() {
     }, 100);
   }, [gameState, isMyTurnToPick, subjects, selectSubject]);
 
+  // OPPONENT VIEW - Sync timer from server's subjectTimerStart
+  useEffect(() => {
+    // Only for opponent watching the picker
+    if (gameState !== 'subject-selection' || isMyTurnToPick) {
+      return;
+    }
+
+    console.log('[ProgressBar-Subject-Opponent] 🔄 Syncing timer from server');
+    
+    if (!gameRoom?.subjectTimerStart) {
+      console.log('[ProgressBar-Subject-Opponent] ⚠️ No subjectTimerStart from server');
+      return;
+    }
+
+    // Calculate remaining time from server timestamp
+    const updateRemainingTime = () => {
+      if (!gameRoom?.subjectTimerStart || !gameRoom?.timerDuration) return;
+      
+      const elapsed = Date.now() - gameRoom.subjectTimerStart;
+      const remaining = Math.max(0, (gameRoom.timerDuration - elapsed) / 1000);
+      
+      setTimeRemainingSubject(remaining);
+      setTimerActiveSubject(true);
+    };
+
+    // Update immediately
+    updateRemainingTime();
+
+    // Update every 100ms for smooth countdown
+    const timerId = setInterval(updateRemainingTime, 100);
+
+    return () => clearInterval(timerId);
+  }, [gameState, isMyTurnToPick, gameRoom?.subjectTimerStart, gameRoom?.timerDuration]);
+
   // Stop timer when subject is selected but keep bar visible
   useEffect(() => {
     if (gameState === 'subject-selection' && selectedSubject && subjectTimerRef.current) {
