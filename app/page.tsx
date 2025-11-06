@@ -590,14 +590,16 @@ export default function Home() {
     pollingIntervalRef.current = interval;
   };
 
-  // Fetch player stats when farcasterUser is set
+  // Fetch player stats and leaderboard when farcasterUser is set
   useEffect(() => {
-    if (farcasterUser && !showLeaderboard) {
+    if (farcasterUser) {
       fetchPlayerStats();
+      // Also fetch leaderboard for main page preview
+      fetchLeaderboard();
     }
   }, [farcasterUser]);
 
-  // Fetch leaderboard when modal opens
+  // Refresh leaderboard when modal opens (in case data changed)
   useEffect(() => {
     if (showLeaderboard && farcasterUser) {
       fetchLeaderboard();
