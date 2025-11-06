@@ -1452,19 +1452,19 @@ export default function Home() {
 
       <div className="relative max-w-md w-full mx-auto p-4">
         {/* Main Card Container - Fully Transparent */}
-        <div className="bg-transparent border-2 border-white/10 rounded-3xl p-4">
+        <div className="bg-transparent border-2 border-white/10 rounded-3xl p-3">
           {/* Top Header Bar */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             {/* Left: Avatar & Username */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {farcasterUser?.pfpUrl ? (
                 <img 
                   src={farcasterUser.pfpUrl} 
                   alt="Profile" 
-                  className="w-10 h-10 rounded-full border-2 border-white/30"
+                  className="w-9 h-9 rounded-full border-2 border-white/30"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20"></div>
+                <div className="w-9 h-9 rounded-full border-2 border-white/30 bg-white/20"></div>
               )}
               <div>
                 <div className="text-white font-bold text-sm">{farcasterUser?.username}</div>
@@ -1482,29 +1482,29 @@ export default function Home() {
           </div>
 
           {/* Tournament Section */}
-        <div className="mx-4 mb-6 pb-6 border-b border-white/20">
-          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
+        <div className="mx-3 mb-4 pb-4 border-b border-white/20">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-4 relative overflow-hidden">
             <div className="relative z-10">
-              <h3 className="text-white text-2xl font-bold mb-1">Crack the Quiz</h3>
-              <h4 className="text-white text-xl font-bold mb-3">Grab 10K</h4>
-              <p className="text-white/80 text-xs mb-4">Play and win big time to compete!</p>
+              <h3 className="text-white text-xl font-bold mb-1">Crack the Quiz</h3>
+              <h4 className="text-white text-lg font-bold mb-2">Grab 10K</h4>
+              <p className="text-white/80 text-xs mb-3">Play and win big time to compete!</p>
               <button 
                 disabled
-                className="bg-gray-500/60 text-white/60 font-bold text-sm px-8 py-2.5 rounded-full cursor-not-allowed"
+                className="bg-gray-500/60 text-white/60 font-bold text-sm px-6 py-2 rounded-full cursor-not-allowed"
               >
                 Play Soon
               </button>
             </div>
             <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/50 to-transparent">
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-70">🏆</div>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-5xl opacity-70">🏆</div>
             </div>
           </div>
         </div>
 
         {/* Quiz Section */}
-        <div className="px-4 mb-6 pb-6 border-b border-white/20">
-          <div className="flex items-center justify-between mb-4">
-            <h5 className="text-white font-bold text-lg">Quiz</h5>
+        <div className="px-3 mb-4 pb-4 border-b border-white/20">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="text-white font-bold text-base">Quiz</h5>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {/* Play Button - transparent with internal stars and animated border light */}
@@ -1611,9 +1611,9 @@ export default function Home() {
         </div>
 
         {/* Leaderboard Preview Section */}
-        <div className="px-4 mb-4 pb-6 border-b border-white/20">
-          <div className="flex items-center justify-between mb-4">
-            <h5 className="text-white font-bold text-lg">Leaderboard</h5>
+        <div className="px-3 mb-3 pb-4 border-b border-white/20">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="text-white font-bold text-base">Leaderboard</h5>
             <button 
               onClick={() => setShowLeaderboard(true)}
               className="text-cyan-400 text-sm font-semibold"
