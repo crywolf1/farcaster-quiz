@@ -1481,11 +1481,8 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20"></div>
               )}
               <div>
-                <div className="text-xs text-white/60">@{playerStats?.rank || '1'}</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-white font-bold text-sm">{farcasterUser?.username}</span>
-                  <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full">Top 10</span>
-                </div>
+                <div className="text-white font-bold text-sm">{farcasterUser?.username}</div>
+                <div className="text-xs text-white/60">Rank #{playerStats?.rank || '1'}</div>
               </div>
             </div>
             
