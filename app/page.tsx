@@ -1357,7 +1357,7 @@ export default function Home() {
   );
 
   const renderIdle = () => (
-    <div className="min-h-screen relative overflow-hidden pb-20">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
       {/* Starry Sky Background with Wavy Gradient */}
       <div className="fixed inset-0 bg-gradient-to-b from-[#1a2942] via-[#2d4a6f] to-[#1a3650]">
         {/* Wavy gradient layers */}
@@ -1401,7 +1401,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative max-w-md mx-auto p-4">
+      <div className="relative max-w-md w-full mx-auto p-4">
         {/* Main Card Container */}
         <div className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-4 shadow-2xl">
           {/* Top Header Bar */}
@@ -1497,66 +1497,36 @@ export default function Home() {
         </div>
 
           {/* Leaderboard Preview Section */}
-          <div className="mb-2">
-            <div className="flex items-center justify-between mb-4">
-              <h5 className="text-white font-bold text-lg">Leaderboard</h5>
-              <button 
-                onClick={() => setShowLeaderboard(true)}
-                className="text-cyan-400 text-sm font-semibold"
-              >
-                View all
-              </button>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              {leaderboardData.slice(0, 4).map((user, index) => (
-                <div 
-                  key={user.fid}
-                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
+          {leaderboardData && leaderboardData.length > 0 && (
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="text-white font-bold text-lg">Leaderboard</h5>
+                <button 
+                  onClick={() => setShowLeaderboard(true)}
+                  className="text-cyan-400 text-sm font-semibold"
                 >
-                  <img 
-                    src={user.pfpUrl} 
-                    alt={user.username}
-                    className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
-                  />
-                  <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
-                    {user.username}
+                  View all
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                {leaderboardData.slice(0, 4).map((user, index) => (
+                  <div 
+                    key={user.fid}
+                    className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
+                  >
+                    <img 
+                      src={user.pfpUrl} 
+                      alt={user.username}
+                      className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
+                    />
+                    <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
+                      {user.username}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Navigation - Glassy with transparent background */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/10 backdrop-blur-lg border-t border-white/20">
-        <div className="max-w-md mx-auto flex items-center justify-around py-4">
-          <button className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-          </button>
-          <button 
-            onClick={() => setShowLeaderboard(true)}
-            className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors"
-          >
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-            </svg>
-          </button>
-          <button 
-            onClick={() => setShowAddQuestion(true)}
-            className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors"
-          >
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-          </button>
-          <button className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          </button>
+          )}
         </div>
       </div>
     </div>
