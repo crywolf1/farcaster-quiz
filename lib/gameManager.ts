@@ -1,7 +1,7 @@
 // Game state manager with Redis persistence
 import { Player, GameRoom, Question } from './types';
 import * as storage from './storage';
-import { getApprovedQuestions } from './mongodb';
+import { getApprovedQuestions, updatePlayerScore } from './mongodb';
 
 // Timers can't be stored in Redis - keep in memory
 const playerTimerIds = new Map<string, NodeJS.Timeout>();
@@ -742,6 +742,37 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
         const winner = room.players.find(p => p.id === winnerId);
         
         console.log(`[GameManager] Game over! Winner: ${winner?.username}`);
+        
+        // SERVER-SIDE SCORE SAVING: Save both players' scores to MongoDB
+        // This ensures scores are saved even if a player disconnects
+        try {
+          for (const player of room.players) {
+            const playerScore = room.scores.get(player.id) || 0;
+            const isWinner = player.id === winnerId;
+            
+            // Only save if player has FID (authenticated via Farcaster)
+            if (player.fid) {
+              console.log(`[GameManager] 💾 Saving score for ${player.username} (FID: ${player.fid})`);
+              console.log(`[GameManager]    - Score: ${playerScore}`);
+              console.log(`[GameManager]    - Is Winner: ${isWinner}`);
+              
+              await updatePlayerScore(
+                player.fid.toString(),
+                player.username,
+                player.pfpUrl || '',
+                playerScore,
+                isWinner
+              );
+              
+              console.log(`[GameManager] ✅ Score saved for ${player.username}`);
+            } else {
+              console.log(`[GameManager] ⚠️ Skipping score save for ${player.username} - no FID`);
+            }
+          }
+        } catch (error) {
+          console.error(`[GameManager] ❌ Error saving scores to MongoDB:`, error);
+          // Don't block game end if score saving fails
+        }
         
         // Save room back to Redis
         await storage.setGameRoom(roomId, room);
