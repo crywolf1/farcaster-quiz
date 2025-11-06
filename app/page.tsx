@@ -1513,7 +1513,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Banner Card */}
+          {/* Tournament Section */}
         <div className="mx-4 mb-6 pb-6 border-b border-white/20">
           <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
             <div className="relative z-10">
@@ -1521,10 +1521,10 @@ export default function Home() {
               <h4 className="text-white text-xl font-bold mb-3">Grab 10K</h4>
               <p className="text-white/80 text-xs mb-4">Play and win big time to compete!</p>
               <button 
-                onClick={findMatch}
-                className="bg-cyan-400 hover:bg-cyan-300 text-blue-900 font-bold text-sm px-8 py-2.5 rounded-full transition-all active:scale-95"
+                disabled
+                className="bg-gray-500/60 text-white/60 font-bold text-sm px-8 py-2.5 rounded-full cursor-not-allowed"
               >
-                Play
+                Play Soon
               </button>
             </div>
             <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/50 to-transparent">
@@ -1539,16 +1539,36 @@ export default function Home() {
             <h5 className="text-white font-bold text-lg">Quiz</h5>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {/* Play Button - transparent with internal stars */}
+            {/* Play Button - transparent with internal stars and animated border light */}
             <button 
               onClick={findMatch}
-              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
+              className="backdrop-blur-sm bg-blue-900/50 border border-white/30 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-visible group"
             >
+              {/* Rotating light around border - creates traveling light effect */}
+              <span 
+                className="absolute pointer-events-none animate-spin"
+                style={{
+                  inset: '-2px',
+                  animationDuration: '3s'
+                }}
+              >
+                <span 
+                  className="absolute rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    top: '0',
+                    left: '50%',
+                    transform: 'translateX(-50%)'
+                  }}
+                />
+              </span>
+              
               {/* Internal stars */}
               {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute rounded-full bg-white animate-pulse"
+                  className="absolute rounded-full bg-white animate-pulse pointer-events-none"
                   style={{
                     width: `${Math.random() * 0.5 + 1}px`,
                     height: `${Math.random() * 0.5 + 1}px`,
@@ -1569,7 +1589,7 @@ export default function Home() {
             {/* Rank Button - transparent with internal stars */}
             <button 
               onClick={() => setShowLeaderboard(true)}
-              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
+              className="backdrop-blur-sm bg-blue-900/50 border border-white/30 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
             >
               {/* Internal stars */}
               {[...Array(15)].map((_, i) => (
@@ -1596,7 +1616,7 @@ export default function Home() {
             {/* Add Q Button - transparent with internal stars */}
             <button 
               onClick={() => setShowAddQuestion(true)}
-              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
+              className="backdrop-blur-sm bg-blue-900/50 border border-white/30 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
             >
               {/* Internal stars */}
               {[...Array(15)].map((_, i) => (
