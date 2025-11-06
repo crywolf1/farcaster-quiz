@@ -1357,81 +1357,204 @@ export default function Home() {
   );
 
   const renderIdle = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-black">
-      <div className="max-w-md w-full bg-gradient-to-b from-gray-900 to-black border-2 border-gray-800 rounded-3xl p-8 shadow-2xl">
-        {/* Profile Section */}
-        <div className="text-center mb-8">
-          {/* Avatar */}
-          <div className="relative inline-block mb-4">
-            {farcasterUser?.pfpUrl ? (
-              <img 
-                src={farcasterUser.pfpUrl} 
-                alt="Profile" 
-                className="w-24 h-24 rounded-full border-2 border-gray-700 shadow-lg"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full border-2 border-gray-700 bg-gray-800 shadow-lg"></div>
-            )}
+    <div className="min-h-screen relative overflow-hidden pb-20">
+      {/* Animated Starry Sky Background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1128] via-[#1e3a8a] to-[#0c4a6e]">
+        {/* Stars */}
+        <div className="absolute inset-0">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white animate-pulse"
+              style={{
+                width: Math.random() > 0.7 ? '2px' : '1px',
+                height: Math.random() > 0.7 ? '2px' : '1px',
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+                opacity: 0.3 + Math.random() * 0.7
+              }}
+            />
+          ))}
+          {/* Yellow Stars */}
+          {[...Array(10)].map((_, i) => (
+            <div
+              key={`yellow-${i}`}
+              className="absolute rounded-full bg-yellow-300 animate-pulse"
+              style={{
+                width: '3px',
+                height: '3px',
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1.5 + Math.random() * 2}s`,
+                opacity: 0.5 + Math.random() * 0.5
+              }}
+            />
+          ))}
+        </div>
+        {/* Wavy Effect */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-cyan-500/30 animate-[wave_8s_ease-in-out_infinite]"></div>
+        </div>
+      </div>
+
+      <div className="relative max-w-md mx-auto p-4">
+        {/* Main Card Container */}
+        <div className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-4 shadow-2xl">
+          {/* Top Header Bar */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Left: Avatar & Username */}
+            <div className="flex items-center gap-3">
+              {farcasterUser?.pfpUrl ? (
+                <img 
+                  src={farcasterUser.pfpUrl} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-full border-2 border-white/30"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20"></div>
+              )}
+              <div>
+                <div className="text-xs text-white/60">@{playerStats?.rank || '1'}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-bold text-sm">{farcasterUser?.username}</span>
+                  <span className="bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full">Top 10</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Right: Points & Currency */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-purple-600/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-yellow-300">⭐</span>
+                <span className="text-white text-sm font-bold">{formatScore(playerStats?.points || 0)}</span>
+              </div>
+              <div className="flex items-center gap-1 bg-blue-500/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                <span className="text-white">💎</span>
+                <span className="text-white text-sm font-bold">250</span>
+              </div>
+            </div>
           </div>
-          
-          {/* Username */}
-          <h2 className="text-2xl font-bold text-white mb-3">
-            {farcasterUser?.username}
-          </h2>
-          
-          {/* Rank Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700">
-            <span className="text-sm text-gray-400">Rank</span>
-            <span className="text-sm font-bold text-white">#{playerStats?.rank || '-'}</span>
+
+        {/* Banner Card */}
+        <div className="mx-4 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
+          <div className="relative z-10">
+            <h3 className="text-white text-2xl font-bold mb-1">Crack the Quiz</h3>
+            <h4 className="text-white text-xl font-bold mb-3">Grab 10K</h4>
+            <p className="text-white/80 text-xs mb-4">Play and win big time to compete!</p>
+            <button 
+              onClick={findMatch}
+              className="bg-cyan-400 hover:bg-cyan-300 text-blue-900 font-bold text-sm px-8 py-2.5 rounded-full transition-all active:scale-95"
+            >
+              Play
+            </button>
+          </div>
+          <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/50 to-transparent">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-70">🏆</div>
           </div>
         </div>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {/* Points */}
-          <div className="bg-black border-2 border-gray-800 rounded-2xl p-5 text-center hover:border-gray-700 transition-colors">
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-2">
-              Points
-            </div>
-            <div className="text-3xl font-bold text-white">
-              {formatScore(playerStats?.points || 0)}
-            </div>
+
+        {/* Quiz Section */}
+        <div className="px-4 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h5 className="text-white font-bold text-lg">Quiz</h5>
+            <button className="text-cyan-400 text-sm font-semibold">View all</button>
           </div>
-          
-          {/* Wins */}
-          <div className="bg-black border-2 border-gray-800 rounded-2xl p-5 text-center hover:border-gray-700 transition-colors">
-            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-2">
-              Wins
+          <div className="grid grid-cols-4 gap-3">
+            {/* Quiz Cards */}
+            <button 
+              onClick={findMatch}
+              className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+            >
+              <div className="text-3xl mb-2">📡</div>
+              <div className="text-white text-xs font-semibold text-center">Play</div>
+            </button>
+            
+            <button 
+              onClick={() => setShowLeaderboard(true)}
+              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+            >
+              <div className="text-3xl mb-2">👥</div>
+              <div className="text-white text-xs font-semibold text-center">Rank</div>
+            </button>
+            
+            <button 
+              onClick={() => setShowAddQuestion(true)}
+              className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+            >
+              <div className="text-3xl mb-2">👍</div>
+              <div className="text-white text-xs font-semibold text-center">Add Q</div>
+            </button>
+            
+            <button className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95">
+              <div className="text-3xl mb-2">🏆</div>
+              <div className="text-white text-xs font-semibold text-center">Stats</div>
+            </button>
+          </div>
+        </div>
+
+          {/* Leaderboard Preview Section */}
+          <div className="mb-2">
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-white font-bold text-lg">Leaderboard</h5>
+              <button 
+                onClick={() => setShowLeaderboard(true)}
+                className="text-cyan-400 text-sm font-semibold"
+              >
+                View all
+              </button>
             </div>
-            <div className="text-3xl font-bold text-white">
-              {playerStats?.wins || 0}
+            <div className="grid grid-cols-4 gap-3">
+              {leaderboardData.slice(0, 4).map((user, index) => (
+                <div 
+                  key={user.fid}
+                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
+                >
+                  <img 
+                    src={user.pfpUrl} 
+                    alt={user.username}
+                    className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
+                  />
+                  <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
+                    {user.username}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          {/* Primary - Find Match */}
-          <button
-            onClick={findMatch}
-            className="w-full bg-white hover:bg-gray-100 text-black font-bold text-lg py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
-          >
-            Find Match
+      </div>
+
+      {/* Bottom Navigation - Glassy with transparent background */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/10 backdrop-blur-lg border-t border-white/20">
+        <div className="max-w-md mx-auto flex items-center justify-around py-4">
+          <button className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors">
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
           </button>
-          
-          {/* Secondary Buttons */}
-          <button
-            onClick={() => setShowAddQuestion(true)}
-            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all active:scale-[0.98]"
-          >
-            Add Question
-          </button>
-          
-          <button
+          <button 
             onClick={() => setShowLeaderboard(true)}
-            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all active:scale-[0.98]"
+            className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors"
           >
-            Leaderboard
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+          </button>
+          <button 
+            onClick={() => setShowAddQuestion(true)}
+            className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors"
+          >
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-white hover:text-cyan-300 transition-colors">
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -2167,119 +2290,152 @@ export default function Home() {
   };
 
   // Leaderboard Modal
-  const renderLeaderboard = () => (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
-      <div className="relative max-w-2xl w-full max-h-[85vh] flex flex-col">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse rounded-[48px]"></div>
-        
-        {/* Main container */}
-        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-8 shadow-[0_0_60px_rgba(168,85,247,0.4)] backdrop-blur-xl flex flex-col overflow-hidden max-h-[85vh]">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 drop-shadow-2xl">
-              🏆 Leaderboard
-            </h2>
-            <button
-              onClick={() => setShowLeaderboard(false)}
-              className="text-gray-400 hover:text-white text-3xl w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-800/50 transition-all hover:scale-110 active:scale-95"
-            >
-              ×
-            </button>
-          </div>
-
-          {/* Player Stats Card with 3D effect */}
-          {playerStats && (
-            <div className="relative mb-6 animate-[slideIn_0.4s_ease-out]">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 blur-lg rounded-[28px]"></div>
-              <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[28px] p-5 shadow-xl">
-                <div className="flex items-center gap-4">
-                  {farcasterUser?.pfpUrl && (
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-purple-500/30 blur-md rounded-full"></div>
-                      <img src={farcasterUser.pfpUrl} alt="You" className="relative w-16 h-16 rounded-full border-2 border-purple-500/50" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="text-white font-black text-lg drop-shadow-lg">{farcasterUser?.username}</div>
-                    <div className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 text-sm font-bold">
-                      Your Rank: #{playerStats.rank}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">
-                      {formatScore(playerStats.points)}
-                    </div>
-                    <div className="text-sm font-bold text-green-400">{playerStats.wins}W - {playerStats.losses}L</div>
-                  </div>
-                </div>
-              </div>
+  const renderLeaderboard = () => {
+    const topThree = leaderboardData.slice(0, 3);
+    const restOfList = leaderboardData.slice(3);
+    
+    return (
+      <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-[fadeIn_0.3s_ease-out]">
+        <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col">
+          {/* Main container */}
+          <div className="relative bg-black border-2 border-gray-800 rounded-3xl p-8 shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-4xl font-black text-white">
+                🏆 Leaderboard
+              </h2>
+              <button
+                onClick={() => setShowLeaderboard(false)}
+                className="text-gray-400 hover:text-white text-3xl w-12 h-12 flex items-center justify-center rounded-full hover:bg-gray-800/50 transition-all hover:scale-110 active:scale-95"
+              >
+                ×
+              </button>
             </div>
-          )}
 
-          {/* Leaderboard List with custom scrollbar */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pr-2 leaderboard-scroll min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {leaderboardData.map((entry, index) => {
-              const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
-              const isTopThree = index < 3;
-              return (
-                <div
-                  key={entry.fid}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                  className={`group relative flex items-center gap-4 p-4 rounded-[24px] transition-all animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
-                    isCurrentUser
-                      ? 'bg-gradient-to-r from-purple-600/30 via-pink-600/30 to-purple-600/30 border-2 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                      : 'bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-800/50 border border-gray-700/50 hover:border-purple-500/30 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                  }`}
-                >
-                  {/* Shimmer on hover */}
-                  {!isCurrentUser && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 opacity-0 group-hover:opacity-100 group-hover:animate-[shimmer_2s_ease-in-out_infinite] rounded-[24px]"></div>
-                  )}
-                  
-                  {/* Rank */}
-                  <div className="relative w-12 text-center z-10">
-                    <span className={`text-3xl font-bold ${isTopThree ? 'drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]' : ''}`}>
-                      {getRankEmoji(index + 1)}
-                    </span>
-                  </div>
-                  
-                  {/* Avatar */}
-                  <div className="relative z-10">
-                    {isTopThree && (
-                      <div className="absolute inset-0 bg-yellow-500/20 blur-lg rounded-full"></div>
-                    )}
-                    <img
-                      src={entry.pfpUrl}
-                      alt={entry.username}
-                      className={`relative w-12 h-12 rounded-full border-2 ${isTopThree ? 'border-yellow-500/50' : 'border-gray-700'}`}
-                    />
-                  </div>
-                  
-                  {/* User info */}
-                  <div className="flex-1 relative z-10">
-                    <div className={`font-black text-base ${isCurrentUser ? 'text-white' : isTopThree ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500' : 'text-gray-300'}`}>
-                      {entry.username}
+            {/* Top 3 Players - Podium Style */}
+            {topThree.length > 0 && (
+              <div className="mb-6 flex items-end justify-center gap-4">
+                {/* 2nd Place */}
+                {topThree[1] && (
+                  <div className="flex flex-col items-center animate-[slideIn_0.5s_ease-out_0.1s_forwards] opacity-0">
+                    <div className="relative mb-2">
+                      <img
+                        src={topThree[1].pfpUrl}
+                        alt={topThree[1].username}
+                        className="w-14 h-14 rounded-full border-3 border-gray-400 shadow-lg"
+                      />
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                        2
+                      </div>
                     </div>
-                    <div className="text-sm font-semibold text-gray-500">
-                      <span className="text-green-400">{entry.wins}W</span> - <span className="text-red-400">{entry.losses}L</span>
+                    <div className="bg-gray-900 border-2 border-gray-700 rounded-xl p-3 w-24 text-center">
+                      <div className="font-bold text-white text-xs truncate">{topThree[1].username}</div>
+                      <div className="text-lg font-black text-gray-400 mt-1">{formatScore(topThree[1].points)}</div>
+                      <div className="text-[10px] text-gray-500 mt-1">
+                        <span className="text-green-400">{topThree[1].wins}W</span> - <span className="text-red-400">{topThree[1].losses}L</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Points */}
-                  <div className="text-right relative z-10">
-                    <div className={`text-xl font-black ${isTopThree ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500' : 'text-white'}`}>
-                      {formatScore(entry.points)}
+                )}
+
+                {/* 1st Place - Elevated */}
+                {topThree[0] && (
+                  <div className="flex flex-col items-center -mt-4 animate-[slideIn_0.5s_ease-out_forwards] opacity-0">
+                    <div className="relative mb-2">
+                      <img
+                        src={topThree[0].pfpUrl}
+                        alt={topThree[0].username}
+                        className="w-16 h-16 rounded-full border-3 border-yellow-500 shadow-2xl"
+                      />
+                      <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                        👑
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-yellow-900 to-gray-900 border-2 border-yellow-500 rounded-xl p-3 w-28 text-center shadow-xl">
+                      <div className="font-black text-white text-xs truncate">{topThree[0].username}</div>
+                      <div className="text-xl font-black text-yellow-400 mt-1">{formatScore(topThree[0].points)}</div>
+                      <div className="text-[10px] text-gray-400 mt-1">
+                        <span className="text-green-400">{topThree[0].wins}W</span> - <span className="text-red-400">{topThree[0].losses}L</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                )}
+
+                {/* 3rd Place */}
+                {topThree[2] && (
+                  <div className="flex flex-col items-center animate-[slideIn_0.5s_ease-out_0.2s_forwards] opacity-0">
+                    <div className="relative mb-2">
+                      <img
+                        src={topThree[2].pfpUrl}
+                        alt={topThree[2].username}
+                        className="w-14 h-14 rounded-full border-3 border-orange-600 shadow-lg"
+                      />
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                        3
+                      </div>
+                    </div>
+                    <div className="bg-gray-900 border-2 border-gray-700 rounded-xl p-3 w-24 text-center">
+                      <div className="font-bold text-white text-xs truncate">{topThree[2].username}</div>
+                      <div className="text-lg font-black text-orange-600 mt-1">{formatScore(topThree[2].points)}</div>
+                      <div className="text-[10px] text-gray-500 mt-1">
+                        <span className="text-green-400">{topThree[2].wins}W</span> - <span className="text-red-400">{topThree[2].losses}L</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Rest of the players - List View */}
+            {restOfList.length > 0 && (
+              <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-2 pr-2 leaderboard-scroll min-h-0">
+                {restOfList.map((entry, index) => {
+                  const actualRank = index + 4; // Starting from 4th place
+                  const isCurrentUser = entry.fid === farcasterUser?.fid.toString();
+                  return (
+                    <div
+                      key={entry.fid}
+                      style={{ animationDelay: `${(index + 3) * 0.05}s` }}
+                      className={`flex items-center gap-4 p-3 rounded-2xl transition-all animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
+                        isCurrentUser
+                          ? 'bg-gray-800 border-2 border-gray-600'
+                          : 'bg-gray-900 border-2 border-gray-800 hover:border-gray-700'
+                      }`}
+                    >
+                      {/* Rank Badge */}
+                      <div className="w-10 h-10 bg-gray-800 border border-gray-700 rounded-xl flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">#{actualRank}</span>
+                      </div>
+                      
+                      {/* Avatar */}
+                      <img
+                        src={entry.pfpUrl}
+                        alt={entry.username}
+                        className="w-12 h-12 rounded-full border-2 border-gray-700"
+                      />
+                      
+                      {/* User info */}
+                      <div className="flex-1">
+                        <div className="font-bold text-white text-sm">{entry.username}</div>
+                        <div className="text-xs text-gray-500">
+                          <span className="text-green-400">{entry.wins}W</span> - <span className="text-red-400">{entry.losses}L</span>
+                        </div>
+                      </div>
+                      
+                      {/* Points */}
+                      <div className="text-white font-bold text-lg">
+                        {formatScore(entry.points)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Submit Question Handler
   const handleSubmitQuestion = async () => {

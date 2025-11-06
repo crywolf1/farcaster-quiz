@@ -171,3 +171,18 @@ input, select, textarea {
   }
 }
 
+/* Wave animation for starry background */
+@keyframes wave {
+  0%, 100% {
+    transform: translateX(-25%) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(0%) translateY(-10px) rotate(1deg);
+  }
+  50% {
+    transform: translateX(25%) translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateX(0%) translateY(10px) rotate(-1deg);
+  }
+}
