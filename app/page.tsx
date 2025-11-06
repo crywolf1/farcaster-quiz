@@ -1365,52 +1365,52 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
         </div>
-        {/* Small White Dots/Stars - Lots of them */}
+        {/* Small White Dots/Stars - Massive Amount */}
         <div className="absolute inset-0">
-          {[...Array(200)].map((_, i) => (
+          {[...Array(400)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-white"
               style={{
-                width: Math.random() > 0.7 ? '2px' : '1px',
-                height: Math.random() > 0.7 ? '2px' : '1px',
+                width: Math.random() > 0.8 ? '2px' : '1px',
+                height: Math.random() > 0.8 ? '2px' : '1px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                opacity: 0.3 + Math.random() * 0.7,
+                opacity: 0.2 + Math.random() * 0.8,
                 animation: Math.random() > 0.5 ? `pulse ${2 + Math.random() * 3}s ease-in-out infinite` : 'none',
                 animationDelay: `${Math.random() * 3}s`
               }}
             />
           ))}
           {/* Medium Stars */}
-          {[...Array(30)].map((_, i) => (
+          {[...Array(60)].map((_, i) => (
             <div
               key={`medium-${i}`}
               className="absolute rounded-full bg-white animate-pulse"
               style={{
-                width: '2px',
-                height: '2px',
+                width: Math.random() > 0.5 ? '2px' : '1.5px',
+                height: Math.random() > 0.5 ? '2px' : '1.5px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
                 animationDuration: `${1.5 + Math.random() * 2}s`,
-                opacity: 0.5 + Math.random() * 0.5
+                opacity: 0.4 + Math.random() * 0.6
               }}
             />
           ))}
           {/* Yellow/Golden Stars */}
-          {[...Array(20)].map((_, i) => (
+          {[...Array(40)].map((_, i) => (
             <div
               key={`yellow-${i}`}
               className="absolute rounded-full bg-yellow-300 animate-pulse"
               style={{
-                width: '2px',
-                height: '2px',
+                width: Math.random() > 0.5 ? '2.5px' : '2px',
+                height: Math.random() > 0.5 ? '2.5px' : '2px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
                 animationDuration: `${1 + Math.random() * 2}s`,
-                opacity: 0.6 + Math.random() * 0.4
+                opacity: 0.5 + Math.random() * 0.5
               }}
             />
           ))}
@@ -1418,8 +1418,8 @@ export default function Home() {
       </div>
 
       <div className="relative max-w-md w-full mx-auto p-4">
-        {/* Main Card Container */}
-        <div className="bg-white/10 backdrop-blur-md border-2 border-white/20 rounded-3xl p-4 shadow-2xl">
+        {/* Main Card Container - Fully Transparent */}
+        <div className="bg-transparent border-2 border-white/10 rounded-3xl p-4">
           {/* Top Header Bar */}
           <div className="flex items-center justify-between mb-4">
             {/* Left: Avatar & Username */}
