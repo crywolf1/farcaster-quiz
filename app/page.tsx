@@ -33,6 +33,7 @@ interface GameRoom {
   state: 'subject-selection' | 'playing' | 'round-over' | 'game-over';
   timerStartedAt: number | null;
   timerDuration: number;
+  subjectTimerStart: number | null;
   playerProgress: Record<string, number>;
   playerTimers: Record<string, number>;
   playersFinished: string[];
