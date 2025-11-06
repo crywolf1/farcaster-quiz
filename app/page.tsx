@@ -1430,12 +1430,12 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 bg-blue-500/80 backdrop-blur-sm px-3 py-1.5 rounded-full">
                 <span className="text-white">💎</span>
-                <span className="text-white text-sm font-bold">250</span>
+                <span className="text-white text-sm font-bold">{formatScore(playerStats?.points || 0)}</span>
               </div>
             </div>
           </div>
 
-        {/* Banner Card */}
+          {/* Banner Card */}
         <div className="mx-4 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
           <div className="relative z-10">
             <h3 className="text-white text-2xl font-bold mb-1">Crack the Quiz</h3>
@@ -1492,38 +1492,49 @@ export default function Home() {
           </div>
         </div>
 
-          {/* Leaderboard Preview Section */}
-          {leaderboardData && leaderboardData.length > 0 && (
-            <div className="px-4 mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <h5 className="text-white font-bold text-lg">Leaderboard</h5>
-                <button 
-                  onClick={() => setShowLeaderboard(true)}
-                  className="text-cyan-400 text-sm font-semibold"
+        {/* Leaderboard Preview Section */}
+        <div className="px-4 mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h5 className="text-white font-bold text-lg">Leaderboard</h5>
+            <button 
+              onClick={() => setShowLeaderboard(true)}
+              className="text-cyan-400 text-sm font-semibold"
+            >
+              View all
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {leaderboardData && leaderboardData.length > 0 ? (
+              leaderboardData.slice(0, 4).map((user, index) => (
+                <div 
+                  key={user.fid}
+                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
                 >
-                  View all
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                {leaderboardData.slice(0, 4).map((user, index) => (
-                  <div 
-                    key={user.fid}
-                    className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
-                  >
-                    <img 
-                      src={user.pfpUrl} 
-                      alt={user.username}
-                      className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
-                    />
-                    <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
-                      {user.username}
-                    </div>
+                  <img 
+                    src={user.pfpUrl} 
+                    alt={user.username}
+                    className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
+                  />
+                  <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
+                    {user.username}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              ))
+            ) : (
+              // Placeholder cards while loading
+              [...Array(4)].map((_, i) => (
+                <div 
+                  key={i}
+                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center"
+                >
+                  <div className="w-12 h-12 rounded-full border-2 border-white/30 mb-2 bg-white/10"></div>
+                  <div className="text-white text-xs font-semibold text-center">Loading...</div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
+      </div>
       </div>
     </div>
   );
