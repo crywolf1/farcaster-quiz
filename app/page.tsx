@@ -1358,45 +1358,46 @@ export default function Home() {
 
   const renderIdle = () => (
     <div className="min-h-screen relative overflow-hidden pb-20">
-      {/* Animated Starry Sky Background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-[#0a1128] via-[#1e3a8a] to-[#0c4a6e]">
+      {/* Starry Sky Background with Wavy Gradient */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#1a2942] via-[#2d4a6f] to-[#1a3650]">
+        {/* Wavy gradient layers */}
+        <div className="absolute inset-0 opacity-60">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/30 via-transparent to-transparent"></div>
+        </div>
         {/* Stars */}
         <div className="absolute inset-0">
-          {[...Array(50)].map((_, i) => (
+          {[...Array(80)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-white animate-pulse"
               style={{
-                width: Math.random() > 0.7 ? '2px' : '1px',
-                height: Math.random() > 0.7 ? '2px' : '1px',
+                width: Math.random() > 0.8 ? '2px' : '1px',
+                height: Math.random() > 0.8 ? '2px' : '1px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 3}s`,
                 animationDuration: `${2 + Math.random() * 3}s`,
-                opacity: 0.3 + Math.random() * 0.7
+                opacity: 0.4 + Math.random() * 0.6
               }}
             />
           ))}
-          {/* Yellow Stars */}
-          {[...Array(10)].map((_, i) => (
+          {/* Yellow/Golden Stars */}
+          {[...Array(15)].map((_, i) => (
             <div
               key={`yellow-${i}`}
-              className="absolute rounded-full bg-yellow-300 animate-pulse"
+              className="absolute rounded-full bg-yellow-400 animate-pulse"
               style={{
-                width: '3px',
-                height: '3px',
+                width: '2.5px',
+                height: '2.5px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1.5 + Math.random() * 2}s`,
-                opacity: 0.5 + Math.random() * 0.5
+                animationDuration: `${1.5 + Math.random() * 2.5}s`,
+                opacity: 0.6 + Math.random() * 0.4
               }}
             />
           ))}
-        </div>
-        {/* Wavy Effect */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-cyan-500/30 animate-[wave_8s_ease-in-out_infinite]"></div>
         </div>
       </div>
 
