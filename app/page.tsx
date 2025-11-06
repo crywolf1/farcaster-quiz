@@ -3231,30 +3231,47 @@ export default function Home() {
   // Render Leave Confirmation Modal
   const renderLeaveConfirmation = () => (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="backdrop-blur-2xl bg-gradient-to-br from-gray-900/95 via-purple-900/30 to-pink-900/30 border-2 border-gray-700/50 rounded-[32px] p-8 shadow-2xl max-w-md w-full animate-scale-in">
+      <div className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-[32px] p-8 shadow-xl max-w-md w-full animate-scale-in relative overflow-hidden">
+        {/* Internal stars */}
+        {[...Array(25)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white animate-pulse pointer-events-none"
+            style={{
+              width: `${Math.random() * 0.5 + 1}px`,
+              height: `${Math.random() * 0.5 + 1}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.4 + 0.3,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${1 + Math.random() * 2}s`
+            }}
+          />
+        ))}
+        
         {/* Warning Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 border-2 border-red-500/50 flex items-center justify-center shadow-lg">
+        <div className="flex justify-center mb-6 relative z-10">
+          <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500/50 flex items-center justify-center shadow-lg backdrop-blur-sm">
             <span className="text-5xl">⚠️</span>
           </div>
         </div>
 
         {/* Title */}
-        <h2 className="text-3xl font-black text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-pink-400 to-red-400 drop-shadow-lg">
+        <h2 className="text-3xl font-black text-center mb-4 text-white drop-shadow-lg relative z-10">
           Leave Game?
         </h2>
 
         {/* Message */}
-        <p className="text-gray-300 text-center mb-8 text-lg">
+        <p className="text-white/80 text-center mb-8 text-base relative z-10">
           Are you sure you want to leave? Your opponent will win by default.
         </p>
 
         {/* Buttons */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 relative z-10">
           {/* Cancel Button */}
           <button
             onClick={() => setShowLeaveConfirm(false)}
-            className="backdrop-blur-xl bg-gray-800/80 hover:bg-gray-700/80 border-2 border-gray-600/50 text-white py-4 px-6 rounded-[20px] text-lg font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:border-gray-500"
+            className="backdrop-blur-sm bg-white/10 hover:bg-white/15 border-2 border-white/30 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105"
           >
             Cancel
           </button>
@@ -3265,7 +3282,7 @@ export default function Home() {
               setShowLeaveConfirm(false);
               leaveGame();
             }}
-            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-4 px-6 rounded-[20px] text-lg font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-red-400/30"
+            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white py-3 px-4 rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 border-2 border-red-400/30"
           >
             Yes, Leave
           </button>
