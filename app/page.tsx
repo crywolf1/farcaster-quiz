@@ -1414,7 +1414,7 @@ export default function Home() {
           <div className="absolute inset-0 opacity-35" style={{ background: 'radial-gradient(ellipse 700px 500px at 45% 80%, rgba(30,90,143,0.4) 0%, transparent 55%)' }}></div>
           <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse 600px 400px at 70% 40%, rgba(15,40,70,0.45) 0%, transparent 50%)' }}></div>
         </div>
-        {/* Lightweight CSS-only starfield background */}
+        {/* Lightweight CSS-only starfield background - Clean starfield with subtle yellow accents */}
         <div 
           className="absolute inset-0" 
           style={{
@@ -1423,17 +1423,29 @@ export default function Home() {
               radial-gradient(1px 1px at 60% 70%, white, transparent),
               radial-gradient(2px 2px at 50% 50%, white, transparent),
               radial-gradient(1px 1px at 80% 10%, white, transparent),
-              radial-gradient(1px 1px at 90% 60%, white, transparent),
-              radial-gradient(2px 2px at 33% 80%, white, transparent),
-              radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.8), transparent),
-              radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6), transparent),
-              radial-gradient(1px 1px at 40% 90%, rgba(255,255,255,0.7), transparent),
-              radial-gradient(2px 2px at 85% 40%, rgba(255,255,255,0.5), transparent),
-              radial-gradient(1px 1px at 25% 15%, rgba(255,255,255,0.9), transparent),
-              radial-gradient(1px 1px at 95% 85%, rgba(255,255,255,0.6), transparent)
+              radial-gradient(2px 2px at 90% 60%, rgba(255,240,120,1), transparent),
+              radial-gradient(1px 1px at 33% 80%, white, transparent),
+              radial-gradient(2px 2px at 15% 75%, rgba(255,255,255,0.9), transparent),
+              radial-gradient(1px 1px at 70% 20%, white, transparent),
+              radial-gradient(1px 1px at 85% 40%, white, transparent),
+              radial-gradient(2px 2px at 12% 42%, rgba(255,250,115,1), transparent),
+              radial-gradient(1px 1px at 45% 25%, white, transparent),
+              radial-gradient(2px 2px at 65% 35%, white, transparent),
+              radial-gradient(1px 1px at 30% 85%, white, transparent),
+              radial-gradient(1px 1px at 52% 78%, white, transparent),
+              radial-gradient(2px 2px at 86% 74%, rgba(255,250,110,1), transparent),
+              radial-gradient(2px 2px at 82% 52%, rgba(255,255,255,0.85), transparent),
+              radial-gradient(1px 1px at 18% 38%, white, transparent),
+              radial-gradient(1px 1px at 72% 68%, white, transparent),
+              radial-gradient(2px 2px at 62% 82%, white, transparent),
+              radial-gradient(2px 2px at 26% 76%, rgba(255,240,115,1), transparent),
+              radial-gradient(1px 1px at 92% 32%, white, transparent),
+              radial-gradient(1px 1px at 42% 52%, white, transparent),
+              radial-gradient(2px 2px at 56% 26%, white, transparent),
+              radial-gradient(1px 1px at 84% 56%, white, transparent)
             `,
-            backgroundSize: '200px 200px, 300px 300px, 250px 250px, 350px 350px, 280px 280px, 320px 320px, 180px 180px, 400px 400px, 220px 220px, 380px 380px, 270px 270px, 310px 310px',
-            backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px, 160px 200px, 240px 50px, 20px 150px, 180px 80px, 90px 300px, 300px 150px, 50px 250px, 210px 180px'
+            backgroundSize: '120px 120px, 150px 150px, 130px 130px, 140px 140px, 125px 125px, 135px 135px, 145px 145px, 115px 115px, 155px 155px, 128px 128px, 142px 142px, 138px 138px, 122px 122px, 148px 148px, 132px 132px, 126px 126px, 152px 152px, 118px 118px, 144px 144px, 136px 136px, 124px 124px, 146px 146px, 134px 134px, 140px 140px',
+            backgroundPosition: '0 0, 40px 60px, 70px 100px, 160px 200px, 20px 150px, 180px 80px, 90px 300px, 50px 250px, 210px 180px, 110px 90px, 30px 220px, 280px 70px, 60px 170px, 150px 120px, 100px 200px, 80px 230px, 140px 290px, 170px 60px, 290px 260px, 310px 40px, 200px 340px, 185px 35px, 245px 75px, 265px 115px'
           }}
         />
       </div>
