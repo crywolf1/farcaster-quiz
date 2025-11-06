@@ -1357,8 +1357,8 @@ export default function Home() {
   );
 
   const renderIdle = () => (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-gray-950 via-black to-gray-950">
-      <div className="max-w-sm w-full">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-black">
+      <div className="max-w-md w-full bg-gradient-to-b from-gray-900 to-black border-2 border-gray-800 rounded-3xl p-8 shadow-2xl">
         {/* Profile Section */}
         <div className="text-center mb-8">
           {/* Avatar */}
@@ -1367,54 +1367,54 @@ export default function Home() {
               <img 
                 src={farcasterUser.pfpUrl} 
                 alt="Profile" 
-                className="w-20 h-20 rounded-full border border-gray-800"
+                className="w-24 h-24 rounded-full border-2 border-gray-700 shadow-lg"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full border border-gray-800 bg-gray-900"></div>
+              <div className="w-24 h-24 rounded-full border-2 border-gray-700 bg-gray-800 shadow-lg"></div>
             )}
           </div>
           
           {/* Username */}
-          <h2 className="text-xl font-semibold text-white mb-2">
+          <h2 className="text-2xl font-bold text-white mb-3">
             {farcasterUser?.username}
           </h2>
           
           {/* Rank Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-800">
-            <span className="text-xs text-gray-400">Rank</span>
-            <span className="text-sm font-medium text-white">#{playerStats?.rank || '-'}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-800 border border-gray-700">
+            <span className="text-sm text-gray-400">Rank</span>
+            <span className="text-sm font-bold text-white">#{playerStats?.rank || '-'}</span>
           </div>
         </div>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           {/* Points */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+          <div className="bg-black border-2 border-gray-800 rounded-2xl p-5 text-center hover:border-gray-700 transition-colors">
+            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-2">
               Points
             </div>
-            <div className="text-2xl font-semibold text-white">
+            <div className="text-3xl font-bold text-white">
               {formatScore(playerStats?.points || 0)}
             </div>
           </div>
           
           {/* Wins */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
-            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+          <div className="bg-black border-2 border-gray-800 rounded-2xl p-5 text-center hover:border-gray-700 transition-colors">
+            <div className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-2">
               Wins
             </div>
-            <div className="text-2xl font-semibold text-white">
+            <div className="text-3xl font-bold text-white">
               {playerStats?.wins || 0}
             </div>
           </div>
         </div>
       
         {/* Action Buttons */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {/* Primary - Find Match */}
           <button
             onClick={findMatch}
-            className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 px-4 rounded-xl transition-colors"
+            className="w-full bg-white hover:bg-gray-100 text-black font-bold text-lg py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
           >
             Find Match
           </button>
@@ -1422,14 +1422,14 @@ export default function Home() {
           {/* Secondary Buttons */}
           <button
             onClick={() => setShowAddQuestion(true)}
-            className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all active:scale-[0.98]"
           >
             Add Question
           </button>
           
           <button
             onClick={() => setShowLeaderboard(true)}
-            className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-white font-medium py-2.5 px-4 rounded-xl transition-colors"
+            className="w-full bg-gray-800 hover:bg-gray-700 border-2 border-gray-700 hover:border-gray-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all active:scale-[0.98]"
           >
             Leaderboard
           </button>
