@@ -1499,25 +1499,27 @@ export default function Home() {
           </div>
 
           {/* Banner Card */}
-        <div className="mx-4 mb-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
-          <div className="relative z-10">
-            <h3 className="text-white text-2xl font-bold mb-1">Crack the Quiz</h3>
-            <h4 className="text-white text-xl font-bold mb-3">Grab 10K</h4>
-            <p className="text-white/80 text-xs mb-4">Play and win big time to compete!</p>
-            <button 
-              onClick={findMatch}
-              className="bg-cyan-400 hover:bg-cyan-300 text-blue-900 font-bold text-sm px-8 py-2.5 rounded-full transition-all active:scale-95"
-            >
-              Play
-            </button>
-          </div>
-          <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/50 to-transparent">
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-70">🏆</div>
+        <div className="mx-4 mb-6 pb-6 border-b border-white/20">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl p-6 relative overflow-hidden">
+            <div className="relative z-10">
+              <h3 className="text-white text-2xl font-bold mb-1">Crack the Quiz</h3>
+              <h4 className="text-white text-xl font-bold mb-3">Grab 10K</h4>
+              <p className="text-white/80 text-xs mb-4">Play and win big time to compete!</p>
+              <button 
+                onClick={findMatch}
+                className="bg-cyan-400 hover:bg-cyan-300 text-blue-900 font-bold text-sm px-8 py-2.5 rounded-full transition-all active:scale-95"
+              >
+                Play
+              </button>
+            </div>
+            <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-blue-600/50 to-transparent">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-6xl opacity-70">🏆</div>
+            </div>
           </div>
         </div>
 
         {/* Quiz Section */}
-        <div className="px-4 mb-6">
+        <div className="px-4 mb-6 pb-6 border-b border-white/20">
           <div className="flex items-center justify-between mb-4">
             <h5 className="text-white font-bold text-lg">Quiz</h5>
           </div>
@@ -1606,7 +1608,7 @@ export default function Home() {
         </div>
 
         {/* Leaderboard Preview Section */}
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 pb-6 border-b border-white/20">
           <div className="flex items-center justify-between mb-4">
             <h5 className="text-white font-bold text-lg">Leaderboard</h5>
             <button 
@@ -2442,20 +2444,37 @@ export default function Home() {
         <div className="text-center max-w-md w-full">
           {/* 3D Card with celebration effect */}
           <div className="relative">
-            <div className={`absolute inset-0 blur-2xl animate-pulse ${iWon ? 'bg-gradient-to-r from-green-500/40 via-yellow-500/40 to-green-500/40' : isDraw ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-500/30' : 'bg-gradient-to-r from-gray-500/20 via-gray-600/20 to-gray-500/20'}`}></div>
-            <div className={`relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 rounded-[48px] shadow-2xl p-8 backdrop-blur-xl ${iWon ? 'border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.4)]' : isDraw ? 'border-blue-500/50 shadow-[0_0_60px_rgba(59,130,246,0.4)]' : 'border-gray-700'}`}>
-              <h2 className={`text-5xl font-black mb-6 animate-[scaleIn_0.6s_ease-out] ${iWon ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300' : isDraw ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400' : 'text-white'}`}>
+            <div className={`absolute inset-0 blur-2xl animate-pulse ${iWon ? 'bg-gradient-to-r from-green-500/40 via-yellow-500/40 to-green-500/40' : isDraw ? 'bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-blue-500/30' : 'bg-gradient-to-r from-white/10 via-white/15 to-white/10'}`}></div>
+            <div className="relative backdrop-blur-sm bg-white/10 border border-white/30 rounded-[48px] shadow-2xl p-8 overflow-hidden">
+              {/* Internal stars */}
+              {[...Array(40)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.2,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              
+              <h2 className={`text-5xl font-black mb-6 animate-[scaleIn_0.6s_ease-out] relative z-10 ${iWon ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300' : isDraw ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400' : 'text-white'}`}>
                 {iWon ? '🏆 Victory! 🏆' : isDraw ? '🤝 Draw! 🤝' : 'Game Over! 👏'}
               </h2>
           
-          <div className="bg-gray-900 border-2 border-gray-800 rounded-[32px] p-6 mb-6 shadow-lg">
+          <div className="backdrop-blur-sm bg-white/10 border border-white/30 rounded-[32px] p-6 mb-6 shadow-lg relative z-10">
             <div className="flex justify-around">
               <div className="text-center">
                 {farcasterUser?.pfpUrl ? (
-                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-3xl"></span>
+                  <div className="w-20 h-20 rounded-full border-4 border-white/40 bg-white/10 flex items-center justify-center mx-auto mb-2 shadow-2xl">
+                    <span className="text-3xl">👤</span>
                   </div>
                 )}
                 <p className="text-white font-bold text-lg drop-shadow-lg">{farcasterUser?.username}</p>
@@ -2464,10 +2483,10 @@ export default function Home() {
               
               <div className="text-center">
                 {opponent?.pfpUrl ? (
-                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-gray-700 ring-4 ring-gray-700 mx-auto mb-2 shadow-2xl" />
+                  <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/40 mx-auto mb-2 shadow-2xl" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full border-4 border-gray-700 bg-gray-900 flex items-center justify-center mx-auto mb-2 ring-4 ring-gray-700 shadow-2xl">
-                    <span className="text-3xl"></span>
+                  <div className="w-20 h-20 rounded-full border-4 border-white/40 bg-white/10 flex items-center justify-center mx-auto mb-2 shadow-2xl">
+                    <span className="text-3xl">👤</span>
                   </div>
                 )}
                 <p className="text-white font-bold text-lg drop-shadow-lg">{opponent?.username}</p>
@@ -2476,27 +2495,27 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="mb-8">
+          <div className="mb-8 relative z-10">
             {isDraw ? (
               <>
                 <p className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">It&apos;s a Draw! 🤝</p>
-                <p className="text-gray-300 drop-shadow-lg">Great match!</p>
+                <p className="text-white/80 drop-shadow-lg">Great match!</p>
               </>
             ) : iWon ? (
               <>
                 <p className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">You Won! 🎉</p>
-                <p className="text-gray-300 drop-shadow-lg">Congratulations!</p>
+                <p className="text-white/80 drop-shadow-lg">Congratulations!</p>
               </>
             ) : (
               <>
                 <p className="text-white text-2xl font-bold mb-2 animate-[fadeIn_0.8s_ease-in]">{opponent?.username} Won! 👑</p>
-                <p className="text-gray-300 drop-shadow-lg">Better luck next time!</p>
+                <p className="text-white/80 drop-shadow-lg">Better luck next time!</p>
               </>
             )}
           </div>
           
-          <p className="text-xl text-white mb-6">
-            Returning home in <span className="text-4xl font-black animate-pulse" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span>...
+          <p className="text-xl text-white mb-6 relative z-10">
+            Returning home in <span className="text-4xl font-black animate-pulse text-blue-400">{autoReturnCountdown}</span>...
           </p>
 
           <button
@@ -2511,7 +2530,7 @@ export default function Home() {
               // Immediately start finding a new match
               findMatch();
             }}
-            className="relative group px-12 py-5 rounded-[32px] text-xl font-black shadow-2xl transition-all border-2 bg-gradient-to-br from-purple-600 via-pink-600 to-purple-600 text-white hover:scale-[1.05] active:scale-95 border-purple-400 hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] overflow-hidden"
+            className="relative group px-12 py-5 rounded-[32px] text-xl font-black shadow-2xl transition-all border-2 backdrop-blur-sm bg-blue-500/30 border-white/40 text-white hover:scale-[1.05] hover:bg-blue-500/40 active:scale-95 overflow-hidden z-10"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
             <span className="relative z-10">Find New Match 🎮</span>
@@ -3279,24 +3298,39 @@ export default function Home() {
       {/* Opponent Disconnected Overlay */}
       {opponentLeft && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 rounded-[48px] shadow-2xl p-12 max-w-md text-center"
-            style={{ borderColor: '#6a3cff', boxShadow: '0 0 60px rgba(106, 60, 255, 0.4)' }}>
-            <div className="text-6xl mb-6">😔</div>
-            <h2 className="text-4xl font-black text-white mb-4">
+          <div className="relative backdrop-blur-sm bg-white/10 border border-white/30 rounded-[48px] shadow-2xl p-12 max-w-md text-center overflow-hidden">
+            {/* Internal stars */}
+            {[...Array(35)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-white animate-pulse"
+                style={{
+                  width: `${Math.random() * 0.5 + 1}px`,
+                  height: `${Math.random() * 0.5 + 1}px`,
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  opacity: Math.random() * 0.4 + 0.2,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${1 + Math.random() * 2}s`
+                }}
+              />
+            ))}
+            
+            <div className="text-6xl mb-6 relative z-10">😔</div>
+            <h2 className="text-4xl font-black text-white mb-4 relative z-10">
               Player Left
             </h2>
-            <p className="text-2xl font-bold text-white mb-8">
+            <p className="text-2xl font-bold text-white mb-8 relative z-10">
               {disconnectMessage}
             </p>
-            <p className="text-xl text-white mb-6">
-              Returning home in <span className="text-4xl font-black animate-pulse" style={{ color: '#6a3cff' }}>{autoReturnCountdown}</span>...
+            <p className="text-xl text-white mb-6 relative z-10">
+              Returning home in <span className="text-4xl font-black animate-pulse text-blue-400">{autoReturnCountdown}</span>...
             </p>
-            <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+            <div className="w-full backdrop-blur-sm bg-white/10 rounded-full h-3 overflow-hidden border border-white/30 relative z-10">
               <div 
-                className="h-full transition-all duration-1000 ease-linear"
+                className="h-full transition-all duration-1000 ease-linear bg-gradient-to-r from-blue-500 to-blue-600"
                 style={{ 
-                  width: `${(autoReturnCountdown / 6) * 100}%`, 
-                  background: 'linear-gradient(90deg, #6a3cff, #7a4cff)'
+                  width: `${(autoReturnCountdown / 6) * 100}%`
                 }}
               />
             </div>
