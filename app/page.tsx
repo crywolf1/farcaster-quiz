@@ -1414,72 +1414,28 @@ export default function Home() {
           <div className="absolute inset-0 opacity-35" style={{ background: 'radial-gradient(ellipse 700px 500px at 45% 80%, rgba(30,90,143,0.4) 0%, transparent 55%)' }}></div>
           <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse 600px 400px at 70% 40%, rgba(15,40,70,0.45) 0%, transparent 50%)' }}></div>
         </div>
-        {/* 1820 Stars - tiny white, medium white, yellow */}
-        <div className="absolute inset-0">
-          {[...Array(1500)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full bg-white"
-              style={{
-                width: Math.random() > 0.8 ? '2px' : '1px',
-                height: Math.random() > 0.8 ? '2px' : '1px',
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                opacity: 0.15 + Math.random() * 0.85,
-                animation: Math.random() > 0.5 ? `pulse ${2 + Math.random() * 3}s ease-in-out infinite` : 'none',
-                animationDelay: `${Math.random() * 3}s`
-              }}
-            />
-          ))}
-          {/* Medium Stars - 200 total */}
-          {[...Array(200)].map((_, i) => (
-            <div
-              key={`medium-${i}`}
-              className="absolute rounded-full bg-white animate-pulse"
-              style={{
-                width: Math.random() > 0.5 ? '2px' : '1.5px',
-                height: Math.random() > 0.5 ? '2px' : '1.5px',
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1.5 + Math.random() * 2}s`,
-                opacity: 0.3 + Math.random() * 0.7
-              }}
-            />
-          ))}
-          {/* Yellow/Golden Stars - 120 total */}
-          {[...Array(120)].map((_, i) => (
-            <div
-              key={`yellow-${i}`}
-              className="absolute rounded-full bg-yellow-300 animate-pulse"
-              style={{
-                width: Math.random() > 0.5 ? '2.5px' : '2px',
-                height: Math.random() > 0.5 ? '2.5px' : '2px',
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random() * 2}s`,
-                opacity: 0.4 + Math.random() * 0.6
-              }}
-            />
-          ))}
-          {/* Yellow/Golden Stars */}
-          {[...Array(80)].map((_, i) => (
-            <div
-              key={`yellow-${i}`}
-              className="absolute rounded-full bg-yellow-300 animate-pulse"
-              style={{
-                width: Math.random() > 0.5 ? '2.5px' : '2px',
-                height: Math.random() > 0.5 ? '2.5px' : '2px',
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${1 + Math.random() * 2}s`,
-                opacity: 0.4 + Math.random() * 0.6
-              }}
-            />
-          ))}
-        </div>
+        {/* Lightweight CSS-only starfield background */}
+        <div 
+          className="absolute inset-0" 
+          style={{
+            background: `
+              radial-gradient(1px 1px at 20% 30%, white, transparent),
+              radial-gradient(1px 1px at 60% 70%, white, transparent),
+              radial-gradient(2px 2px at 50% 50%, white, transparent),
+              radial-gradient(1px 1px at 80% 10%, white, transparent),
+              radial-gradient(1px 1px at 90% 60%, white, transparent),
+              radial-gradient(2px 2px at 33% 80%, white, transparent),
+              radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.8), transparent),
+              radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,0.6), transparent),
+              radial-gradient(1px 1px at 40% 90%, rgba(255,255,255,0.7), transparent),
+              radial-gradient(2px 2px at 85% 40%, rgba(255,255,255,0.5), transparent),
+              radial-gradient(1px 1px at 25% 15%, rgba(255,255,255,0.9), transparent),
+              radial-gradient(1px 1px at 95% 85%, rgba(255,255,255,0.6), transparent)
+            `,
+            backgroundSize: '200px 200px, 300px 300px, 250px 250px, 350px 350px, 280px 280px, 320px 320px, 180px 180px, 400px 400px, 220px 220px, 380px 380px, 270px 270px, 310px 310px',
+            backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px, 160px 200px, 240px 50px, 20px 150px, 180px 80px, 90px 300px, 300px 150px, 50px 250px, 210px 180px'
+          }}
+        />
       </div>
 
       <div className="relative max-w-md w-full mx-auto p-4">
