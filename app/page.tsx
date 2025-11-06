@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import type { Question } from '@/lib/types';
-import { formatScore, getRankEmoji } from '@/lib/scoreUtils';
+import { formatScore, getRankEmoji, calculateWinScore } from '@/lib/scoreUtils';
 import type { LeaderboardEntry } from '@/lib/mongodb';
 
 type GameState = 'loading' | 'idle' | 'searching' | 'matched' | 'subject-selection' | 'waiting-subject' | 'playing' | 'round-result' | 'game-over';
@@ -618,12 +618,16 @@ export default function Home() {
           const opponentScore = opponent ? (gameRoom.scores[opponent.id] || 0) : 0;
           const isWinner = myScore > opponentScore;
           const isDraw = myScore === opponentScore;
+          
+          // Convert correct answers to points (1000 per correct answer)
+          const pointsToAward = calculateWinScore(myScore);
 
           console.log('[GameOver] ========================================');
           console.log('[GameOver] Saving score to MongoDB:');
           console.log('[GameOver] - FID:', farcasterUser.fid);
           console.log('[GameOver] - Username:', farcasterUser.username);
-          console.log('[GameOver] - My Score:', myScore);
+          console.log('[GameOver] - Correct Answers:', myScore);
+          console.log('[GameOver] - Points to Award:', pointsToAward);
           console.log('[GameOver] - Opponent Score:', opponentScore);
           console.log('[GameOver] - Is Winner:', isWinner && !isDraw);
           console.log('[GameOver] ========================================');
@@ -632,7 +636,7 @@ export default function Home() {
             fid: farcasterUser.fid.toString(),
             username: farcasterUser.username,
             pfpUrl: farcasterUser.pfpUrl || '',
-            score: myScore,
+            score: pointsToAward, // Send points, not raw score
             isWin: isWinner && !isDraw
           };
           

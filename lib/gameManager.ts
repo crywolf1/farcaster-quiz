@@ -2,6 +2,7 @@
 import { Player, GameRoom, Question } from './types';
 import * as storage from './storage';
 import { getApprovedQuestions, updatePlayerScore } from './mongodb';
+import { calculateWinScore } from './scoreUtils';
 
 // Timers can't be stored in Redis - keep in memory
 const playerTimerIds = new Map<string, NodeJS.Timeout>();
@@ -747,20 +748,22 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
         // This ensures scores are saved even if a player disconnects
         try {
           for (const player of room.players) {
-            const playerScore = room.scores.get(player.id) || 0;
+            const correctAnswers = room.scores.get(player.id) || 0;
+            const pointsToAward = calculateWinScore(correctAnswers); // Convert correct answers to points (1000 per answer)
             const isWinner = player.id === winnerId;
             
             // Only save if player has FID (authenticated via Farcaster)
             if (player.fid) {
               console.log(`[GameManager] 💾 Saving score for ${player.username} (FID: ${player.fid})`);
-              console.log(`[GameManager]    - Score: ${playerScore}`);
+              console.log(`[GameManager]    - Correct Answers: ${correctAnswers}`);
+              console.log(`[GameManager]    - Points to Award: ${pointsToAward}`);
               console.log(`[GameManager]    - Is Winner: ${isWinner}`);
               
               await updatePlayerScore(
                 player.fid.toString(),
                 player.username,
                 player.pfpUrl || '',
-                playerScore,
+                pointsToAward, // Award points, not raw score
                 isWinner
               );
               
