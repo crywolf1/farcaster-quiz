@@ -741,8 +741,8 @@ export default function Home() {
         hasPlayerRank: !!data.playerRank
       });
       
-      if (data.success) {
-        setLeaderboardData(data.leaderboard || []);
+      if (data.success && data.leaderboard && data.leaderboard.length > 0) {
+        setLeaderboardData(data.leaderboard);
         if (data.playerRank) {
           setPlayerStats({
             points: data.playerRank.player?.points || 0,
@@ -751,19 +751,14 @@ export default function Home() {
             losses: data.playerRank.player?.losses || 0,
           });
         }
-        console.log('[FetchLeaderboard] ✅ Successfully updated leaderboard');
+        console.log('[FetchLeaderboard] ✅ Successfully updated leaderboard with', data.leaderboard.length, 'players');
       } else {
-        console.error('[FetchLeaderboard] ❌ API returned success: false');
-        setLeaderboardData([]);
+        console.warn('[FetchLeaderboard] ⚠️ API returned empty or invalid data');
+        // Don't clear existing data - keep what we have
       }
     } catch (error) {
       console.error('[FetchLeaderboard] ❌ Error:', error);
-      // Don't clear leaderboard on error - keep showing stale data if available
-      if (leaderboardData.length === 0) {
-        // Only retry if we have no data at all
-        console.log('[FetchLeaderboard] 🔄 Retrying in 2 seconds...');
-        setTimeout(() => fetchLeaderboard(), 2000);
-      }
+      // Don't clear or modify leaderboard on error - keep showing what we have
     }
   };
 
