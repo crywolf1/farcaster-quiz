@@ -1520,37 +1520,87 @@ export default function Home() {
         <div className="px-4 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h5 className="text-white font-bold text-lg">Quiz</h5>
-            <button className="text-cyan-400 text-sm font-semibold">View all</button>
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {/* Quiz Cards */}
+          <div className="grid grid-cols-3 gap-3">
+            {/* Play Button - transparent with internal stars */}
             <button 
               onClick={findMatch}
-              className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
             >
-              <div className="text-3xl mb-2">📡</div>
-              <div className="text-white text-xs font-semibold text-center">Play</div>
+              {/* Internal stars */}
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.3,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <svg className="w-8 h-8 mb-2 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <div className="text-white text-xs font-semibold text-center relative z-10">Play</div>
             </button>
             
+            {/* Rank Button - transparent with internal stars */}
             <button 
               onClick={() => setShowLeaderboard(true)}
-              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
             >
-              <div className="text-3xl mb-2">👥</div>
-              <div className="text-white text-xs font-semibold text-center">Rank</div>
+              {/* Internal stars */}
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.3,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <svg className="w-8 h-8 mb-2 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              <div className="text-white text-xs font-semibold text-center relative z-10">Rank</div>
             </button>
             
+            {/* Add Q Button - transparent with internal stars */}
             <button 
               onClick={() => setShowAddQuestion(true)}
-              className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95"
+              className="backdrop-blur-sm bg-blue-900/30 border border-white/20 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95 relative overflow-hidden"
             >
-              <div className="text-3xl mb-2">👍</div>
-              <div className="text-white text-xs font-semibold text-center">Add Q</div>
-            </button>
-            
-            <button className="bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl p-4 flex flex-col items-center justify-center aspect-square hover:scale-105 transition-transform active:scale-95">
-              <div className="text-3xl mb-2">🏆</div>
-              <div className="text-white text-xs font-semibold text-center">Stats</div>
+              {/* Internal stars */}
+              {[...Array(15)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.3,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <svg className="w-8 h-8 mb-2 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <div className="text-white text-xs font-semibold text-center relative z-10">Add Q</div>
             </button>
           </div>
         </div>
@@ -1568,30 +1618,49 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-4 gap-3">
             {leaderboardData && leaderboardData.length > 0 ? (
-              leaderboardData.slice(0, 4).map((user, index) => (
-                <div 
-                  key={user.fid}
-                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center hover:scale-105 transition-transform"
-                >
-                  <img 
-                    src={user.pfpUrl} 
-                    alt={user.username}
-                    className="w-12 h-12 rounded-full border-2 border-white/30 mb-2"
-                  />
-                  <div className="text-white text-xs font-semibold text-center truncate w-full px-1">
-                    {user.username}
+              leaderboardData.slice(0, 4).map((user, index) => {
+                const formatPoints = (points) => {
+                  if (points >= 1000000) {
+                    return `${(points / 1000000).toFixed(points % 1000000 === 0 ? 0 : 1)}m`;
+                  }
+                  if (points >= 1000) {
+                    return `${(points / 1000).toFixed(points % 1000 === 0 ? 0 : 1)}k`;
+                  }
+                  return points.toString();
+                };
+                
+                return (
+                  <div 
+                    key={user.fid}
+                    className="flex flex-col items-center"
+                  >
+                    <img 
+                      src={user.pfpUrl} 
+                      alt={user.username}
+                      className="w-12 h-12 rounded-full border-2 border-white/40 mb-[-24px] relative z-10"
+                    />
+                    <div className="backdrop-blur-sm bg-white/5 border border-white/30 rounded-xl pt-8 pb-3 px-3 w-full flex flex-col items-center">
+                      <div className="text-white text-xs font-semibold text-center truncate w-full mb-1">
+                        {user.username}
+                      </div>
+                      <div className="text-white text-[11px] font-semibold px-2 py-0.5 rounded-md backdrop-blur-sm bg-white/10 border border-white/20 shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+                        {formatPoints(user.points)}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               // Placeholder cards while loading
               [...Array(4)].map((_, i) => (
                 <div 
                   key={i}
-                  className="bg-gradient-to-b from-blue-600/80 to-blue-700/80 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center"
+                  className="flex flex-col items-center"
                 >
-                  <div className="w-12 h-12 rounded-full border-2 border-white/30 mb-2 bg-white/10"></div>
-                  <div className="text-white text-xs font-semibold text-center">Loading...</div>
+                  <div className="w-12 h-12 rounded-full border-2 border-white/40 mb-[-24px] relative z-10 bg-white/10"></div>
+                  <div className="backdrop-blur-sm bg-white/5 border border-white/30 rounded-xl pt-8 pb-3 px-3 w-full flex flex-col items-center">
+                    <div className="text-white text-xs font-semibold text-center">Loading...</div>
+                  </div>
                 </div>
               ))
             )}
