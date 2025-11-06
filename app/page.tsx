@@ -671,7 +671,14 @@ export default function Home() {
     if (!farcasterUser) return;
     
     try {
-      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=1`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=1`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
       
       if (data.success && data.playerRank) {
@@ -691,7 +698,14 @@ export default function Home() {
     if (!farcasterUser) return;
     
     try {
-      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=100`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch(`/api/leaderboard?fid=${farcasterUser.fid}&limit=100`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
       
       if (data.success) {
@@ -707,6 +721,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('[FetchLeaderboard] Error:', error);
+      // Set empty leaderboard on error to stop loading state
+      setLeaderboardData([]);
     }
   };
 

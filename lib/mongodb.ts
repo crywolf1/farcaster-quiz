@@ -41,7 +41,15 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
     throw new Error('MONGODB_URI environment variable is not set');
   }
 
-  const client = await MongoClient.connect(uri);
+  // Connection options optimized for M0 free tier (max 500 connections)
+  const client = await MongoClient.connect(uri, {
+    maxPoolSize: 10, // Limit connections per instance
+    minPoolSize: 2,
+    maxIdleTimeMS: 30000, // Close idle connections after 30s
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
+  
   const db = client.db('farcaster-quiz');
 
   cachedClient = client;
@@ -51,13 +59,23 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
 }
 
 export async function getLeaderboardCollection(): Promise<Collection<LeaderboardEntry>> {
-  const { db } = await connectToDatabase();
-  return db.collection<LeaderboardEntry>('leaderboard');
+  try {
+    const { db } = await connectToDatabase();
+    return db.collection<LeaderboardEntry>('leaderboard');
+  } catch (error) {
+    console.error('[MongoDB] Failed to get leaderboard collection:', error);
+    throw error;
+  }
 }
 
 export async function getPendingQuestionsCollection(): Promise<Collection<PendingQuestion>> {
-  const { db } = await connectToDatabase();
-  return db.collection<PendingQuestion>('pendingQuestions');
+  try {
+    const { db } = await connectToDatabase();
+    return db.collection<PendingQuestion>('pendingQuestions');
+  } catch (error) {
+    console.error('[MongoDB] Failed to get pending questions collection:', error);
+    throw error;
+  }
 }
 
 // Get all approved questions from database
