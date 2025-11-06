@@ -1674,22 +1674,38 @@ export default function Home() {
   const renderSearching = () => (
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="relative max-w-md w-full">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-2xl animate-pulse"></div>
-        <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 border-2 border-purple-500/40 rounded-[48px] p-12 shadow-[0_0_40px_rgba(168,85,247,0.3)] backdrop-blur-xl">
+        <div className="relative backdrop-blur-sm bg-white/5 border border-white/20 rounded-[48px] p-12 shadow-xl overflow-hidden">
+          {/* Internal stars */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white animate-pulse"
+              style={{
+                width: `${Math.random() * 0.5 + 1}px`,
+                height: `${Math.random() * 0.5 + 1}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.4 + 0.2,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+          
           {/* Animated spinner */}
-          <div className="relative w-24 h-24 mx-auto mb-8">
-            <div className="absolute inset-0 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 border-4 border-transparent border-t-pink-500 rounded-full animate-spin" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
+          <div className="relative w-24 h-24 mx-auto mb-8 z-10">
+            <div className="absolute inset-0 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-white/60 rounded-full animate-spin" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
           </div>
           
-          <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 mb-3 text-center animate-pulse">Finding opponent...</h2>
-          <p className="text-gray-400 text-center mb-8">Please wait ⏳</p>
+          <h2 className="text-3xl font-black text-white mb-3 text-center animate-pulse relative z-10">Finding opponent...</h2>
+          <p className="text-white/70 text-center mb-8 relative z-10">Please wait ⏳</p>
           
           <button
             onClick={leaveGame}
-            className="relative group w-full px-8 py-3 rounded-[28px] text-sm font-bold shadow-xl transition-all bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white hover:text-white border-2 border-gray-700 hover:border-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.3)] overflow-hidden"
+            className="relative group w-full px-8 py-3 rounded-[28px] text-sm font-bold shadow-xl transition-all backdrop-blur-sm bg-red-500/20 text-white hover:text-white border-2 border-white/30 hover:border-red-500/50 hover:bg-red-500/30 overflow-hidden z-10"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 group-hover:animate-[shimmer_2s_ease-in-out_infinite]"></div>
             <span className="relative z-10">Cancel Search</span>
           </button>
         </div>
@@ -1699,45 +1715,78 @@ export default function Home() {
 
   const renderMatched = () => (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-10 max-w-md w-full">
-        <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-8 text-center">
-          Match Found! </h2>
+      <div className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-[40px] shadow-xl p-10 max-w-md w-full relative overflow-hidden">
+        {/* Internal stars */}
+        {[...Array(25)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white animate-pulse"
+            style={{
+              width: `${Math.random() * 0.5 + 1}px`,
+              height: `${Math.random() * 0.5 + 1}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.4 + 0.2,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${1 + Math.random() * 2}s`
+            }}
+          />
+        ))}
         
-        <div className="flex justify-around items-center mb-8">
+        <h2 className="text-4xl font-bold text-white drop-shadow-2xl mb-8 text-center relative z-10">
+          Match Found! 🎉</h2>
+        
+        <div className="flex justify-around items-center mb-8 relative z-10">
           <div className="text-center">
             {farcasterUser?.pfpUrl ? (
-              <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 mb-2" />
+              <img src={farcasterUser.pfpUrl} alt="You" className="w-20 h-20 rounded-full border-4 border-white/40 shadow-2xl mb-2" />
             ) : (
-              <div className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl bg-gray-800 flex items-center justify-center mb-2 ring-4 ring-gray-700">
-                <span className="text-3xl"></span>
+              <div className="w-20 h-20 rounded-full border-4 border-white/40 shadow-2xl bg-white/10 flex items-center justify-center mb-2">
+                <span className="text-3xl">👤</span>
               </div>
             )}
             <p className="text-white font-semibold drop-shadow-lg">{farcasterUser?.username}</p>
           </div>
           
-          <div className="text-5xl drop-shadow-2xl">VS</div>
+          <div className="text-5xl drop-shadow-2xl text-white">VS</div>
           
           <div className="text-center">
             {opponent?.pfpUrl ? (
-              <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl ring-4 ring-gray-700 mb-2" />
+              <img src={opponent.pfpUrl} alt="Opponent" className="w-20 h-20 rounded-full border-4 border-white/40 shadow-2xl mb-2" />
             ) : (
-              <div className="w-20 h-20 rounded-full border-4 border-gray-700 shadow-2xl bg-gray-800 flex items-center justify-center mb-2 ring-4 ring-gray-700">
-                <span className="text-3xl"></span>
+              <div className="w-20 h-20 rounded-full border-4 border-white/40 shadow-2xl bg-white/10 flex items-center justify-center mb-2">
+                <span className="text-3xl">👤</span>
               </div>
             )}
             <p className="text-white font-semibold drop-shadow-lg">{opponent?.username}</p>
           </div>
         </div>
         
-        <p className="text-gray-300 text-lg text-center drop-shadow-lg">Starting game...</p>
+        <p className="text-white/80 text-lg text-center drop-shadow-lg relative z-10">Starting game...</p>
       </div>
     </div>
   );
 
   // Unified Header Component
   const renderGameHeader = (showSubject = false) => (
-    <div className="backdrop-blur-2xl bg-gray-900/90 border-2 border-gray-700/50 rounded-[24px] p-4 mb-4 shadow-2xl max-w-5xl w-full mx-auto">
-      <div className="flex items-center justify-between gap-4">
+    <div className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-[24px] p-4 mb-4 shadow-xl max-w-5xl w-full mx-auto relative overflow-hidden">
+      {/* Internal stars */}
+      {[...Array(15)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full bg-white animate-pulse pointer-events-none"
+          style={{
+            width: `${Math.random() * 0.5 + 1}px`,
+            height: `${Math.random() * 0.5 + 1}px`,
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            opacity: Math.random() * 0.3 + 0.2,
+            animationDelay: `${Math.random() * 2}s`,
+            animationDuration: `${1 + Math.random() * 2}s`
+          }}
+        />
+      ))}
+      <div className="flex items-center justify-between gap-4 relative z-10">
         {/* Left: Your Profile */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {farcasterUser?.pfpUrl ? (
@@ -1780,10 +1829,10 @@ export default function Home() {
       </div>
       
       {/* Leave Game Button - Below */}
-      <div className="mt-3 text-right">
+      <div className="mt-3 text-right relative z-10">
         <button
           onClick={() => setShowLeaveConfirm(true)}
-          className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg hover:from-red-600 hover:to-pink-600 transition-all"
+          className="backdrop-blur-sm bg-red-500/20 border border-white/30 hover:bg-red-500/30 text-white px-4 py-1.5 rounded-[12px] text-xs font-bold shadow-lg transition-all"
         >
           Leave Game
         </button>
@@ -1840,21 +1889,33 @@ export default function Home() {
                       animationDelay: `${index * 0.1}s`,
                       transform: isSelected ? 'translateZ(50px) scale(1.05)' : 'translateZ(0)',
                     }}
-                    className={`group relative w-full py-6 rounded-[32px] font-black text-xl shadow-2xl border-2 transition-all duration-500 overflow-hidden animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
+                    className={`group relative w-full py-6 rounded-[32px] font-black text-xl shadow-xl border-2 transition-all duration-500 overflow-hidden animate-[slideIn_0.5s_ease-out_forwards] opacity-0 ${
                       isSelected
-                        ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-purple-600 text-white border-purple-400 scale-105 shadow-[0_0_40px_rgba(168,85,247,0.6)]'
+                        ? 'backdrop-blur-sm bg-white/20 text-white border-white/50 scale-105 shadow-xl'
                         : selectedSubject
-                        ? 'bg-gray-900/50 text-gray-600 border-gray-800 cursor-not-allowed backdrop-blur-sm'
-                        : 'bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 text-white border-gray-700 hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-95 cursor-pointer'
+                        ? 'backdrop-blur-sm bg-white/5 text-gray-400 border-white/10 cursor-not-allowed'
+                        : 'backdrop-blur-sm bg-white/10 text-white border-white/20 hover:border-white/40 hover:bg-white/15 hover:scale-[1.03] active:scale-95 cursor-pointer'
                     }`}
                   >
+                    {/* Internal stars */}
+                    {!selectedSubject && [...Array(10)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute rounded-full bg-white animate-pulse"
+                        style={{
+                          width: `${Math.random() * 0.5 + 1}px`,
+                          height: `${Math.random() * 0.5 + 1}px`,
+                          top: `${Math.random() * 100}%`,
+                          left: `${Math.random() * 100}%`,
+                          opacity: Math.random() * 0.3 + 0.2,
+                          animationDelay: `${Math.random() * 2}s`,
+                          animationDuration: `${1 + Math.random() * 2}s`
+                        }}
+                      />
+                    ))}
+                    
                     {/* 3D shine effect */}
                     <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 ${isSelected ? 'animate-[shimmer_2s_ease-in-out_infinite]' : 'group-hover:animate-[shimmer_2s_ease-in-out_infinite]'}`}></div>
-                    
-                    {/* Glow effect */}
-                    {!selectedSubject && !isSelected && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    )}
                     
                     {/* Content */}
                     <span className="relative z-10 flex items-center justify-center gap-2">
@@ -1863,19 +1924,14 @@ export default function Home() {
                         <span className="animate-bounce text-2xl">✨</span>
                       )}
                     </span>
-                    
-                    {/* Bottom glow */}
-                    {isSelected && (
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
-                    )}
                   </button>
                 );
               })}
             </div>
           ) : (
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
-              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-pink-500 rounded-full animate-spin mx-auto" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
+              <div className="w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-white/60 rounded-full animate-spin mx-auto" style={{ animationDuration: '1s', animationDirection: 'reverse' }}></div>
             </div>
           )}
         </div>
@@ -1889,22 +1945,39 @@ export default function Home() {
 
       {/* Waiting message with timer */}
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-center bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-10">
+        <div className="text-center backdrop-blur-sm bg-white/5 border border-white/20 rounded-[40px] shadow-xl p-10 relative overflow-hidden">
+          {/* Internal stars */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white animate-pulse"
+              style={{
+                width: `${Math.random() * 0.5 + 1}px`,
+                height: `${Math.random() * 0.5 + 1}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.4 + 0.2,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${1 + Math.random() * 2}s`
+              }}
+            />
+          ))}
+          
           {/* Timer */}
           {timerActiveSubject && (
-            <div className="mb-6">
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-2xl ${
-                timeRemainingSubject <= 5 ? 'border-gray-700 bg-gray-800 animate-pulse' : 'border-gray-700 bg-gray-800'
-              } shadow-2xl drop-shadow-2xl`}>
-                <span className={`text-3xl font-bold ${'text-white'} drop-shadow-lg`}>
+            <div className="mb-6 relative z-10">
+              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full border-4 backdrop-blur-sm ${
+                timeRemainingSubject <= 5 ? 'border-white/40 bg-white/10 animate-pulse' : 'border-white/40 bg-white/10'
+              } shadow-xl`}>
+                <span className={`text-3xl font-bold text-white drop-shadow-lg`}>
                   {Math.ceil(timeRemainingSubject)}
                 </span>
               </div>
             </div>
           )}
-          <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-4 drop-shadow-2xl"></div>
-          <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">{opponent?.username} is choosing...</h2>
-          <p className="text-gray-300 drop-shadow">Get ready!</p>
+          <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto mb-4 drop-shadow-2xl relative z-10"></div>
+          <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg relative z-10">{opponent?.username} is choosing...</h2>
+          <p className="text-white/80 drop-shadow relative z-10">Get ready!</p>
         </div>
       </div>
     </div>
@@ -1929,33 +2002,40 @@ export default function Home() {
             </div>
             
             {/* Main card */}
-            <div className="relative bg-gradient-to-br from-gray-900 via-purple-900/30 to-gray-900 border-4 border-purple-500/50 rounded-[48px] shadow-[0_0_60px_rgba(168,85,247,0.5)] p-10 animate-[float_3s_ease-in-out_infinite] backdrop-blur-xl">
+            <div className="relative backdrop-blur-sm bg-white/10 border-2 border-white/30 rounded-[48px] shadow-xl p-10 animate-[float_3s_ease-in-out_infinite] overflow-hidden">
+              {/* Internal stars */}
+              {[...Array(30)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.2,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              
               {/* Top shine effect */}
               <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-pulse"></div>
               
-              {/* Sparkle effects */}
-              <div className="absolute top-4 right-4 w-2 h-2 bg-white rounded-full animate-ping"></div>
-              <div className="absolute bottom-4 left-4 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-              <div className="absolute top-1/2 right-8 w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse"></div>
-              
-              {/* Subject text with 3D effect */}
-              <div className="relative">
-                <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-purple-200 to-purple-400 drop-shadow-2xl mb-4 animate-[scaleIn_0.5s_ease-out] leading-tight">
-                  {gameRoom?.currentSubject}
-                </div>
-                
-                {/* Text shadow for 3D depth */}
-                <div className="absolute inset-0 text-6xl font-black text-purple-500/20 blur-sm -z-10" style={{ transform: 'translate(4px, 4px)' }}>
+              {/* Subject text */}
+              <div className="relative z-10">
+                <div className="text-6xl font-black text-white drop-shadow-2xl mb-4 animate-[scaleIn_0.5s_ease-out] leading-tight">
                   {gameRoom?.currentSubject}
                 </div>
               </div>
               
-              <div className="text-purple-300 text-xl font-bold drop-shadow-lg animate-[fadeIn_1s_ease-in]">
+              <div className="text-white text-xl font-bold drop-shadow-lg animate-[fadeIn_1s_ease-in] relative z-10">
                 Get Ready! 🚀
               </div>
               
               {/* Bottom glow line */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-[shimmer_2s_ease-in-out_infinite]"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent animate-[shimmer_2s_ease-in-out_infinite]"></div>
             </div>
             
             {/* Orbiting particles */}
@@ -1975,16 +2055,32 @@ export default function Home() {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8">
-              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">You Finished! </h2>
-              <p className="text-gray-300 text-lg mb-6 drop-shadow-lg">
+            <div className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-[40px] shadow-xl p-8 relative overflow-hidden">
+              {/* Internal stars */}
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.2,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl relative z-10">You Finished! 🎯</h2>
+              <p className="text-white/80 text-lg mb-6 drop-shadow-lg relative z-10">
                 Waiting for {opponent?.username} to finish...
               </p>
-              <div className="mb-6">
+              <div className="mb-6 relative z-10">
                 <p className="text-white text-5xl font-bold mb-2 drop-shadow-2xl">{myScore}</p>
-                <p className="text-gray-400 drop-shadow">Your Points</p>
+                <p className="text-white/70 drop-shadow">Your Points</p>
               </div>
-              <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+              <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl relative z-10"></div>
             </div>
           </div>
         </div>
@@ -2002,12 +2098,28 @@ export default function Home() {
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="bg-gray-900 border-2 border-gray-800 rounded-[40px] shadow-2xl p-8">
-              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl">Loading Question...</h2>
-              <p className="text-gray-300 text-lg mb-6 drop-shadow-lg">
+            <div className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-[40px] shadow-xl p-8 relative overflow-hidden">
+              {/* Internal stars */}
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.4 + 0.2,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-2xl relative z-10">Loading Question...</h2>
+              <p className="text-white/80 text-lg mb-6 drop-shadow-lg relative z-10">
                 Preparing your questions
               </p>
-              <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl"></div>
+              <div className="w-16 h-16 border-4 border-white/60 border-t-transparent rounded-full animate-spin mx-auto drop-shadow-2xl relative z-10"></div>
             </div>
           </div>
         </div>
@@ -2052,24 +2164,39 @@ export default function Home() {
           
           {/* Question Card - Compact */}
           <div className="relative mb-4 animate-[slideIn_0.5s_ease-out]">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-purple-500/20 blur-xl rounded-[24px]"></div>
-            <div className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-purple-500/30 rounded-[24px] p-4 shadow-2xl backdrop-blur-xl">
-              <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
-              <h3 className="text-white text-lg font-bold text-center leading-snug">
+            <div className="relative backdrop-blur-sm bg-white/10 border border-white/30 rounded-[24px] p-4 shadow-xl overflow-hidden">
+              {/* Internal stars */}
+              {[...Array(10)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute rounded-full bg-white animate-pulse"
+                  style={{
+                    width: `${Math.random() * 0.5 + 1}px`,
+                    height: `${Math.random() * 0.5 + 1}px`,
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    opacity: Math.random() * 0.3 + 0.2,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${1 + Math.random() * 2}s`
+                  }}
+                />
+              ))}
+              <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent"></div>
+              <h3 className="text-white text-lg font-bold text-center leading-snug relative z-10">
                 {currentQuestion.question}
               </h3>
               {currentQuestion.submittedBy?.username && (
-                <p className="text-gray-500 text-[10px] text-center mt-1.5 opacity-70">
+                <p className="text-white/50 text-[10px] text-center mt-1.5 opacity-70 relative z-10">
                   by @{currentQuestion.submittedBy.username}
                 </p>
               )}
               {/* Debug: Show if submittedBy exists */}
               {!currentQuestion.submittedBy?.username && (
-                <p className="text-gray-500 text-[10px] text-center mt-1.5 opacity-70">
+                <p className="text-white/50 text-[10px] text-center mt-1.5 opacity-70 relative z-10">
                   Community Question
                 </p>
               )}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent"></div>
             </div>
           </div>
 
@@ -2103,10 +2230,10 @@ export default function Home() {
                 buttonClass += " bg-gradient-to-br from-blue-500 via-blue-600 to-blue-500 text-white border-2 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.4)]";
               } else if (hasAnswered) {
                 // Not selected, disabled
-                buttonClass += " bg-gray-900/50 border-2 border-gray-800 text-gray-600 pointer-events-none backdrop-blur-sm";
+                buttonClass += " backdrop-blur-sm bg-white/5 border-2 border-white/10 text-gray-400 pointer-events-none";
               } else {
                 // Not answered yet, hoverable
-                buttonClass += " bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 border-2 border-gray-700 text-white hover:border-purple-500 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:scale-[1.05] active:scale-95 cursor-pointer";
+                buttonClass += " backdrop-blur-sm bg-white/10 border-2 border-white/20 text-white hover:border-white/40 hover:bg-white/15 hover:scale-[1.05] active:scale-95 cursor-pointer";
               }
 
               return (
