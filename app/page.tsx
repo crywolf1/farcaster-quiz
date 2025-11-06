@@ -1365,9 +1365,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/30 via-transparent to-transparent"></div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-cyan-900/20 via-transparent to-transparent"></div>
         </div>
-        {/* Small White Dots/Stars - Massive Amount */}
+        {/* Small White Dots/Stars - PACKED FULL */}
         <div className="absolute inset-0">
-          {[...Array(400)].map((_, i) => (
+          {[...Array(800)].map((_, i) => (
             <div
               key={i}
               className="absolute rounded-full bg-white"
@@ -1376,14 +1376,14 @@ export default function Home() {
                 height: Math.random() > 0.8 ? '2px' : '1px',
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
-                opacity: 0.2 + Math.random() * 0.8,
+                opacity: 0.15 + Math.random() * 0.85,
                 animation: Math.random() > 0.5 ? `pulse ${2 + Math.random() * 3}s ease-in-out infinite` : 'none',
                 animationDelay: `${Math.random() * 3}s`
               }}
             />
           ))}
           {/* Medium Stars */}
-          {[...Array(60)].map((_, i) => (
+          {[...Array(120)].map((_, i) => (
             <div
               key={`medium-${i}`}
               className="absolute rounded-full bg-white animate-pulse"
@@ -1394,12 +1394,12 @@ export default function Home() {
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
                 animationDuration: `${1.5 + Math.random() * 2}s`,
-                opacity: 0.4 + Math.random() * 0.6
+                opacity: 0.3 + Math.random() * 0.7
               }}
             />
           ))}
           {/* Yellow/Golden Stars */}
-          {[...Array(40)].map((_, i) => (
+          {[...Array(80)].map((_, i) => (
             <div
               key={`yellow-${i}`}
               className="absolute rounded-full bg-yellow-300 animate-pulse"
@@ -1410,7 +1410,7 @@ export default function Home() {
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
                 animationDuration: `${1 + Math.random() * 2}s`,
-                opacity: 0.5 + Math.random() * 0.5
+                opacity: 0.4 + Math.random() * 0.6
               }}
             />
           ))}
