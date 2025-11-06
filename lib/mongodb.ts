@@ -1,8 +1,11 @@
 // MongoDB connection and models
 import { MongoClient, Db, Collection } from 'mongodb';
 
+// Global cache for MongoDB client
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
+let isConnecting = false;
+let connectionPromise: Promise<{ client: MongoClient; db: Db }> | null = null;
 
 export interface LeaderboardEntry {
   fid: string;
@@ -32,8 +35,22 @@ export interface PendingQuestion {
 }
 
 async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
+  // Return cached connection if available
   if (cachedClient && cachedDb) {
-    return { client: cachedClient, db: cachedDb };
+    try {
+      // Verify connection is still alive
+      await cachedClient.db().admin().ping();
+      return { client: cachedClient, db: cachedDb };
+    } catch (error) {
+      console.warn('[MongoDB] Cached connection failed ping test, reconnecting...');
+      cachedClient = null;
+      cachedDb = null;
+    }
+  }
+
+  // If already connecting, wait for that connection
+  if (isConnecting && connectionPromise) {
+    return connectionPromise;
   }
 
   const uri = process.env.MONGODB_URI;
@@ -41,21 +58,35 @@ async function connectToDatabase(): Promise<{ client: MongoClient; db: Db }> {
     throw new Error('MONGODB_URI environment variable is not set');
   }
 
+  isConnecting = true;
+
   // Connection options optimized for M0 free tier (max 500 connections)
-  const client = await MongoClient.connect(uri, {
-    maxPoolSize: 10, // Limit connections per instance
-    minPoolSize: 2,
-    maxIdleTimeMS: 30000, // Close idle connections after 30s
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-  });
-  
-  const db = client.db('farcaster-quiz');
+  connectionPromise = (async () => {
+    try {
+      const client = await MongoClient.connect(uri, {
+        maxPoolSize: 5, // Reduced from 10 - fewer connections per instance
+        minPoolSize: 1, // Reduced from 2
+        maxIdleTimeMS: 20000, // Reduced from 30s - close idle connections faster
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+      });
+      
+      const db = client.db('farcaster-quiz');
 
-  cachedClient = client;
-  cachedDb = db;
+      cachedClient = client;
+      cachedDb = db;
 
-  return { client, db };
+      console.log('[MongoDB] ✓ Connection established');
+
+      return { client, db };
+    } finally {
+      isConnecting = false;
+      connectionPromise = null;
+    }
+  })();
+
+  return connectionPromise;
 }
 
 export async function getLeaderboardCollection(): Promise<Collection<LeaderboardEntry>> {
@@ -64,7 +95,8 @@ export async function getLeaderboardCollection(): Promise<Collection<Leaderboard
     return db.collection<LeaderboardEntry>('leaderboard');
   } catch (error) {
     console.error('[MongoDB] Failed to get leaderboard collection:', error);
-    throw error;
+    // Don't throw - return a failed response instead
+    throw new Error('Database connection failed');
   }
 }
 
@@ -74,7 +106,21 @@ export async function getPendingQuestionsCollection(): Promise<Collection<Pendin
     return db.collection<PendingQuestion>('pendingQuestions');
   } catch (error) {
     console.error('[MongoDB] Failed to get pending questions collection:', error);
-    throw error;
+    throw new Error('Database connection failed');
+  }
+}
+
+// Gracefully close connection (for cleanup)
+export async function closeConnection(): Promise<void> {
+  if (cachedClient) {
+    try {
+      await cachedClient.close();
+      cachedClient = null;
+      cachedDb = null;
+      console.log('[MongoDB] Connection closed');
+    } catch (error) {
+      console.error('[MongoDB] Error closing connection:', error);
+    }
   }
 }
 
