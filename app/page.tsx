@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { sdk } from '@farcaster/miniapp-sdk';
 import type { Question } from '@/lib/types';
-import { formatScore, getRankEmoji, calculateWinScore } from '@/lib/scoreUtils';
+import { formatScore, getRankEmoji } from '@/lib/scoreUtils';
 import type { LeaderboardEntry } from '@/lib/mongodb';
 
 type GameState = 'loading' | 'idle' | 'searching' | 'matched' | 'subject-selection' | 'waiting-subject' | 'playing' | 'round-result' | 'game-over';
@@ -619,24 +619,25 @@ export default function Home() {
           const isWinner = myScore > opponentScore;
           const isDraw = myScore === opponentScore;
           
-          // Convert correct answers to points (1000 per correct answer)
-          const pointsToAward = calculateWinScore(myScore);
+          // Simple scoring: 500 points for win, 0 for loss/draw
+          const pointsToAward = (isWinner && !isDraw) ? 500 : 0;
 
           console.log('[GameOver] ========================================');
           console.log('[GameOver] Saving score to MongoDB:');
           console.log('[GameOver] - FID:', farcasterUser.fid);
           console.log('[GameOver] - Username:', farcasterUser.username);
-          console.log('[GameOver] - Correct Answers:', myScore);
-          console.log('[GameOver] - Points to Award:', pointsToAward);
-          console.log('[GameOver] - Opponent Score:', opponentScore);
+          console.log('[GameOver] - My Correct Answers:', myScore);
+          console.log('[GameOver] - Opponent Correct Answers:', opponentScore);
           console.log('[GameOver] - Is Winner:', isWinner && !isDraw);
+          console.log('[GameOver] - Is Draw:', isDraw);
+          console.log('[GameOver] - Points to Award:', pointsToAward);
           console.log('[GameOver] ========================================');
           
           const payload = {
             fid: farcasterUser.fid.toString(),
             username: farcasterUser.username,
             pfpUrl: farcasterUser.pfpUrl || '',
-            score: pointsToAward, // Send points, not raw score
+            score: pointsToAward, // 500 for win, 0 for loss/draw
             isWin: isWinner && !isDraw
           };
           

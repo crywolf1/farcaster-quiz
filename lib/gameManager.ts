@@ -2,7 +2,6 @@
 import { Player, GameRoom, Question } from './types';
 import * as storage from './storage';
 import { getApprovedQuestions, updatePlayerScore } from './mongodb';
-import { calculateWinScore } from './scoreUtils';
 
 // Timers can't be stored in Redis - keep in memory
 const playerTimerIds = new Map<string, NodeJS.Timeout>();
@@ -747,23 +746,28 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
         // SERVER-SIDE SCORE SAVING: Save both players' scores to MongoDB
         // This ensures scores are saved even if a player disconnects
         try {
+          // Determine if it's a draw
+          const scores = Array.from(room.scores.entries());
+          const player1Score = scores[0]?.[1] || 0;
+          const player2Score = scores[1]?.[1] || 0;
+          const isDraw = player1Score === player2Score;
+          
           for (const player of room.players) {
-            const correctAnswers = room.scores.get(player.id) || 0;
-            const pointsToAward = calculateWinScore(correctAnswers); // Convert correct answers to points (1000 per answer)
-            const isWinner = player.id === winnerId;
+            const isWinner = player.id === winnerId && !isDraw;
+            const pointsToAward = isWinner ? 500 : 0; // 500 points for win, 0 for loss/draw
             
             // Only save if player has FID (authenticated via Farcaster)
             if (player.fid) {
               console.log(`[GameManager] 💾 Saving score for ${player.username} (FID: ${player.fid})`);
-              console.log(`[GameManager]    - Correct Answers: ${correctAnswers}`);
-              console.log(`[GameManager]    - Points to Award: ${pointsToAward}`);
               console.log(`[GameManager]    - Is Winner: ${isWinner}`);
+              console.log(`[GameManager]    - Is Draw: ${isDraw}`);
+              console.log(`[GameManager]    - Points to Award: ${pointsToAward}`);
               
               await updatePlayerScore(
                 player.fid.toString(),
                 player.username,
                 player.pfpUrl || '',
-                pointsToAward, // Award points, not raw score
+                pointsToAward, // 500 for win, 0 for loss/draw
                 isWinner
               );
               
