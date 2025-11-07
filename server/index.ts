@@ -234,6 +234,11 @@ async function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQue
   const allSubjects = await getAvailableSubjects();
   const availableSubjects = allSubjects.sort(() => Math.random() - 0.5).slice(0, 3);
   
+  const now = Date.now();
+  const playerLastActivity = new Map<string, number>();
+  playerLastActivity.set(player1.playerId, now);
+  playerLastActivity.set(player2.playerId, now);
+  
   const room: GameRoom = {
     id: roomId,
     players,
@@ -256,7 +261,8 @@ async function createGameRoom(player1: MatchmakingQueue, player2: MatchmakingQue
     roundOverTimerStartedAt: null,
     playersReady: new Set(),
     usedSubjects: new Set(),
-    availableSubjectsForRound: availableSubjects
+    availableSubjectsForRound: availableSubjects,
+    playerLastActivity
   };
 
   gameRooms.set(roomId, room);

@@ -13,6 +13,94 @@ console.log(`[GameManager] Using Redis storage`);
 const SUBJECT_SELECTION_DURATION = 30000; // 30 seconds for choosing subject (with buffer for network delay)
 const TIMER_DURATION = 18000; // 18 seconds for answering questions
 const ROUND_OVER_AUTO_START_DURATION = 15000; // 15 seconds in milliseconds
+const INACTIVITY_TIMEOUT = 60000; // 60 seconds - forfeit if inactive
+const INACTIVITY_CHECK_INTERVAL = 10000; // Check every 10 seconds
+
+// Inactivity monitoring
+const inactivityMonitors = new Map<string, NodeJS.Timeout>();
+
+// Helper: Update player activity timestamp
+export async function updatePlayerActivity(playerId: string): Promise<void> {
+  const roomId = await storage.getPlayerRoom(playerId);
+  if (!roomId) return;
+
+  const room = await storage.getGameRoom(roomId);
+  if (!room) return;
+
+  if (!room.playerLastActivity) {
+    room.playerLastActivity = new Map();
+  }
+  
+  room.playerLastActivity.set(playerId, Date.now());
+  await storage.setGameRoom(roomId, room);
+}
+
+// Helper: Start inactivity monitoring for a room
+export function startInactivityMonitoring(roomId: string): void {
+  // Clear existing monitor
+  stopInactivityMonitoring(roomId);
+  
+  const intervalId = setInterval(async () => {
+    await checkInactivity(roomId);
+  }, INACTIVITY_CHECK_INTERVAL);
+  
+  inactivityMonitors.set(roomId, intervalId);
+  console.log(`[GameManager] ⏱️ Started inactivity monitoring for room ${roomId}`);
+}
+
+// Helper: Stop inactivity monitoring for a room
+export function stopInactivityMonitoring(roomId: string): void {
+  const intervalId = inactivityMonitors.get(roomId);
+  if (intervalId) {
+    clearInterval(intervalId);
+    inactivityMonitors.delete(roomId);
+    console.log(`[GameManager] ⏹️ Stopped inactivity monitoring for room ${roomId}`);
+  }
+}
+
+// Helper: Check for inactive players and auto-forfeit
+async function checkInactivity(roomId: string): Promise<void> {
+  const room = await storage.getGameRoom(roomId);
+  if (!room || room.state === 'game-over') {
+    stopInactivityMonitoring(roomId);
+    return;
+  }
+
+  const now = Date.now();
+  
+  for (const player of room.players) {
+    const lastActivity = room.playerLastActivity?.get(player.id) || 0;
+    const inactiveDuration = now - lastActivity;
+    
+    if (inactiveDuration > INACTIVITY_TIMEOUT) {
+      console.log(`[GameManager] ⚠️ Player ${player.username} inactive for ${Math.round(inactiveDuration/1000)}s - AUTO-FORFEIT`);
+      
+      // Find opponent
+      const opponent = room.players.find(p => p.id !== player.id);
+      
+      if (opponent) {
+        // Award win to opponent
+        room.scores.set(opponent.id, 999);
+        room.state = 'game-over';
+        
+        // Save scores to database
+        await updatePlayerScore(
+          opponent.fid?.toString() || '',
+          opponent.username,
+          opponent.pfpUrl || '',
+          500, // Win points
+          true
+        );
+        
+        await storage.setGameRoom(roomId, room);
+        console.log(`[GameManager] 🏆 ${opponent.username} wins by opponent inactivity!`);
+      }
+      
+      stopInactivityMonitoring(roomId);
+      return;
+    }
+  }
+}
 
 // Helper: Start auto-advance timer when round is over
 async function startRoundOverAutoStart(roomId: string): Promise<void> {
@@ -411,6 +499,9 @@ async function handleSubjectSelectionTimeout(roomId: string): Promise<void> {
   // Save room back to Redis
   await storage.setGameRoom(roomId, room);
   
+  // Start inactivity monitoring
+  startInactivityMonitoring(roomId);
+  
   // Start timer for each player's first question (sets timestamp in Redis)
   for (const p of room.players) {
     await startPlayerTimer(roomId, p.id);
@@ -462,6 +553,11 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
     const allSubjects = await getSubjects();
     const availableSubjects = getRandomSubjectsForRound([], allSubjects, 3);
     
+    const now = Date.now();
+    const playerLastActivity = new Map<string, number>();
+    playerLastActivity.set(player1.id, now);
+    playerLastActivity.set(player2.id, now);
+    
     const gameRoom: GameRoom = {
       id: roomId,
       players: [player1, player2],
@@ -474,7 +570,7 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       questions: [],
       answers: new Map(),
       scores: new Map([[player1.id, 0], [player2.id, 0]]),
-      timerStartedAt: Date.now() + 2000, // Add 2-second grace period for clients to connect
+      timerStartedAt: now + 2000, // Add 2-second grace period for clients to connect
       timerDuration: SUBJECT_SELECTION_DURATION, // 30 seconds for subject selection
       playerProgress: new Map([[player1.id, 0], [player2.id, 0]]),
       playerTimers: new Map(),
@@ -483,6 +579,7 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
       playersReady: new Set(),
       usedSubjects: new Set(),
       availableSubjectsForRound: availableSubjects,
+      playerLastActivity
     };
 
     await storage.setGameRoom(roomId, gameRoom);
@@ -491,8 +588,11 @@ export async function joinMatchmaking(player: Player): Promise<{ success: boolea
 
     // Start timer for subject selection
     await startSubjectTimer(roomId);
+    
+    // Start inactivity monitoring
+    startInactivityMonitoring(roomId);
 
-    console.log(`[GameManager] Match found! Room: ${roomId}, timer started`);
+    console.log(`[GameManager] Match found! Room: ${roomId}, timer started, inactivity monitoring started`);
     return { success: true, roomId, message: 'Match found!' };
   }
 
@@ -558,6 +658,9 @@ export async function selectSubject(playerId: string, subject: string): Promise<
   questions?: Question[];
 }> {
   console.log(`[GameManager] Select subject called - playerId: ${playerId}, subject: ${subject}`);
+  
+  // Update player activity
+  await updatePlayerActivity(playerId);
   
   const roomId = await storage.getPlayerRoom(playerId);
   console.log(`[GameManager] Room ID for player: ${roomId}`);
@@ -632,6 +735,9 @@ export async function selectSubject(playerId: string, subject: string): Promise<
   // Save room back to Redis before starting timers
   await storage.setGameRoom(roomId, room);
   
+  // Start inactivity monitoring
+  startInactivityMonitoring(roomId);
+  
   // Start timer for each player's first question
   for (const p of room.players) {
     await startPlayerTimer(roomId, p.id);
@@ -658,6 +764,9 @@ export async function submitAnswer(playerId: string, questionId: string, answerI
     score: number;
   };
 }> {
+  // Update player activity
+  await updatePlayerActivity(playerId);
+  
   const roomId = await storage.getPlayerRoom(playerId);
   if (!roomId) {
     console.log(`[GameManager] Submit answer - room not found for player ${playerId}`);

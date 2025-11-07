@@ -48,6 +48,8 @@ export interface GameRoom {
   playersReady: Set<string>; // playerIds who clicked "Next Round"
   usedSubjects: Set<string>; // Subjects that have been used in this game
   availableSubjectsForRound: string[]; // 3 random subjects available for current round
+  playerLastActivity: Map<string, number>; // playerId -> last activity timestamp
+  subjectTimerStart?: number; // Timestamp when subject selection timer started (for client sync)
 }
 
 export interface MatchmakingQueue {
