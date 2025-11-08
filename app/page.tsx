@@ -431,6 +431,63 @@ export default function Home() {
     initializeFrame();
   }, [attemptRejoin]);
 
+  // Handle app closure/disconnect - notify server immediately
+  useEffect(() => {
+    const handleDisconnect = async () => {
+      const currentPlayerId = playerIdRef.current;
+      const currentGameState = gameState;
+      
+      // Only send disconnect if player is in an active game (not idle, not searching)
+      if (currentPlayerId && currentGameState !== 'idle' && currentGameState !== 'searching') {
+        console.log('[Disconnect] 🚨 App closing/disconnecting, notifying server...');
+        
+        try {
+          // Use sendBeacon for reliability during page unload
+          const blob = new Blob(
+            [JSON.stringify({ playerId: currentPlayerId })],
+            { type: 'application/json' }
+          );
+          navigator.sendBeacon('/api/leave', blob);
+          console.log('[Disconnect] ✓ Disconnect notification sent via beacon');
+        } catch (error) {
+          console.error('[Disconnect] ❌ Failed to send disconnect notification:', error);
+        }
+      }
+    };
+
+    // Listen for page visibility changes (app going to background)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('[Visibility] 📴 App hidden/backgrounded');
+        handleDisconnect();
+      }
+    };
+
+    // Listen for page unload (app closing)
+    const handleBeforeUnload = () => {
+      console.log('[BeforeUnload] 🚪 App closing');
+      handleDisconnect();
+    };
+
+    // Listen for pagehide (more reliable on mobile)
+    const handlePageHide = () => {
+      console.log('[PageHide] 👋 Page hiding');
+      handleDisconnect();
+    };
+
+    // Add all event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [gameState]); // Re-run when gameState changes
+
   // Start matchmaking
   const findMatch = async () => {
     if (!farcasterUser) return;

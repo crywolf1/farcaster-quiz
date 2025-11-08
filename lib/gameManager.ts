@@ -1074,14 +1074,38 @@ export async function handlePlayerDisconnect(playerId: string): Promise<{ succes
     
     if (opponent && room.state !== 'game-over') {
       // Game in progress - opponent wins by forfeit
-      console.log(`[GameManager] Player ${playerId} left, ${opponent.username} wins by forfeit!`);
+      console.log(`[GameManager] 🚨 Player ${playerId} disconnected, ${opponent.username} wins by forfeit!`);
       
       // Award maximum score to opponent
       room.scores.set(opponent.id, 999);
       room.state = 'game-over';
       
+      // Save winner's score to database (500 points for win)
+      if (opponent.fid) {
+        try {
+          await updatePlayerScore(
+            opponent.fid.toString(),
+            opponent.username,
+            opponent.pfpUrl || '',
+            500, // Win points
+            true // isWin
+          );
+          console.log(`[GameManager] 💾 Saved forfeit win for ${opponent.username} (500 points)`);
+        } catch (error) {
+          console.error(`[GameManager] ❌ Failed to save score for ${opponent.username}:`, error);
+        }
+      }
+      
       // Save updated room
       await storage.setGameRoom(roomId, room);
+      
+      // Stop all monitoring for this room
+      stopInactivityMonitoring(roomId);
+      clearSubjectTimer(roomId);
+      clearRoundOverAutoStart(roomId);
+      room.players.forEach(p => clearPlayerTimer(p.id));
+      
+      console.log(`[GameManager] 🏆 Game ended by forfeit - ${opponent.username} wins!`);
       
       // Note: Don't delete the room yet - opponent needs to see the win message
       // The opponent will clean up when they leave or it will expire naturally
