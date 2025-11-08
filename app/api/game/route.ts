@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGameState } from '@/lib/gameManager';
+import { getGameState, updatePlayerActivity } from '@/lib/gameManager';
 
 // GET: Get current game state
 export async function GET(request: NextRequest) {
@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Update player activity when they poll for game state (means they're active)
+    await updatePlayerActivity(playerId);
 
     const gameState = await getGameState(playerId);
 

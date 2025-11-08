@@ -954,6 +954,9 @@ export async function startNextRound(playerId: string): Promise<{
   gameOver?: boolean;
   winner?: Player;
 }> {
+  // Update player activity
+  await updatePlayerActivity(playerId);
+  
   const roomId = await storage.getPlayerRoom(playerId);
   if (!roomId) {
     return { success: false, message: 'Game room not found' };
