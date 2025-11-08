@@ -14,8 +14,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Update player activity when they poll for game state (means they're active)
-    await updatePlayerActivity(playerId);
+    // Don't update activity on polling - only on actual actions
+    // This allows the 60s inactivity countdown to work properly
+    // Activity is updated on: selectSubject, submitAnswer, startNextRound
 
     const gameState = await getGameState(playerId);
 
